@@ -4,7 +4,7 @@ var blue = 0x0055ff;
 var red = 0xcc0000;
 var green = 0x009933;
 var purple = 0x990099;
-var lineWidth = 100;
+var lineWidth = 10;
 
 var addAtom = function(coor, atomRadius, atomColor){
 	var atomGeo = new THREE.SphereGeometry(atomRadius, 8, 8);
@@ -26,6 +26,44 @@ var addLine = function(coor1, coor2, lineColor){
         var line = new THREE.Line( lineGeo, lineMat );
         scene.add( line );
 };
+
+var initializeAnimation = function(){
+	scene = new THREE.Scene();
+	renderer = new THREE.WebGLRenderer();
+
+	var WIDTH; 			// browser window WIDTH
+	var HEIGHT; 		// browser window HEIGHT
+
+	WIDTH = window.innerWidth;
+	HEIGHT = window.innerHeight;
+
+	renderer.setSize(WIDTH,HEIGHT);
+	renderer.setClearColor(0xFFFFFF); // 0xFFFFFF corresponds to white
+	document.body.appendChild(renderer.domElement);
+
+	camera = new THREE.PerspectiveCamera(cubeLength*1.5, WIDTH / HEIGHT, 0.1, 20000);
+	camera.position.set(60,0,90);
+	scene.add(camera);
+
+	var light = new THREE.PointLight(0xFFFFFF); // white light
+	light.position.set(-100, 200, 100);
+	scene.add(light);
+
+	controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+	// Add axis lines for x, y, z
+	addLine([30,0,0], [-30,0,0], black);
+	addLine([0,30,0], [0,-30,0], black);
+	addLine([0,0,30], [0,0,-30], black);
+
+	// Visualize all the atoms in the original structure
+	for(var i = 0 ; i < MOF5.length; i++){
+	  addAtom([MOF5[i][0], MOF5[i][1], MOF5[i][2]], MOF5[i][5], MOF5[i][4]);
+	};
+
+	// Record number of total objects before IP
+	objectNumber = scene.children.length-1;
+};
 // -----------------------------------------------------------------------------
 var reset = function(objectNumber){
 	idx = 0;
@@ -35,6 +73,17 @@ var reset = function(objectNumber){
 	};
 };
 
+var initializeEnergyMap = function(){
+	calculateEnergyMap(difAtomsInfo, UC1, MOF5_Extended, cutOff);
+
+	// Determine initial coordinates from energy map
+	for(var i = 0; i < energyMap.length; i++){
+		if(energyMap[i][4] < initialCoorEnergyLimit){
+			initialCoordinates.push([energyMap[i][0], energyMap[i][1], energyMap[i][2]]);
+		};
+	};
+};
+// -----------------------------------------------------------------------------
 var degToRad = function(deg){
 	return deg/180*Math.PI;
 };
@@ -53,19 +102,7 @@ var findEmapIndex = function(coor, decimal, minCoor, maxCoor){
 };
 
 var PBC = function(coor, cutOff){
-	var pbcCoor = [];
-	for(var i = 0; i < coor.length; i++){
-		if(Math.abs(coor[i]) > cutOff){
-			pbcCoor[i] = coor[i] - Math.sign(coor[i])*(2*cutOff);
-		} else{
-			pbcCoor[i] = coor[i];
-		}
-	};
-	return pbcCoor;
-};
-
-var PBC2 = function(coor, cutOff){
-	var pbcCoor = [];
+	var pbcCoor = []; var translationAmount;
 	for(var i = 0; i < coor.length; i++){
 		if(Math.abs(coor[i]) > cutOff){
 			translationAmount = Math.ceil(Math.abs(coor[i] / cutOff));
@@ -194,16 +231,49 @@ function quaternion(w,x,y,z) {
   };
 };
 // -----------------------------------------------------------------------------
-var calculateEnergyMap = function(extendedStructure, ucA, ucB, ucC, cutOff){
-	var E = [22.156, 52.873, 30.213, 62.441]; // Epsilon for H, C, O, Zn
-	var S = [2.571, 3.431, 3.118, 2.462];     // Sigma for H, C, O, Zn
-	var A = ['H', 'C', 'O', 'Zn'];
+// Trilinear Interpolation
+var trInterpolate = function(coor, numAtoms){
+	var coor1 = []; var coor0 = []; var dif = [];
+
+	for(var i = 0; i < coor.length; i++){
+		coor0[i] = Math.floor(coor[i]);
+		coor1[i] = Math.ceil(coor[i]);
+		dif[i] = ( coor[i] - coor0[i] ) / ( coor1[i] - coor0[i] );
+	};
+
+	var i000 = findEmapIndex(coor0, grid.decimal, minCoor, maxCoor);
+	var i100 = findEmapIndex([coor1[0],coor0[1],coor0[2]], grid.decimal, minCoor, maxCoor);
+	var i001 = findEmapIndex([coor0[0],coor0[1],coor1[2]], grid.decimal, minCoor, maxCoor);
+	var i101 = findEmapIndex([coor1[0],coor0[1],coor1[2]], grid.decimal, minCoor, maxCoor);
+	var i010 = findEmapIndex([coor0[0],coor1[1],coor0[2]], grid.decimal, minCoor, maxCoor);
+	var i110 = findEmapIndex([coor1[0],coor1[1],coor0[2]], grid.decimal, minCoor, maxCoor);
+	var i011 = findEmapIndex([coor0[0],coor1[1],coor1[2]], grid.decimal, minCoor, maxCoor);
+	var i111 = findEmapIndex(coor1, grid.decimal, minCoor, maxCoor);
+
+	var V = []; var c00, c01, c10, c11, c0, c1, c;
+	for(var i = 0; i < numAtoms; i++){
+		c00 = energyMap[i000][i+3]*(1-dif[0]) + energyMap[i100][i+3]*dif[0];
+		c01 = energyMap[i001][i+3]*(1-dif[0]) + energyMap[i101][i+3]*dif[0];
+		c10 = energyMap[i010][i+3]*(1-dif[0]) + energyMap[i110][i+3]*dif[0];
+		c11 = energyMap[i011][i+3]*(1-dif[0]) + energyMap[i111][i+3]*dif[0];
+
+		c0 = c00*(1-dif[1]) + c10*dif[1];
+		c1 = c01*(1-dif[1]) + c11*dif[1];
+
+		c = c0*(1-dif[2]) + c1*dif[2];
+		V[i] = c;
+	};
+	return V;
+};
+
+var calculateEnergyMap = function(atomsInfo, UC, extendedStructure, cutOff){
+	var A = atomsInfo[0]; var E = atomsInfo[1]; var S = atomsInfo[2];
 	var V = [];
 	var Vtotal = [];
-	var i = 0;
-	minA = Math.round(- ucA / 2); maxA = Math.round(ucA / 2);
-	minB = Math.round(- ucB / 2); maxB = Math.round(ucB / 2);
-	minC = Math.round(- ucC / 2); maxC = Math.round(ucC / 2);
+	var i = 0; var r, atomCoor, eps, sig;
+	var minA = Math.round(- UC[0] / 2); var maxA = -minA;
+	var minB = Math.round(- UC[1] / 2); var maxB = -minB;
+	var minC = Math.round(- UC[2] / 2); var maxC = -minC;
 
 	for(var x = minA; x <= maxA; x = x + grid.length){
 	  for(var y = minB; y <= maxB; y = y + grid.length){
@@ -234,40 +304,3 @@ var calculateEnergyMap = function(extendedStructure, ucA, ucB, ucC, cutOff){
 	  };
 	};
 }; // Calculte energy Map Function
-//------------------------------------------------------------------------------
-
-  // Trilinear Interpolation
-var trInterpolate = function(coor, numAtoms){
-  var coor1 = []; var coor0 = []; var dif = [];
-
-  for(var i = 0; i < coor.length; i++){
-    coor0[i] = Math.floor(coor[i]);
-    coor1[i] = Math.ceil(coor[i]);
-    dif[i] = ( coor[i] - coor0[i] ) / ( coor1[i] - coor0[i] );
-  };
-
-  i000 = findEmapIndex(coor0, grid.decimal, minCoor, maxCoor);
-  i100 = findEmapIndex([coor1[0],coor0[1],coor0[2]], grid.decimal, minCoor, maxCoor);
-  i001 = findEmapIndex([coor0[0],coor0[1],coor1[2]], grid.decimal, minCoor, maxCoor);
-  i101 = findEmapIndex([coor1[0],coor0[1],coor1[2]], grid.decimal, minCoor, maxCoor);
-  i010 = findEmapIndex([coor0[0],coor1[1],coor0[2]], grid.decimal, minCoor, maxCoor);
-  i110 = findEmapIndex([coor1[0],coor1[1],coor0[2]], grid.decimal, minCoor, maxCoor);
-  i011 = findEmapIndex([coor0[0],coor1[1],coor1[2]], grid.decimal, minCoor, maxCoor);
-  i111 = findEmapIndex(coor1, grid.decimal, minCoor, maxCoor);
-
-  var V = [];
-  for(var i = 0; i < numAtoms; i++){
-    c00 = energyMap[i000][i+3]*(1-dif[0]) + energyMap[i100][i+3]*dif[0];
-    c01 = energyMap[i001][i+3]*(1-dif[0]) + energyMap[i101][i+3]*dif[0];
-    c10 = energyMap[i010][i+3]*(1-dif[0]) + energyMap[i110][i+3]*dif[0];
-    c11 = energyMap[i011][i+3]*(1-dif[0]) + energyMap[i111][i+3]*dif[0];
-
-    c0 = c00*(1-dif[1]) + c10*dif[1];
-    c1 = c01*(1-dif[1]) + c11*dif[1];
-
-    c = c0*(1-dif[2]) + c1*dif[2];
-    V[i] = c;
-  };
-
-  return V;
-}; // 3D Interpolation Function
