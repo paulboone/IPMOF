@@ -1,0 +1,361 @@
+<html>
+<head>
+  <title>Web-IPMOF</title>
+</head>
+
+<body>
+  <script src="Source/three.js"></script>              <!-- Load Three.js -->
+  <script src="Source/OrbitControls.js"></script>      <!-- Load mouse controls -->
+  <script src="IP Functions.js"></script>
+  <script src="MOF5.js"></script>
+  <script src="MOF5_Extended.js"></script>
+
+  <input style="position: absolute;left:-9999px;" type="radio" name="Pause" id="Play" />
+	<label for="Play">
+	<img src="Source/play-48.png" style="display:inline-block; position:absolute; left:0px;top:0px; cursor:pointer; padding:0px;"/></label>
+
+  <input style="position: absolute;left:-9999px;" type="radio" name="Pause" id="Pause" />
+	<label for="Pause">
+	<img src="Source/pause-48.png" style="display:inline-block; position:absolute; left:40px;top:0px; cursor:pointer; padding:0px;"/></label>
+
+  <input style="position: absolute; top:15px; left: 127px" type="range" name="fps" id="speed" value="5" min="0.1" max="120" />
+
+  <script>
+    // Define global variables
+    // --------------------- ANIMATION VARIABLES -------------------------------
+    var camera, renderer, scene, controls;
+    var fps = 5;                  // Frame per second (controlled by slider)
+    var objectNumber;             // Num of objects in the scene before adding atoms of second structure
+// -----------------------------------------------------------------------------
+    var initialCoordinates = [];  // Array of initial coordinates chosen from energy map if energy < (H)(H)
+    var energyMap = [];           // Array for storing energy values of each grid point in the unit cell
+    var newStructure = [];        // Array for storing coordinates of interpenetrating structure
+    var randomPoint;              // initial point for first atom selected randomly from initialCoordinates
+    var idx = 0;                  // Index for going through atoms in MOF unit cell
+    var structureCount = 0;       // Count the number of IP structures found
+    var trialCount = 0;           // Number of trials performed for interpenetration
+    var initialCoorTrialCount = 0;// To count the number of trials for different initial coordinates
+    var initialCoorIndex = 0;     // Index of coordinates selected from the energy map as inital coordinates
+// -----------------------------------------------------------------------------
+// ------------------------- Simulation Parameters -----------------------------
+    var cutOff = 13;              // Cut-off radius for LJ potential
+    var cubeLength = 26;          // Length of surrounding cube
+    var rotationFreedom = 6;
+    var collisionLimit = [3E20, 3E20, 3E20, 3E20];
+    var initialCoorEnergyLimit = 3E10;
+    var rotationLimit = 20;
+// ------------------------ Energy Map Variables -------------------------------
+    var grid = {};
+    grid.scale = 1; // The scale must be 1, 10, 100 ...
+    grid.size = grid.scale * cubeLength;
+    grid.length = cubeLength / grid.size;
+    grid.decimal = grid.size / cubeLength;
+    var eMapIndex;
+
+    var minCoor = -13; var maxCoor = 13;
+// --------------------------- Rotation Variables ------------------------------
+    var q = new quaternion(0,1,1,1);
+    var xAngle, yAngle, zAngle, newX, newY, newZ;
+    var translationVector;
+// -----------------------------------------------------------------------------
+
+  	function initialize() {
+
+      scene = new THREE.Scene();
+      renderer = new THREE.WebGLRenderer();
+
+      var WIDTH; 			// browser window WIDTH
+      var HEIGHT; 		// browser window HEIGHT
+
+      WIDTH = window.innerWidth;
+      HEIGHT = window.innerHeight;
+
+      renderer.setSize(WIDTH,HEIGHT);
+      renderer.setClearColor(0xFFFFFF); // 0xFFFFFF corresponds to white
+      document.body.appendChild(renderer.domElement);
+
+      camera = new THREE.PerspectiveCamera(cubeLength*1.5, WIDTH / HEIGHT, 0.1, 20000);
+      camera.position.set(60,0,90);
+      scene.add(camera);
+
+      var light = new THREE.PointLight(0xFFFFFF); // white light
+      light.position.set(-100, 200, 100);
+      scene.add(light);
+
+    	controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+      // Calculating the energy Map---------------------------------
+      var i = 0; var atomCoor = [];
+      var vC, vO, vZn, vH, r, vHtotal, vOtotal, vCtotal, vZntotal; // V: potential, r: distance btw atoms
+      var epsilon = {
+        C: 52.873,
+        Zn: 62.441,
+        H: 22.156,
+        O: 30.213
+      };
+      var sigma = {
+        C: 3.431,
+        Zn: 2.462,
+        H: 2.571,
+        O: 3.118
+      };
+      var eps, sig;
+
+      for(var x = minCoor; x <= maxCoor; x = x + grid.length){
+        for(var y = minCoor; y <= maxCoor; y = y + grid.length){
+          for(var z = minCoor; z <= maxCoor; z = z + grid.length){
+            energyMap[i] = [x,y,z];
+            vOtotal = 0; vHtotal = 0; vCtotal = 0; vZntotal = 0;
+            for(var j = 0; j < MOF5_Extended.length; j++){
+              atomCoor = [MOF5_Extended[j][0], MOF5_Extended[j][1], MOF5_Extended[j][2]];
+              r = coorDist(energyMap[i],atomCoor);
+              if(r > cutOff){ continue; };
+              if(r === 0){ vO = Infinity; vH = Infinity; vC = Infinity; vZn = Infinity; }
+              else{
+                switch(MOF5_Extended[j][3]){
+                  case 'C':
+                  eps = Math.sqrt(epsilon.H*epsilon.C);
+                  sig = (sigma.H + sigma.C) / 2;
+                  vH = 4*eps*(Math.pow((sig/r),12)-Math.pow((sig/r),6));
+
+                  eps = Math.sqrt(epsilon.C*epsilon.C);
+                  sig = (sigma.C + sigma.C) / 2;
+                  vC = 4*eps*(Math.pow((sig/r),12)-Math.pow((sig/r),6));
+
+                  eps = Math.sqrt(epsilon.O*epsilon.C);
+                  sig = (sigma.O + sigma.C) / 2;
+                  vO = 4*eps*(Math.pow((sig/r),12)-Math.pow((sig/r),6));
+
+                  eps = Math.sqrt(epsilon.Zn*epsilon.C);
+                  sig = (sigma.Zn + sigma.C) / 2;
+                  vZn = 4*eps*(Math.pow((sig/r),12)-Math.pow((sig/r),6));
+                  break;
+                  case 'O':
+                  eps = Math.sqrt(epsilon.H*epsilon.O);
+                  sig = (sigma.H + sigma.O) / 2;
+                  vH = 4*eps*(Math.pow((sig/r),12)-Math.pow((sig/r),6));
+
+                  eps = Math.sqrt(epsilon.C*epsilon.O);
+                  sig = (sigma.C + sigma.O) / 2;
+                  vC = 4*eps*(Math.pow((sig/r),12)-Math.pow((sig/r),6));
+
+                  eps = Math.sqrt(epsilon.O*epsilon.O);
+                  sig = (sigma.O + sigma.O) / 2;
+                  vO = 4*eps*(Math.pow((sig/r),12)-Math.pow((sig/r),6));
+
+                  eps = Math.sqrt(epsilon.Zn*epsilon.O);
+                  sig = (sigma.Zn + sigma.O) / 2;
+                  vZn = 4*eps*(Math.pow((sig/r),12)-Math.pow((sig/r),6));
+                  break;
+                  case 'Zn':
+                  eps = Math.sqrt(epsilon.H*epsilon.Zn);
+                  sig = (sigma.H + sigma.Zn) / 2;
+                  vH = 4*eps*(Math.pow((sig/r),12)-Math.pow((sig/r),6));
+
+                  eps = Math.sqrt(epsilon.C*epsilon.Zn);
+                  sig = (sigma.C + sigma.Zn) / 2;
+                  vC = 4*eps*(Math.pow((sig/r),12)-Math.pow((sig/r),6));
+
+                  eps = Math.sqrt(epsilon.O*epsilon.Zn);
+                  sig = (sigma.O + sigma.Zn) / 2;
+                  vO = 4*eps*(Math.pow((sig/r),12)-Math.pow((sig/r),6));
+
+                  eps = Math.sqrt(epsilon.Zn*epsilon.Zn);
+                  sig = (sigma.Zn + sigma.Zn) / 2;
+                  vZn = 4*eps*(Math.pow((sig/r),12)-Math.pow((sig/r),6));
+                  break;
+                  case 'H':
+                  eps = Math.sqrt(epsilon.H*epsilon.H);
+                  sig = (sigma.H + sigma.H) / 2;
+                  vH = 4*eps*(Math.pow((sig/r),12)-Math.pow((sig/r),6));
+
+                  eps = Math.sqrt(epsilon.C*epsilon.H);
+                  sig = (sigma.C + sigma.H) / 2;
+                  vC = 4*eps*(Math.pow((sig/r),12)-Math.pow((sig/r),6));
+
+                  eps = Math.sqrt(epsilon.O*epsilon.H);
+                  sig = (sigma.O + sigma.H) / 2;
+                  vO = 4*eps*(Math.pow((sig/r),12)-Math.pow((sig/r),6));
+
+                  eps = Math.sqrt(epsilon.Zn*epsilon.H);
+                  sig = (sigma.Zn + sigma.H) / 2;
+                  vZn = 4*eps*(Math.pow((sig/r),12)-Math.pow((sig/r),6));
+                  break;
+                }
+              };
+              vHtotal = vHtotal + vH;
+              vOtotal = vOtotal + vO;
+              vCtotal = vCtotal + vC;
+              vZntotal = vZntotal + vZn;
+            };
+            energyMap[i].push(vHtotal, vCtotal, vOtotal, vZntotal);
+            i++;
+          };
+        };
+      };
+
+
+
+      var a = 9.15019988; //bevqup
+      var b = 9.30387344;
+      var c = 9.30387381;
+      var alpha = 76.00684744;
+      var beta = 60.54508356;
+      var gamma = 60.54508655;
+      alpha = degToRad(alpha);
+      beta = degToRad(beta);
+      gamma = degToRad(gamma);
+
+      var p0 = [0,0,0];
+      addLine([-a*2,0,0], [a*2,0,0], purple); // x-axis
+      addLine([0,-b*2,0], [0,b*2,0], purple); // y-axis
+      addLine([0,0,-c*2], [0,0,c*2], purple); // z-axis
+
+      var pA = [a+p0[0],p0[1],p0[2]];
+      var pB = [a*Math.cos(gamma)+p0[0],b*Math.sin(gamma)+p0[1],p0[2]];
+      var pC = [a*Math.cos(beta)+p0[0],p0[1],c*Math.sin(beta)+p0[2]];
+      addLine(p0, pA, red);
+      addLine(p0, pB, green);
+      addLine(p0, pC, blue);
+
+      var pAB = coorAdd(pA, pB);
+      addLine(pA, pAB, black);
+      addLine(pB, pAB, black);
+
+      var pAC = coorAdd(pA, pC);
+      addLine(pA, pAC, black);
+      addLine(pC, pAC, black);
+
+      var pBC = coorAdd(pB, pC);
+      addLine(pB, pBC, black);
+      addLine(pC, pBC, black);
+
+      var pABC = coorAdd(pAB, pC);
+      addLine(pAB, pABC, black);
+
+      var pACB = coorAdd(pAC, pB);
+      addLine(pAC, pACB, black);
+
+      var pBCA = coorAdd(pBC, pA);
+      addLine(pBC, pBCA, black);
+      console.log(pA, pB, pC, pAB, pAC, pBC);
+
+      //for(var i = 0; i < )
+
+      // Add axis lines for x, y, z
+      //addLine([30,0,0], [-30,0,0]);
+      //addLine([0,30,0], [0,-30,0]);
+      //addLine([0,0,30], [0,0,-30]);
+      objectNumber = scene.children.length-1;
+      // Visualize all the atoms in the original structure
+      //for(var i = 0 ; i < MOF5.length; i++){
+      //  addAtom([MOF5[i][0], MOF5[i][1], MOF5[i][2]], MOF5[i][5], MOF5[i][4]);
+      //};
+      //var i2 = 0;
+      //for(var i = 0 ; i < MOF5_Extended.length; i++){
+      //  if(i % MOF5.length === 0){
+      //    i2 = 0;
+      //  };
+      //  addAtom([MOF5_Extended[i][0], MOF5_Extended[i][1], MOF5_Extended[i][2]], MOF5[i2][5], MOF5[i2][4]);
+      //};
+
+      // Record number of total objects before IP
+      objectNumber = scene.children.length-1;
+
+      // Determine initial coordinates from energy map
+      for(var i = 0; i < energyMap.length; i++){
+        if(energyMap[i][4] < initialCoorEnergyLimit){
+          initialCoordinates.push([energyMap[i][0], energyMap[i][1], energyMap[i][2]]);
+        };
+      };
+
+    };
+    function animate() {
+    	// Reads the input speed from the slider
+    	fps = document.getElementById("speed").value;
+    	// Sets the animation frame per second
+        setTimeout( function() { requestAnimationFrame( animate ); }, 1000 / fps );
+
+        renderer.render(scene, camera);
+
+          controls.update();
+
+        if(document.getElementById('Play').checked) {
+
+          if(idx === 0){
+            // Instead of randomly selecting points go one by one!!!
+            //randomPoint = initialCoordinates[Math.round(Math.random()*initialCoordinates.length)];
+            if(trialCount % rotationLimit === 0){
+              randomPoint = initialCoordinates[initialCoorIndex];
+              initialCoorIndex++;
+              initialCoorTrialCount++;
+            };
+
+            // Select rotation axis and angle
+            xAngle = Math.PI*2*Math.floor(Math.random()*(rotationFreedom))/rotationFreedom;
+            yAngle = Math.PI*2*Math.floor(Math.random()*(rotationFreedom))/rotationFreedom;
+            zAngle = Math.PI*2*Math.floor(Math.random()*(rotationFreedom))/rotationFreedom;
+
+            newCoor = [MOF5[0][0], MOF5[0][1], MOF5[0][2]];
+            q = q.rotation(newCoor, [0,0,0], [1,0,0], xAngle);
+            newCoor = [q.x, q.y, q.z];
+            q = q.rotation(newCoor, [0,0,0], [0,1,0], yAngle);
+            newCoor = [q.x, q.y, q.z];
+            q = q.rotation(newCoor, [0,0,0], [0,0,1], zAngle);
+            newCoor = [q.x, q.y, q.z];
+            trialCount++;
+
+            translationVector = coorDiff(newCoor, randomPoint);
+
+            addAtom(randomPoint, MOF5[idx][5], MOF5[idx][4]);
+            newStructure[structureCount] = [];
+            newStructure[structureCount][idx] = [randomPoint[0], randomPoint[1], randomPoint[2]];
+            idx++;
+
+
+            //structureID[trialCount] = [initialCoor[0],initialCoor[1],initialCoor[2]];
+            //structureID[trialCount].push(xAngle/Math.PI*180,yAngle/Math.PI*180,zAngle/Math.PI*180);
+            console.log(xAngle/Math.PI*180,yAngle/Math.PI*180,zAngle/Math.PI*180);
+
+          };
+
+          if(idx < MOF5.length && idx > 0){
+            newCoor = [MOF5[idx][0], MOF5[idx][1], MOF5[idx][2]];
+            q = q.rotation(newCoor, [0,0,0], [1,0,0], xAngle);
+            newCoor = [q.x, q.y, q.z];
+            q = q.rotation(newCoor, [0,0,0], [0,1,0], yAngle);
+            newCoor = [q.x, q.y, q.z];
+            q = q.rotation(newCoor, [0,0,0], [0,0,1], zAngle);
+            newCoor = [q.x, q.y, q.z];
+
+            newCoor = coorAdd(newCoor, translationVector);
+
+            // Check collisions here
+            pbcCoor = PBC2(newCoor, 13);
+            eMapIndex = findEmapIndex(pbcCoor, grid.decimal, minCoor, maxCoor);
+            atomType = findAtomType(MOF5[idx][3]);
+            if(energyMap[eMapIndex][atomType] >= collisionLimit[atomType-3]){
+              reset(objectNumber);
+              console.log('High Energy!!!!');
+            } else{
+              newStructure[structureCount][idx] = [newCoor[0], newCoor[1], newCoor[2]];
+              addAtom(newCoor, MOF5[idx][5], MOF5[idx][4]);
+              idx++;
+          };
+        } else {
+          recordStructure(MOF5, newStructure[structureCount], trialCount, structureCount);
+          structureCount++;
+          console.log('New Interpenetration found!');
+          reset(objectNumber);
+        };
+    };
+  };
+
+    initialize();
+
+    animate();
+
+  </script>
+
+</body>
+</html>

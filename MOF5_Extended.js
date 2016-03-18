@@ -1,4 +1,4 @@
-GLOBAL.MOF5_Extended = [];
+var MOF5_Extended = [];
 MOF5_Extended[0]	=	[-18.252, -20.494, -20.494, 'Zn'];
 MOF5_Extended[1]	=	[-19.373, -19.373, -19.373, 'O'];
 MOF5_Extended[2]	=	[-18.549, -20.197, -22.37, 'O'];
