@@ -64,6 +64,7 @@
     var A1 = ['H', 'C', 'O', 'Zn'];
     var UC1 = [26, 26, 26];
     var difAtomsInfo = [A1, E1, S1];
+    var MOF2 = MOF5;
 
     function animate() {
     	// Reads the input speed from the slider
@@ -73,7 +74,7 @@
 
         renderer.render(scene, camera);
 
-          controls.update();
+        controls.update();
 
         if(document.getElementById('Play').checked) {
 
@@ -90,7 +91,7 @@
             yAngle = Math.PI*2*Math.floor(Math.random()*(rotationFreedom))/rotationFreedom;
             zAngle = Math.PI*2*Math.floor(Math.random()*(rotationFreedom))/rotationFreedom;
 
-            newCoor = [MOF5[0][0], MOF5[0][1], MOF5[0][2]];
+            newCoor = [MOF2[0][0], MOF2[0][1], MOF2[0][2]];
             q = q.rotation(newCoor, [0,0,0], [1,0,0], xAngle);
             newCoor = [q.x, q.y, q.z];
             q = q.rotation(newCoor, [0,0,0], [0,1,0], yAngle);
@@ -101,7 +102,7 @@
 
             translationVector = coorDiff(newCoor, randomPoint);
 
-            addAtom(randomPoint, MOF5[idx][5], MOF5[idx][4]);
+            addAtom(randomPoint, MOF2[idx][5], MOF2[idx][4]);
             newStructure[structureCount] = [];
             newStructure[structureCount][idx] = [randomPoint[0], randomPoint[1], randomPoint[2]];
             idx++;
@@ -110,8 +111,8 @@
 
           };
 
-          if(idx < MOF5.length && idx > 0){
-            newCoor = [MOF5[idx][0], MOF5[idx][1], MOF5[idx][2]];
+          if(idx < MOF2.length && idx > 0){
+            newCoor = [MOF2[idx][0], MOF2[idx][1], MOF2[idx][2]];
             q = q.rotation(newCoor, [0,0,0], [1,0,0], xAngle);
             newCoor = [q.x, q.y, q.z];
             q = q.rotation(newCoor, [0,0,0], [0,1,0], yAngle);
@@ -124,17 +125,17 @@
             // Check collisions here
             pbcCoor = PBC(newCoor, 13);
             eMapIndex = findEmapIndex(pbcCoor, grid.decimal, minCoor, maxCoor);
-            atomType = findAtomType(MOF5[idx][3]);
+            atomType = findAtomType(MOF2[idx][3]);
             if(energyMap[eMapIndex][atomType] >= energyLimit){
               reset(objectNumber);
               console.log('High Energy!!!!');
             } else{
               newStructure[structureCount][idx] = [newCoor[0], newCoor[1], newCoor[2]];
-              addAtom(newCoor, MOF5[idx][5], MOF5[idx][4]);
+              addAtom(newCoor, MOF2[idx][5], MOF2[idx][4]);
               idx++;
           };
         } else {
-          recordStructure(MOF5, newStructure[structureCount], trialCount, structureCount);
+          recordStructure(MOF2, newStructure[structureCount], trialCount, structureCount);
           structureCount++;
           console.log('New Interpenetration found!');
           reset(objectNumber);
