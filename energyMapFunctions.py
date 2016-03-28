@@ -7,17 +7,62 @@
 import os
 import xlrd
 import math
+import numpy as np
+
+
+def energyMap(MOF1, MOF2, cutOff, gridSize):
+    """
+    Calculate energy map for two given MOF class. MOF1 -> stationary (map) MOF2 -> mobile
+    Packed coordinates for MOF1 n=must be defined before running the function
+    """
+    ucLimit = [math.ceil(MOF1.UCsize[0]), math.ceil(MOF1.UCsize[1]), math.ceil(MOF1.UCsize[2])]
+
+    xGrid = np.linspace(0, ucLimit[0], ucLimit[0]/gridSize+1)
+    yGrid = np.linspace(0, ucLimit[1], ucLimit[1]/gridSize+1)
+    zGrid = np.linspace(0, ucLimit[2], ucLimit[2]/gridSize+1)
+
+    numAtomsMOF1 = len(MOF1.uniqueAtomNames)
+    numAtomsMOF2 = len(MOF2.uniqueAtomNames)
+
+    # Initialize energy map according to grid size and coordinates plus number of unique atoms
+    energyMap = np.zeros([len(xGrid)*len(yGrid)*len(zGrid), numAtomsMOF2+3])
+
+    sig, eps = LBmix(MOF1.sigma, MOF2.sigma, MOF1.epsilon, MOF2.epsilon)
+
+    mapIndex = 0
+    V = np.zeros([numAtomsMOF2])
+
+    for x in xGrid:
+        for y in yGrid:
+            for z in zGrid:
+                energyMap[mapIndex][0:3] = [x, y, z]
+                Vtotal = np.zeros([numAtomsMOF2])
+                for unitCell in MOF1.packedCoor:
+                    MOF1index = 0
+                    for atomCoor in unitCell:
+                        atomIndex1 = MOF1.uniqueAtomNames.index(MOF1.atomName[MOF1index])
+                        MOF1index += 1
+                        r = coorDist(atomCoor, [x, y, z])
+                        if r > cutOff:
+                            continue
+                        if r == 0:
+                            energyMap[mapIndex][3:(numAtomsMOF2+3)] = np.ones([1, numAtomsMOF2])*inf
+                        else:
+                            for atomIndex2 in range(numAtomsMOF2):
+                                V[atomIndex2] = calculateLJ(r, sig[atomIndex1][atomIndex2], eps[atomIndex1][atomIndex2])
+                                Vtotal[atomIndex2] = Vtotal[atomIndex2] + V[atomIndex2]
+                energyMap[mapIndex][3:(numAtomsMOF2+3)] = Vtotal
+                mapIndex += 1
+    return energyMap
 
 
 def readMol2(MOFfile):
     """
-    Read mol2 file after opening the file in python
-    Returns: unit cell size [a, b, c] , unit cell angles [alpha, beta, gamma],atom names and atom coordinates [x, y, z]
+    Reads mol2 file after opening the file in python and returns unit cell size [a, b, c],
+    unit cell angles [alpha, beta, gamma], atom names and atom coordinates [x, y, z]
     """
-
-    lineCount1 = 0
-    lineCount2 = 0
-    readCoordinates = False
+    lineCount = 0
+    readCoordinates = False 
 
     for line in MOFfile:
         if '@<TRIPOS>ATOM' in line:
@@ -36,15 +81,15 @@ def readMol2(MOFfile):
             atomZ.append(float(line.split()[4]))
             atomCoor.append([float(line.split()[2]), float(line.split()[3]), float(line.split()[4])])
         if '@<TRIPOS>CRYSIN' in line:
-            lineCount2 +=1
-        if lineCount2 == 1 and '@<TRIPOS>CRYSIN' not in line:
+            lineCount += 1
+        if lineCount == 1 and '@<TRIPOS>CRYSIN' not in line:
             a = float(line.split()[0])
             b = float(line.split()[1])
             c = float(line.split()[2])
             alpha = float(line.split()[3])
             beta = float(line.split()[4])
             gamma = float(line.split()[5])
-            lineCount2 +=1
+            lineCount += 1
 
     UCsize = [a, b, c]
     UCangle = [alpha, beta, gamma]
@@ -52,9 +97,9 @@ def readMol2(MOFfile):
 
     return UCsize, UCangle, atomName, atomCoor
 
+
 # Generates a list of MOF files in given directory with given file format (ex: "".mol2")
 def generateMOFlist(fileDir, fileFormat):
-    os.chdir(fileDir)
     fileList = os.listdir(fileDir)
     MOFlist = []
     for fileName in fileList:
@@ -62,13 +107,14 @@ def generateMOFlist(fileDir, fileFormat):
             MOFlist.append(fileName)
     return MOFlist
 
+
 # Separates different types of atoms using the atom coordinates and atom names
 # Returns unique atom coordinates and unique atoms
 def separateAtoms(atomCoor, atomNames):
     uniqueAtoms = []
     for atom in atomNames:
-          if not atom in uniqueAtoms:
-              uniqueAtoms.append(atom)
+        if atom not in uniqueAtoms:
+            uniqueAtoms.append(atom)
 
     uniqueAtomCoor = [[] for i in range(len(uniqueAtoms))]
 
@@ -80,6 +126,7 @@ def separateAtoms(atomCoor, atomNames):
             uniqueAtomIndex += 1
 
     return uniqueAtoms, uniqueAtomCoor
+
 
 # Read force field parameters from an excel file according to force field selection
 def readFFparameters(excelFileDir, FFselection):
@@ -100,8 +147,11 @@ def readFFparameters(excelFileDir, FFselection):
     else:
         print('No such force field')
 
-# Get force field parameters of the atom list and force field parameters you provide
+
 def getFFparameters(atomNames, FFparameters):
+    """
+    Get force field parameters of the atom list and force field parameters you provide
+    """
     atomFFparameters = []
     for atom in atomNames:
         for i in range(len(FFparameters[0])):
@@ -112,8 +162,12 @@ def getFFparameters(atomNames, FFparameters):
                 atomFFparameters.append([atomName, sigma, epsilon])
     return atomFFparameters
 
-# Calculates surrounding grid points for a given point in energy map
+
 def gridBox(p, grid):
+    """
+    Calculates surrounding grid points for a given point in energy map
+    Input x,y,z coordinates of point in space and grid size to get floor and ceiling values
+    """
     floor = []
     ceil = []
     index = 0
@@ -123,11 +177,13 @@ def gridBox(p, grid):
         index += 1
     return floor, ceil
 
+
 # MOF class that holds coordinate, atom name, and unit cell information
 class MOF:
     def initialize(self):
         self.UCsize, self.UCangle, self.atomName, self.atomCoor = readMol2(self.file)
         self.uniqueAtomNames, self.uniqueAtomCoor = separateAtoms(self.atomCoor, self.atomName)
+
     def initializeFF(self, FFtype):
         FFparam = getFFparameters(self.uniqueAtomNames, FFtype)
         self.sigma = []
@@ -137,9 +193,11 @@ class MOF:
             self.sigma.append(FFparam[i][1])
             self.epsilon.append(FFparam[i][2])
 
+
 # Calculates distance between two given coordinates in list form
 def coorDist(coor1, coor2):
-    return sqrt((coor1[0] - coor2[0])**2 + (coor1[1] - coor2[1])**2 + (coor1[2] - coor2[2])**2)
+    return math.sqrt((coor1[0] - coor2[0])**2 + (coor1[1] - coor2[1])**2 + (coor1[2] - coor2[2])**2)
+
 
 # Lorentz-Berthelot mixing rules for given lists of sigma1, sigma2, epsilon1, and epsilon2
 def LBmix(sigmaList1, sigmaList2, epsilonList1, epsilonList2):
@@ -149,16 +207,18 @@ def LBmix(sigmaList1, sigmaList2, epsilonList1, epsilonList2):
     for index1 in range(len(sigmaList1)):
         for index2 in range(len(sigmaList2)):
             sig[index1][index2] = (sigmaList1[index1] + sigmaList2[index2]) / 2
-            eps[index1][index2] = sqrt(epsilonList1[index1] * epsilonList2[index2])
+            eps[index1][index2] = math.sqrt(epsilonList1[index1] * epsilonList2[index2])
 
     return sig, eps
 
+
 # Calculate Lennard Jones potential for give distance, sigma, and epsilon values
 def calculateLJ(r, sig, eps):
-    return 4*eps*((sig/r)**12-(sig/r)**6)
+    return 4 * eps * ( (sig/r)**12 - (sig/r)**6 )
+
 
 # Packing class containing functions used for packing unit cells
-class packing:
+class Packing:
 
     def factor(UCsize, cutOff):
         packingFactor = []
@@ -226,6 +286,7 @@ class packing:
 
         return packedCoor
 
+
 # Plots atom coordinates for packed unit cells
 def plotPackedCell(packedCoor, azim, elev):
     import numpy as np
@@ -233,6 +294,7 @@ def plotPackedCell(packedCoor, azim, elev):
     import matplotlib.pyplot as plt
 
     from mpl_toolkits.mplot3d import proj3d
+
     def orthogonal_proj(zfront, zback):
         a = (zfront+zback)/(zfront-zback)
         b = -2*(zfront*zback)/(zfront-zback)
@@ -242,14 +304,13 @@ def plotPackedCell(packedCoor, azim, elev):
                             [0,0,0,zback]])
     proj3d.persp_transformation = orthogonal_proj
 
-    fig = plt.figure(figsize=(10,8))
+    fig = plt.figure(figsize=(10, 8))
     ax = fig.add_subplot(111, projection='3d')
 
     for i in range(len(packedCoor)):
         for coor in packedCoor[i]:
             r = i / len(packedCoor)
             ax.scatter(coor[0], coor[1], coor[2], '-o', c=[r, 0.1, 0.1], s=10)
-
 
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
@@ -259,6 +320,7 @@ def plotPackedCell(packedCoor, azim, elev):
     ax.elev = elev
 
     plt.show()
+
 
 # Export coordinates to xyz file
 def exportXYZ(packedCoor, atomNames, exportDir):
