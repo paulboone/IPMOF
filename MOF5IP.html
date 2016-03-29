@@ -9,6 +9,7 @@
   <script src="IP Functions.js"></script>
   <script src="MOF5.js"></script>
   <script src="MOF5_Extended.js"></script>
+  <script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
 
   <input style="position: absolute;left:-9999px;" type="radio" name="Pause" id="Play" />
 	<label for="Play">
@@ -65,6 +66,26 @@
     var UC1 = [26, 26, 26];
     var difAtomsInfo = [A1, E1, S1];
     var MOF2 = MOF5;
+    var MOF; var energyMap;
+    // python -m http.server
+    $(function(){
+        $.getJSON('http://localhost:8000/MOF5_eMap.json',function(eMap){
+          energyMap = eMap;
+            console.log('Energy Map read');
+        }).error(function(){
+            console.log('error');
+        });
+    });
+
+    $(function(){
+        $.getJSON('http://localhost:8000/MOF5.json',function(MOFcoor){
+          MOF = MOFcoor;
+            console.log('MOF coordinates read');
+        }).error(function(){
+            console.log('error');
+        });
+    });
+
 
     function animate() {
     	// Reads the input speed from the slider
@@ -78,6 +99,8 @@
 
         if(document.getElementById('Play').checked) {
 
+          console.log(energyMap[0])
+          console.log(MOF[0])
           if(idx === 0){
 
             if(trialCount % rotationLimit === 0){
@@ -102,7 +125,7 @@
 
             translationVector = coorDiff(newCoor, randomPoint);
 
-            addAtom(randomPoint, MOF2[idx][5], MOF2[idx][4]);
+            addAtom(randomPoint, 0.5, 0X262626);
             newStructure[structureCount] = [];
             newStructure[structureCount][idx] = [randomPoint[0], randomPoint[1], randomPoint[2]];
             idx++;
@@ -131,7 +154,7 @@
               console.log('High Energy!!!!');
             } else{
               newStructure[structureCount][idx] = [newCoor[0], newCoor[1], newCoor[2]];
-              addAtom(newCoor, MOF2[idx][5], MOF2[idx][4]);
+              addAtom(newCoor, 0.5, 0X262626);
               idx++;
           };
         } else {
@@ -145,7 +168,7 @@
 
     initializeAnimation();
 
-    initializeEnergyMap();
+    //initializeEnergyMap();
 
     animate();
 
