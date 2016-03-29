@@ -10,10 +10,12 @@ import math
 import numpy as np
 
 
-def energyMap(MOF1, MOF2, cutOff, gridSize):
+def energyMap(MOF1, atomList, cutOff, gridSize):
     """
-    Calculate energy map for two given MOF class. MOF1 -> stationary (map) MOF2 -> mobile
-    Packed coordinates for MOF1 n=must be defined before running the function
+    Calculate energy map for a given MOF class.
+    MOF -> base (map) | atomFFparameters -> sigma and epsilon values for given atoms
+    cutOff -> cut-off value for LJ potential | gridSize -> grid size array for each dimension
+    Packed coordinates for MOF1 must be defined before running the function.
     """
     ucLimit = [math.ceil(MOF1.UCsize[0]), math.ceil(MOF1.UCsize[1]), math.ceil(MOF1.UCsize[2])]
 
@@ -21,22 +23,22 @@ def energyMap(MOF1, MOF2, cutOff, gridSize):
     yGrid = np.linspace(0, ucLimit[1], ucLimit[1]/gridSize+1)
     zGrid = np.linspace(0, ucLimit[2], ucLimit[2]/gridSize+1)
 
-    numAtomsMOF1 = len(MOF1.uniqueAtomNames)
-    numAtomsMOF2 = len(MOF2.uniqueAtomNames)
+    numAtomsMOF = len(MOF1.uniqueAtomNames)
+    numAtomsEnergy = len(atomList['sigma'])
 
     # Initialize energy map according to grid size and coordinates plus number of unique atoms
-    energyMap = np.zeros([len(xGrid)*len(yGrid)*len(zGrid), numAtomsMOF2+3])
+    energyMap = np.zeros([len(xGrid)*len(yGrid)*len(zGrid), numAtomsEnergy+3])
 
-    sig, eps = LBmix(MOF1.sigma, MOF2.sigma, MOF1.epsilon, MOF2.epsilon)
+    sig, eps = LBmix(MOF1.sigma, atomList['sigma'], MOF1.epsilon, atomList['epsilon'])
 
     mapIndex = 0
-    V = np.zeros([numAtomsMOF2])
+    V = np.zeros([numAtomsEnergy])
 
     for x in xGrid:
         for y in yGrid:
             for z in zGrid:
                 energyMap[mapIndex][0:3] = [x, y, z]
-                Vtotal = np.zeros([numAtomsMOF2])
+                Vtotal = np.zeros([numAtomsEnergy])
                 for unitCell in MOF1.packedCoor:
                     MOF1index = 0
                     for atomCoor in unitCell:
@@ -46,12 +48,12 @@ def energyMap(MOF1, MOF2, cutOff, gridSize):
                         if r > cutOff:
                             continue
                         if r == 0:
-                            energyMap[mapIndex][3:(numAtomsMOF2+3)] = np.ones([1, numAtomsMOF2])*inf
+                            energyMap[mapIndex][3:(numAtomsEnergy+3)] = np.ones([1, numAtomsEnergy])*inf
                         else:
-                            for atomIndex2 in range(numAtomsMOF2):
+                            for atomIndex2 in range(numAtomsEnergy):
                                 V[atomIndex2] = calculateLJ(r, sig[atomIndex1][atomIndex2], eps[atomIndex1][atomIndex2])
                                 Vtotal[atomIndex2] = Vtotal[atomIndex2] + V[atomIndex2]
-                energyMap[mapIndex][3:(numAtomsMOF2+3)] = Vtotal
+                energyMap[mapIndex][3:(numAtomsEnergy+3)] = Vtotal
                 mapIndex += 1
     return energyMap
 
@@ -62,7 +64,7 @@ def readMol2(MOFfile):
     unit cell angles [alpha, beta, gamma], atom names and atom coordinates [x, y, z]
     """
     lineCount = 0
-    readCoordinates = False 
+    readCoordinates = False
 
     for line in MOFfile:
         if '@<TRIPOS>ATOM' in line:
@@ -311,6 +313,70 @@ def plotPackedCell(packedCoor, azim, elev):
         for coor in packedCoor[i]:
             r = i / len(packedCoor)
             ax.scatter(coor[0], coor[1], coor[2], '-o', c=[r, 0.1, 0.1], s=10)
+
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+
+    ax.azim = azim
+    ax.elev = elev
+
+    plt.show()
+
+
+def plotEnergyMap(eMap, azim, elev):
+    import numpy as np
+    from mpl_toolkits.mplot3d import Axes3D
+    import matplotlib.pyplot as plt
+    %pylab inline
+
+    from mpl_toolkits.mplot3d import proj3d
+
+    def orthogonal_proj(zfront, zback):
+        a = (zfront+zback)/(zfront-zback)
+        b = -2*(zfront*zback)/(zfront-zback)
+        return np.array([[1,0,0,0],
+                            [0,1,0,0],
+                            [0,0,a,b],
+                            [0,0,0,zback]])
+    proj3d.persp_transformation = orthogonal_proj
+
+    xCoor = []
+    yCoor = []
+    zCoor = []
+    energy = []
+    for i in range(len(eMap)):
+        xCoor.append(eMap[i][0])
+        yCoor.append(eMap[i][1])
+        zCoor.append(eMap[i][2])
+        energy.append(eMap[i][3])
+    scale = 1E20
+    colors = []
+    rgb = np.zeros([len(energy), 3])
+    for i in range(len(energy)):
+        if energy[i] > max(energy)*0.5/scale:
+            energy[i] = 1
+        elif energy[i] > max(energy)*0.25/scale:
+            energy[i] = 0.9
+        elif energy[i] > max(energy)*0.1/scale:
+            energy[i] = 0.8
+        elif energy[i] > max(energy)*0.075/scale:
+            energy[i] = 0.7
+        elif energy[i] > max(energy)*0.05/scale:
+            energy[i] = 0.6
+        elif energy[i] > max(energy)*0.025/scale:
+            energy[i] = 0.5
+        elif energy[i] > max(energy)*0.01/scale:
+            energy[i] = 0.4
+        else:
+            energy[i] = 0.3
+        colors.append(energy[i])
+        rgb[i][0] = colors[i]
+
+    fig = plt.figure(figsize=(12, 12))
+    ax = fig.add_subplot(111, projection='3d')
+
+    ax.scatter(xCoor, yCoor, zCoor, 'o', c=rgb, edgecolor='')
 
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
