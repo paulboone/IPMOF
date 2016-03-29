@@ -328,7 +328,6 @@ def plotEnergyMap(eMap, azim, elev):
     import numpy as np
     from mpl_toolkits.mplot3d import Axes3D
     import matplotlib.pyplot as plt
-    %pylab inline
 
     from mpl_toolkits.mplot3d import proj3d
 
