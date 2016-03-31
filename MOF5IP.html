@@ -9,6 +9,7 @@
   <script src="IP Functions.js"></script>
   <script src="MOF5.js"></script>
   <script src="MOF5_Extended.js"></script>
+  <script src="atomVisData.js"></script>
   <script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
 
   <input style="position: absolute;left:-9999px;" type="radio" name="Pause" id="Play" />
@@ -63,6 +64,8 @@
     var E1 = [22.156, 52.873, 30.213, 62.441]; // Epsilon for H, C, O, Zn
     var S1 = [2.571, 3.431, 3.118, 2.462];     // Sigma for H, C, O, Zn
     var A1 = ['H', 'C', 'O', 'Zn'];
+    var atomVis = getAtomVisData(A1);
+    console.log(atomVis.name, atomVis.color, atomVis.radius);
     var UC1 = [26, 26, 26];
     var difAtomsInfo = [A1, E1, S1];
     var MOF2 = MOF5;

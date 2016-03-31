@@ -8,7 +8,9 @@ var lineWidth = 10;
 
 var addAtom = function(coor, atomRadius, atomColor){
 	var atomGeo = new THREE.SphereGeometry(atomRadius, 8, 8);
-	var atomMat = new THREE.MeshLambertMaterial( { color: atomColor } );
+	var rgbColor = new THREE.Color();
+	rgbColor.setRGB(atomColor[0]/255, atomColor[1]/255, atomColor[2]/255);
+	var atomMat = new THREE.MeshLambertMaterial( { color: rgbColor } );
 	newAtom = new THREE.Mesh(atomGeo, atomMat);
 	newAtom.position.set( coor[0], coor[1], coor[2] );
 	scene.add( newAtom );
@@ -57,8 +59,15 @@ var initializeAnimation = function(){
 	addLine([0,0,30], [0,0,-30], black);
 
 	// Visualize all the atoms in the original structure
+	var atomRadius, atomColor;
 	for(var i = 0 ; i < MOF5.length; i++){
-	  addAtom([MOF5[i][0], MOF5[i][1], MOF5[i][2]], MOF5[i][5], MOF5[i][4]);
+		for(var visIndex = 0; visIndex < atomVis.name.length; visIndex++){
+			if(atomVis.name[visIndex] === MOF5[i][3]){
+				atomColor = atomVis.color[visIndex];
+				atomRadius = atomVis.radius[visIndex];
+			};
+		};
+	  addAtom([MOF5[i][0], MOF5[i][1], MOF5[i][2]], atomRadius, atomColor);
 	};
 
 	// Record number of total objects before IP
