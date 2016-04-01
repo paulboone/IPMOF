@@ -389,9 +389,13 @@ def plotEnergyMap(eMap, azim, elev):
 
 def exportEnergyMapjs(eMap, atomList, exportDir):
     eMapFile = open(exportDir, 'w')
+
     eMapFile.write("var eMapNames = [];\n")
+    atomIndex = 0
     for atom in atomList['name']:
         eMapFile.write("eMapNames[" + atomIndex + "] = [" + atom + "];\n")
+        atomIndex += 1
+
     eMapFile.write("var eMap = [];\n")
     eMapIndex = 0
     for line in eMap:
