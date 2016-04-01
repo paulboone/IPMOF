@@ -390,10 +390,10 @@ def plotEnergyMap(eMap, azim, elev):
 def exportEnergyMapjs(eMap, atomList, exportDir):
     eMapFile = open(exportDir, 'w')
 
-    eMapFile.write("var eMapNames = [];\n")
+    eMapFile.write("var eMapAtomNames = [];\n")
     atomIndex = 0
     for atom in atomList['name']:
-        eMapFile.write("eMapNames[" + atomIndex + "] = [" + atom + "];\n")
+        eMapFile.write("eMapAtomNames[" + str(atomIndex) + "] = ['" + atom + "'];\n")
         atomIndex += 1
 
     eMapFile.write("var eMap = [];\n")
@@ -403,7 +403,7 @@ def exportEnergyMapjs(eMap, atomList, exportDir):
         for i in range(len(line)):
             if i == 0:
                 eMapFile.write("[" + str(line[i]) + ", ")
-            if i == len(line)-1:
+            elif i == len(line)-1:
                 eMapFile.write(str(line[i]) + "];\n")
             else:
                 eMapFile.write(str(line[i]) + ", ")
@@ -414,9 +414,11 @@ def exportEnergyMapjs(eMap, atomList, exportDir):
 def exportMOFjs(MOF, exportDir):
     MOFfile = open(exportDir, 'w')
 
-    eMapFile.write("var MOFatomNames = [];\n")
+    MOFfile.write("var MOFatomNames = [];\n")
+    atomIndex = 0
     for atom in MOF.uniqueAtomNames:
-        eMapFile.write("MOFatomNames[" + atomIndex + "] = [" + atom + "];\n")
+        MOFfile.write("MOFatomNames[" + str(atomIndex) + "] = ['" + atom + "'];\n")
+        atomIndex += 1
 
     MOFfile.write("var MOF = [];\n")
     for MOFindex in range(len(MOF.atomName)):
