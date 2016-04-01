@@ -216,7 +216,7 @@ def LBmix(sigmaList1, sigmaList2, epsilonList1, epsilonList2):
 
 # Calculate Lennard Jones potential for give distance, sigma, and epsilon values
 def calculateLJ(r, sig, eps):
-    return 4 * eps * ( (sig/r)**12 - (sig/r)**6 )
+    return 4 * eps * ((sig/r)**12 - (sig/r)**6)
 
 
 # Packing class containing functions used for packing unit cells
@@ -300,10 +300,10 @@ def plotPackedCell(packedCoor, azim, elev):
     def orthogonal_proj(zfront, zback):
         a = (zfront+zback)/(zfront-zback)
         b = -2*(zfront*zback)/(zfront-zback)
-        return np.array([[1,0,0,0],
-                            [0,1,0,0],
-                            [0,0,a,b],
-                            [0,0,0,zback]])
+        return np.array([[1, 0, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, a, b],
+                        [0, 0, 0, zback]])
     proj3d.persp_transformation = orthogonal_proj
 
     fig = plt.figure(figsize=(10, 8))
@@ -334,10 +334,10 @@ def plotEnergyMap(eMap, azim, elev):
     def orthogonal_proj(zfront, zback):
         a = (zfront+zback)/(zfront-zback)
         b = -2*(zfront*zback)/(zfront-zback)
-        return np.array([[1,0,0,0],
-                            [0,1,0,0],
-                            [0,0,a,b],
-                            [0,0,0,zback]])
+        return np.array([[1, 0, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, a, b],
+                        [0, 0, 0, zback]])
     proj3d.persp_transformation = orthogonal_proj
 
     xCoor = []
@@ -385,6 +385,32 @@ def plotEnergyMap(eMap, azim, elev):
     ax.elev = elev
 
     plt.show()
+
+
+def exportEnergyMapjs(eMap, exportDir):
+    eMapFile = open(exportDir, 'w')
+    eMapFile.write("var eMap = [];\n")
+    eMapIndex = 0
+    for line in eMap:
+        eMapFile.write("eMap[" + str(eMapIndex) + "] = ")
+        eMapFile.write("[" + str(line[0]) + ", ")
+        eMapFile.write(str(line[1]) + ", ")
+        eMapFile.write(str(line[2]) + ", ")
+        eMapFile.write(str(line[3]) + "];\n")
+        eMapIndex += 1
+    eMapFile.close()
+
+
+def exportMOFjs(MOF, exportDir):
+    MOFfile = open(exportDir, 'w')
+    MOFfile.write("var MOF = [];\n")
+    for MOFindex in range(len(MOF.atomName)):
+        MOFfile.write("MOF[" + str(MOFindex) + "] = [")
+        MOFfile.write(str(MOF.atomCoor[MOFindex][0]) + ", ")
+        MOFfile.write(str(MOF.atomCoor[MOFindex][1]) + ", ")
+        MOFfile.write(str(MOF.atomCoor[MOFindex][2]) + ", ")
+        MOFfile.write("'" + str(MOF.atomName[MOFindex]) + "'" + "];\n")
+    MOFfile.close()
 
 
 # Export coordinates to xyz file
