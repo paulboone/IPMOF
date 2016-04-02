@@ -48,7 +48,7 @@ def energyMap(MOF1, atomList, cutOff, gridSize):
                         if r > cutOff:
                             continue
                         if r == 0:
-                            energyMap[mapIndex][3:(numAtomsEnergy+3)] = np.ones([1, numAtomsEnergy])*inf
+                            energyMap[mapIndex][3:(numAtomsEnergy+3)] = np.ones([1, numAtomsEnergy])*math.inf
                         else:
                             for atomIndex2 in range(numAtomsEnergy):
                                 V[atomIndex2] = calculateLJ(r, sig[atomIndex1][atomIndex2], eps[atomIndex1][atomIndex2])
