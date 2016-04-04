@@ -100,6 +100,104 @@ def readMol2(MOFfile):
     return UCsize, UCangle, atomName, atomCoor
 
 
+def exportEnergyMapjs(eMap, atomList, exportDir):
+    eMapFile = open(exportDir, 'w')
+
+    eMapFile.write("var eMapAtomNames = [];\n")
+    atomIndex = 0
+    for atom in atomList['name']:
+        eMapFile.write("eMapAtomNames[" + str(atomIndex) + "] = ['" + atom + "'];\n")
+        atomIndex += 1
+
+    eMapFile.write("var eMap = [];\n")
+    eMapIndex = 0
+    for line in eMap:
+        eMapFile.write("eMap[" + str(eMapIndex) + "] = ")
+        for i in range(len(line)):
+            if i == 0:
+                eMapFile.write("[" + str(line[i]) + ", ")
+            elif i == len(line)-1:
+                eMapFile.write(str(line[i]) + "];\n")
+            else:
+                eMapFile.write(str(line[i]) + ", ")
+        eMapIndex += 1
+    eMapFile.close()
+
+
+def exportUniqueEnergyMapjs(eMap, eMapAtomList, MOFindex, exportDir):
+    eMapFile = open(exportDir, 'w')
+
+    eMapFile.write("var eMapAtomNames = [];\n")
+    atomIndex = 0
+    for atom in eMapAtomList[MOFindex]['name']:
+        eMapFile.write("eMapAtomNames[" + str(atomIndex) + "] = ['" + atom + "'];\n")
+        atomIndex += 1
+
+    eMapFile.write("var eMap = [];\n")
+    eMapIndex = 0
+    for line in eMap:
+        eMapFile.write("eMap[" + str(eMapIndex) + "] = ")
+        for i in range(len(eMapAtomList[MOFindex]['eMapAtomIndex'])):
+            if i == 0:
+                eMapFile.write("[" + str(line[i]) + ", ")
+            elif i == len(eMapAtomList[MOFindex]['eMapAtomIndex'])-1:
+                eMapFile.write(str(line[i]) + "];\n")
+            else:
+                eMapFile.write(str(line[i]) + ", ")
+        eMapIndex += 1
+    eMapFile.close()
+
+
+def getEnergyMapAtomList(MOFs, atomList):
+    eMapAtomList = []
+    for mofIndex in range(len(MOFs)):
+        eMapAtomList.append({'name': [], 'epsilon': [], 'sigma': [], 'eMapAtomIndex': []})
+        for atomIndex in range(len(atomList['name'])):
+            for MOFatomName in MOFs[mofIndex].uniqueAtomNames:
+                if atomList['name'][atomIndex] == MOFatomName:
+                    eMapAtomList[mofIndex]['name'].append(atomList['name'][atomIndex])
+                    eMapAtomList[mofIndex]['sigma'].append(atomList['sigma'][atomIndex])
+                    eMapAtomList[mofIndex]['epsilon'].append(atomList['epsilon'][atomIndex])
+                    eMapAtomList[mofIndex]['eMapAtomIndex'].append(atomIndex)
+
+    return eMapAtomList
+
+
+def exportMOFjs(MOF, exportDir):
+    MOFfile = open(exportDir, 'w')
+
+    MOFfile.write("var MOFatomNames = [];\n")
+    atomIndex = 0
+    for atom in MOF.uniqueAtomNames:
+        MOFfile.write("MOFatomNames[" + str(atomIndex) + "] = ['" + atom + "'];\n")
+        atomIndex += 1
+
+    MOFfile.write("var MOF = [];\n")
+    for MOFindex in range(len(MOF.atomName)):
+        MOFfile.write("MOF[" + str(MOFindex) + "] = [")
+        MOFfile.write(str(MOF.atomCoor[MOFindex][0]) + ", ")
+        MOFfile.write(str(MOF.atomCoor[MOFindex][1]) + ", ")
+        MOFfile.write(str(MOF.atomCoor[MOFindex][2]) + ", ")
+        MOFfile.write("'" + str(MOF.atomName[MOFindex]) + "'" + "];\n")
+
+    MOFfile.close()
+
+
+# Export coordinates to xyz file
+def exportXYZ(packedCoor, atomNames, exportDir):
+    xyzFile = open(exportDir, 'w')
+    xyzFile.write(str(len(packedCoor)*len(packedCoor[0])))
+    xyzFile.write(exportDir.split('/')[-1])
+    for UC in packedCoor:
+        for atomIndex in range(len(UC)):
+            line = atomNames[atomIndex] + ' '
+            line += str(UC[atomIndex][0]) + ' '
+            line += str(UC[atomIndex][1]) + ' '
+            line += str(UC[atomIndex][2]) + ' \n'
+            xyzFile.write(line)
+    xyzFile.close()
+
+
 # Generates a list of MOF files in given directory with given file format (ex: "".mol2")
 def generateMOFlist(fileDir, fileFormat):
     fileList = os.listdir(fileDir)
@@ -110,7 +208,7 @@ def generateMOFlist(fileDir, fileFormat):
     return MOFlist
 
 
-def setUniqueAtomList(MOFs):
+def getUniqueAtomList(MOFs):
     """
     Gets atom name, epsilon, and sigma values for non-repeating (unique) atoms in a list of
     MOF classes.
@@ -411,101 +509,3 @@ def plotEnergyMap(eMap, azim, elev):
     ax.elev = elev
 
     plt.show()
-
-
-def exportEnergyMapjs(eMap, atomList, exportDir):
-    eMapFile = open(exportDir, 'w')
-
-    eMapFile.write("var eMapAtomNames = [];\n")
-    atomIndex = 0
-    for atom in atomList['name']:
-        eMapFile.write("eMapAtomNames[" + str(atomIndex) + "] = ['" + atom + "'];\n")
-        atomIndex += 1
-
-    eMapFile.write("var eMap = [];\n")
-    eMapIndex = 0
-    for line in eMap:
-        eMapFile.write("eMap[" + str(eMapIndex) + "] = ")
-        for i in range(len(line)):
-            if i == 0:
-                eMapFile.write("[" + str(line[i]) + ", ")
-            elif i == len(line)-1:
-                eMapFile.write(str(line[i]) + "];\n")
-            else:
-                eMapFile.write(str(line[i]) + ", ")
-        eMapIndex += 1
-    eMapFile.close()
-
-
-def exportCombinationEnergyMapjs(eMap, eMapAtomList, MOFindex, exportDir):
-    eMapFile = open(exportDir, 'w')
-
-    eMapFile.write("var eMapAtomNames = [];\n")
-    atomIndex = 0
-    for atom in eMapAtomList[MOFindex]['name']:
-        eMapFile.write("eMapAtomNames[" + str(atomIndex) + "] = ['" + atom + "'];\n")
-        atomIndex += 1
-
-    eMapFile.write("var eMap = [];\n")
-    eMapIndex = 0
-    for line in eMap:
-        eMapFile.write("eMap[" + str(eMapIndex) + "] = ")
-        for i in range(eMapAtomList[MOFindex]['eMapAtomIndex']):
-            if i == 0:
-                eMapFile.write("[" + str(line[i]) + ", ")
-            elif i == len(line)-1:
-                eMapFile.write(str(line[i]) + "];\n")
-            else:
-                eMapFile.write(str(line[i]) + ", ")
-        eMapIndex += 1
-    eMapFile.close()
-
-
-def getEnergyMapAtomList(MOFs, atomList):
-    eMapAtomList = []
-    for mofIndex in range(len(MOFs)):
-        eMapAtomList.append({'name': [], 'epsilon': [], 'sigma': [], 'eMapAtomIndex': []})
-        for atomIndex in range(len(atomList['name'])):
-            for MOFatomName in MOFs[mofIndex].uniqueAtomNames:
-                if atomList['name'][atomIndex] == MOFatomName:
-                    eMapAtomList[mofIndex]['name'].append(atomList['name'][atomIndex])
-                    eMapAtomList[mofIndex]['sigma'].append(atomList['sigma'][atomIndex])
-                    eMapAtomList[mofIndex]['epsilon'].append(atomList['epsilon'][atomIndex])
-                    eMapAtomList[mofIndex]['eMapAtomIndex'].append(atomIndex)
-
-    return eMapAtomList
-
-
-def exportMOFjs(MOF, exportDir):
-    MOFfile = open(exportDir, 'w')
-
-    MOFfile.write("var MOFatomNames = [];\n")
-    atomIndex = 0
-    for atom in MOF.uniqueAtomNames:
-        MOFfile.write("MOFatomNames[" + str(atomIndex) + "] = ['" + atom + "'];\n")
-        atomIndex += 1
-
-    MOFfile.write("var MOF = [];\n")
-    for MOFindex in range(len(MOF.atomName)):
-        MOFfile.write("MOF[" + str(MOFindex) + "] = [")
-        MOFfile.write(str(MOF.atomCoor[MOFindex][0]) + ", ")
-        MOFfile.write(str(MOF.atomCoor[MOFindex][1]) + ", ")
-        MOFfile.write(str(MOF.atomCoor[MOFindex][2]) + ", ")
-        MOFfile.write("'" + str(MOF.atomName[MOFindex]) + "'" + "];\n")
-
-    MOFfile.close()
-
-
-# Export coordinates to xyz file
-def exportXYZ(packedCoor, atomNames, exportDir):
-    xyzFile = open(exportDir, 'w')
-    xyzFile.write(str(len(packedCoor)*len(packedCoor[0])))
-    xyzFile.write(exportDir.split('/')[-1])
-    for UC in packedCoor:
-        for atomIndex in range(len(UC)):
-            line = atomNames[atomIndex] + ' '
-            line += str(UC[atomIndex][0]) + ' '
-            line += str(UC[atomIndex][1]) + ' '
-            line += str(UC[atomIndex][2]) + ' \n'
-            xyzFile.write(line)
-    xyzFile.close()
