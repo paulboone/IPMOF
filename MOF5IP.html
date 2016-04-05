@@ -7,10 +7,9 @@
   <script src="Source/three.js"></script>              <!-- Load Three.js -->
   <script src="Source/OrbitControls.js"></script>      <!-- Load mouse controls -->
   <script src="IP Functions.js"></script>
-  <script src="MOF5.js"></script>
-  <script src="MOF5_Extended.js"></script>
   <script src="atomVisData.js"></script>
-  <script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
+  <script src="NiH6_C7O3_2.js"></script>
+  <script src="AgH6_CN2_3+NiH6_C7O3_2_eMap.js"></script>
 
   <input style="position: absolute;left:-9999px;" type="radio" name="Pause" id="Play" />
 	<label for="Play">
@@ -70,25 +69,6 @@
     var difAtomsInfo = [A1, E1, S1];
     var MOF2 = MOF5;
     var MOF; var energyMap;
-    // python -m http.server
-    $(function(){
-        $.getJSON('http://localhost:8000/MOF5_eMap.json',function(eMap){
-          energyMap = eMap;
-            console.log('Energy Map read');
-        }).error(function(){
-            console.log('error');
-        });
-    });
-
-    $(function(){
-        $.getJSON('http://localhost:8000/MOF5.json',function(MOFcoor){
-          MOF = MOFcoor;
-            console.log('MOF coordinates read');
-        }).error(function(){
-            console.log('error');
-        });
-    });
-
 
     function animate() {
     	// Reads the input speed from the slider
@@ -169,7 +149,7 @@
     };
   };
 
-    initializeAnimation();
+    initializeAnimation(baseMOF);
 
     //initializeEnergyMap();
 

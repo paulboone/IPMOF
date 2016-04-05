@@ -29,7 +29,7 @@ var addLine = function(coor1, coor2, lineColor){
         scene.add( line );
 };
 
-var initializeAnimation = function(){
+var initializeAnimation = function(baseMOF){
 	scene = new THREE.Scene();
 	renderer = new THREE.WebGLRenderer();
 
@@ -60,14 +60,14 @@ var initializeAnimation = function(){
 
 	// Visualize all the atoms in the original structure
 	var atomRadius, atomColor;
-	for(var i = 0 ; i < MOF5.length; i++){
+	for(var i = 0 ; i < baseMOF.length; i++){
 		for(var visIndex = 0; visIndex < atomVis.name.length; visIndex++){
-			if(atomVis.name[visIndex] === MOF5[i][3]){
+			if(atomVis.name[visIndex] === baseMOF[i][3]){
 				atomColor = atomVis.color[visIndex];
 				atomRadius = atomVis.radius[visIndex];
 			};
 		};
-	  addAtom([MOF5[i][0], MOF5[i][1], MOF5[i][2]], atomRadius, atomColor);
+	  addAtom([baseMOF[i][0], baseMOF[i][1], baseMOF[i][2]], atomRadius, atomColor);
 	};
 
 	// Record number of total objects before IP
