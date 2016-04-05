@@ -100,6 +100,32 @@ def readMol2(MOFfile):
     return UCsize, UCangle, atomName, atomCoor
 
 
+def calculateEnergyLimits(MOFs, MOFlist, eMapAtomList, eMap):
+    from tabulate import tabulate
+    headers = ["MOF Name", "Atoms", "Average Energy Limit"]
+    table = [[] for mof in MOFs]
+    averageEnergyLimits = []
+
+    for MOFindex2 in range(len(MOFs)):
+        energyLimit = []
+        atomName = []
+        for atomIndex in range(len(eMapAtomList[MOFindex2]['name'])):
+            sortedMap = sorted(eMap, key=lambda x: x[atomIndex+3], reverse=True)
+            energyLimit.append(sortedMap[len(MOFs[MOFindex2].atomCoor)][atomIndex+3])
+            atomName.append(eMapAtomList[MOFindex2]['name'][atomIndex])
+        avgEnergyLimit = sum(energyLimit)/len(energyLimit)
+        averageEnergyLimits.append(avgEnergyLimit)
+        MOFname = MOFlist[MOFindex2].split('.')[0]
+        table[MOFindex2].append(MOFname)
+        table[MOFindex2].append(atomName)
+        # table[MOFindex2].append(energyLimit)
+        table[MOFindex2].append(avgEnergyLimit)
+
+    print(tabulate(table, headers))
+
+    return averageEnergyLimits
+
+
 def exportEnergyMapjs(eMap, atomList, exportDir):
     eMapFile = open(exportDir, 'w')
 
@@ -124,7 +150,7 @@ def exportEnergyMapjs(eMap, atomList, exportDir):
     eMapFile.close()
 
 
-def exportUniqueEnergyMapjs(eMap, eMapAtomList, MOFindex, exportDir):
+def exportUniqueEnergyMapjs(eMap, avgEnergyLimit, eMapAtomList, MOFindex, exportDir):
     eMapFile = open(exportDir, 'w')
 
     eMapFile.write("var eMapAtomNames = [];\n")
@@ -132,6 +158,8 @@ def exportUniqueEnergyMapjs(eMap, eMapAtomList, MOFindex, exportDir):
     for atom in eMapAtomList[MOFindex]['name']:
         eMapFile.write("eMapAtomNames[" + str(atomIndex) + "] = ['" + atom + "'];\n")
         atomIndex += 1
+
+    eMapFile.write("var avgEnergyLimit = " + str(avgEnergyLimit) + ";\n")
 
     eMapFile.write("var eMap = [];\n")
     eMapIndex = 0
