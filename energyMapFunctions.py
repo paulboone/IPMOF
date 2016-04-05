@@ -100,7 +100,7 @@ def readMol2(MOFfile):
     return UCsize, UCangle, atomName, atomCoor
 
 
-def calculateEnergyLimits(MOFs, MOFlist, eMapAtomList, eMap):
+def calculateEnergyLimits(baseMOFIndex, MOFs, MOFlist, eMapAtomList, eMap):
     from tabulate import tabulate
     headers = ["MOF Name", "Atoms", "Average Energy Limit"]
     table = [[] for mof in MOFs]
@@ -111,7 +111,7 @@ def calculateEnergyLimits(MOFs, MOFlist, eMapAtomList, eMap):
         atomName = []
         for atomIndex in range(len(eMapAtomList[MOFindex2]['name'])):
             sortedMap = sorted(eMap, key=lambda x: x[atomIndex+3], reverse=True)
-            energyLimit.append(sortedMap[len(MOFs[MOFindex2].atomCoor)][atomIndex+3])
+            energyLimit.append(sortedMap[len(MOFs[baseMOFIndex].atomCoor)][atomIndex+3])
             atomName.append(eMapAtomList[MOFindex2]['name'][atomIndex])
         avgEnergyLimit = sum(energyLimit)/len(energyLimit)
         averageEnergyLimits.append(avgEnergyLimit)
@@ -163,16 +163,18 @@ def exportUniqueEnergyMapjs(eMap, avgEnergyLimit, eMapAtomList, MOFindex, export
 
     eMapFile.write("var eMap = [];\n")
     eMapIndex = 0
-    for line in eMap:
+    for eMapIndex, line in enumerate(eMap):
         eMapFile.write("eMap[" + str(eMapIndex) + "] = ")
-        for i in range(len(eMapAtomList[MOFindex]['eMapAtomIndex'])):
-            if i == 0:
-                eMapFile.write("[" + str(line[i]) + ", ")
-            elif i == len(eMapAtomList[MOFindex]['eMapAtomIndex'])-1:
-                eMapFile.write(str(line[i]) + "];\n")
+        for lineIndex, eMapAtomIndex in enumerate(eMapAtomList[MOFindex]['eMapAtomIndex']):
+            if lineIndex == 0:
+                eMapFile.write("[" + str(line[lineIndex]) + ", ")
+                eMapFile.write(str(line[lineIndex+1]) + ", ")
+                eMapFile.write(str(line[lineIndex+2]) + ", ")
+                eMapFile.write(str(line[eMapAtomIndex+3]) + ", ")
+            elif lineIndex == len(eMapAtomList[MOFindex]['eMapAtomIndex'])-1:
+                eMapFile.write(str(line[eMapAtomIndex+3]) + "];\n")
             else:
-                eMapFile.write(str(line[i]) + ", ")
-        eMapIndex += 1
+                eMapFile.write(str(line[eMapAtomIndex+3]) + ", ")
     eMapFile.close()
 
 
@@ -203,6 +205,26 @@ def exportMOFjs(MOF, exportDir):
     MOFfile.write("var MOF = [];\n")
     for MOFindex in range(len(MOF.atomName)):
         MOFfile.write("MOF[" + str(MOFindex) + "] = [")
+        MOFfile.write(str(MOF.atomCoor[MOFindex][0]) + ", ")
+        MOFfile.write(str(MOF.atomCoor[MOFindex][1]) + ", ")
+        MOFfile.write(str(MOF.atomCoor[MOFindex][2]) + ", ")
+        MOFfile.write("'" + str(MOF.atomName[MOFindex]) + "'" + "];\n")
+
+    MOFfile.close()
+
+
+def exportBaseMOFjs(MOF, exportDir):
+    MOFfile = open(exportDir, 'w')
+
+    MOFfile.write("var baseMOFatomNames = [];\n")
+    atomIndex = 0
+    for atom in MOF.uniqueAtomNames:
+        MOFfile.write("baseMOFatomNames[" + str(atomIndex) + "] = ['" + atom + "'];\n")
+        atomIndex += 1
+
+    MOFfile.write("var baseMOF = [];\n")
+    for MOFindex in range(len(MOF.atomName)):
+        MOFfile.write("baseMOF[" + str(MOFindex) + "] = [")
         MOFfile.write(str(MOF.atomCoor[MOFindex][0]) + ", ")
         MOFfile.write(str(MOF.atomCoor[MOFindex][1]) + ", ")
         MOFfile.write(str(MOF.atomCoor[MOFindex][2]) + ", ")
