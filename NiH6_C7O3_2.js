@@ -1,8 +1,8 @@
 var MOFatomNames = [];
-MOFatomNames[0] = ['Ni'];
-MOFatomNames[1] = ['C'];
-MOFatomNames[2] = ['O'];
-MOFatomNames[3] = ['H'];
+MOFatomNames[0] = 'Ni';
+MOFatomNames[1] = 'C';
+MOFatomNames[2] = 'O';
+MOFatomNames[3] = 'H';
 var MOF = [];
 MOF[0] = [0.0, 9.0432, 0.0, 'Ni'];
 MOF[1] = [0.0, 0.4362, 14.9077, 'Ni'];

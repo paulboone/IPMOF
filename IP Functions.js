@@ -29,7 +29,7 @@ var addLine = function(coor1, coor2, lineColor){
         scene.add( line );
 };
 
-var initializeAnimation = function(baseMOF){
+var initializeAnimation = function(baseMOF, atomVis){
 	scene = new THREE.Scene();
 	renderer = new THREE.WebGLRenderer();
 
@@ -84,13 +84,6 @@ var reset = function(objectNumber){
 
 var initializeEnergyMap = function(){
 	calculateEnergyMap(difAtomsInfo, UC1, MOF5_Extended, cutOff);
-
-	// Determine initial coordinates from energy map
-	for(var i = 0; i < energyMap.length; i++){
-		if(energyMap[i][4] < initialCoorEnergyLimit){
-			initialCoordinates.push([energyMap[i][0], energyMap[i][1], energyMap[i][2]]);
-		};
-	};
 };
 // -----------------------------------------------------------------------------
 var degToRad = function(deg){

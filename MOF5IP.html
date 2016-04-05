@@ -9,6 +9,7 @@
   <script src="IP Functions.js"></script>
   <script src="atomVisData.js"></script>
   <script src="NiH6_C7O3_2.js"></script>
+  <script src="AgH6_CN2_3.js"></script>
   <script src="AgH6_CN2_3+NiH6_C7O3_2_eMap.js"></script>
 
   <input style="position: absolute;left:-9999px;" type="radio" name="Pause" id="Play" />
@@ -60,15 +61,19 @@
     var translationVector;
 // -----------------------------------------------------------------------------
     // Interpenetration Functions --------------------------------------------------
-    var E1 = [22.156, 52.873, 30.213, 62.441]; // Epsilon for H, C, O, Zn
-    var S1 = [2.571, 3.431, 3.118, 2.462];     // Sigma for H, C, O, Zn
-    var A1 = ['H', 'C', 'O', 'Zn'];
-    var atomVis = getAtomVisData(A1);
-    console.log(atomVis.name, atomVis.color, atomVis.radius);
-    var UC1 = [26, 26, 26];
-    var difAtomsInfo = [A1, E1, S1];
-    var MOF2 = MOF5;
-    var MOF; var energyMap;
+    var baseAtomVis = getAtomVisData(baseMOFatomNames);
+    var MOFatomVis = getAtomVisData(MOFatomNames);
+    console.log(MOFatomVis.name, MOFatomVis.color, MOFatomVis.radius);
+    //var UC = [UCsize[0], UCsize[1], UCsize[2]];
+    var energyMap = eMap;
+
+    initialCoorEnergyLimit = avgEnergyLimit;
+    // Determine initial coordinates from energy map
+    for(var i = 0; i < energyMap.length; i++){
+      if(energyMap[i][4] < initialCoorEnergyLimit){
+        initialCoordinates.push([energyMap[i][0], energyMap[i][1], energyMap[i][2]]);
+      };
+    };
 
     function animate() {
     	// Reads the input speed from the slider
@@ -97,7 +102,7 @@
             yAngle = Math.PI*2*Math.floor(Math.random()*(rotationFreedom))/rotationFreedom;
             zAngle = Math.PI*2*Math.floor(Math.random()*(rotationFreedom))/rotationFreedom;
 
-            newCoor = [MOF2[0][0], MOF2[0][1], MOF2[0][2]];
+            newCoor = [MOF[0][0], MOF[0][1], MOF[0][2]];
             q = q.rotation(newCoor, [0,0,0], [1,0,0], xAngle);
             newCoor = [q.x, q.y, q.z];
             q = q.rotation(newCoor, [0,0,0], [0,1,0], yAngle);
@@ -108,7 +113,14 @@
 
             translationVector = coorDiff(newCoor, randomPoint);
 
-            addAtom(randomPoint, 0.5, 0X262626);
+            for(var visIndex = 0; visIndex < MOFatomVis.name.length; visIndex++){
+        			if(MOFatomVis.name[visIndex] === MOF[idx][3]){
+        				atomColor = MOFatomVis.color[visIndex];
+        				atomRadius = MOFatomVis.radius[visIndex];
+        			};
+        		};
+            addAtom(randomPoint, atomRadius, atomColor);
+
             newStructure[structureCount] = [];
             newStructure[structureCount][idx] = [randomPoint[0], randomPoint[1], randomPoint[2]];
             idx++;
@@ -117,8 +129,8 @@
 
           };
 
-          if(idx < MOF2.length && idx > 0){
-            newCoor = [MOF2[idx][0], MOF2[idx][1], MOF2[idx][2]];
+          if(idx < MOF.length && idx > 0){
+            newCoor = [MOF[idx][0], MOF[idx][1], MOF[idx][2]];
             q = q.rotation(newCoor, [0,0,0], [1,0,0], xAngle);
             newCoor = [q.x, q.y, q.z];
             q = q.rotation(newCoor, [0,0,0], [0,1,0], yAngle);
@@ -131,7 +143,9 @@
             // Check collisions here
             pbcCoor = PBC(newCoor, 13);
             eMapIndex = findEmapIndex(pbcCoor, grid.decimal, minCoor, maxCoor);
-            atomType = findAtomType(MOF2[idx][3]);
+            atomType = findAtomType(MOF[idx][3]);
+            // CHANGE FIND ATOM TYPE function
+            // Read atom index from the energy map file
             if(energyMap[eMapIndex][atomType] >= energyLimit){
               reset(objectNumber);
               console.log('High Energy!!!!');
@@ -141,7 +155,7 @@
               idx++;
           };
         } else {
-          recordStructure(MOF2, newStructure[structureCount], trialCount, structureCount);
+          recordStructure(MOF, newStructure[structureCount], trialCount, structureCount);
           structureCount++;
           console.log('New Interpenetration found!');
           reset(objectNumber);
@@ -149,9 +163,7 @@
     };
   };
 
-    initializeAnimation(baseMOF);
-
-    //initializeEnergyMap();
+    initializeAnimation(baseMOF, baseAtomVis);
 
     animate();
 
