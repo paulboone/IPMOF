@@ -87,8 +87,6 @@
 
         if(document.getElementById('Play').checked) {
 
-          console.log(energyMap[0])
-          console.log(MOF[0])
           if(idx === 0){
 
             if(trialCount % rotationLimit === 0){
@@ -142,8 +140,10 @@
 
             // Check collisions here
             pbcCoor = PBC(newCoor, 13);
-            eMapIndex = findEmapIndex(pbcCoor, grid.decimal, minCoor, maxCoor);
-            atomType = findAtomType(MOF[idx][3]);
+            //eMapIndex = findEmapIndex(pbcCoor, grid.decimal, minCoor, maxCoor);
+            eMapIndex = 0;
+            //pointEnergy = trInterpolate(pbcCoor);
+            atomType = findAtomType(MOF[idx][3], eMapAtomNames, eMapAtomIndex);
             // CHANGE FIND ATOM TYPE function
             // Read atom index from the energy map file
             if(energyMap[eMapIndex][atomType] >= energyLimit){
@@ -151,11 +151,18 @@
               console.log('High Energy!!!!');
             } else{
               newStructure[structureCount][idx] = [newCoor[0], newCoor[1], newCoor[2]];
-              addAtom(newCoor, 0.5, 0X262626);
+              var atomRadius, atomColor;
+              for(var visIndex = 0; visIndex < atomVis.name.length; visIndex++){
+                if(atomVis.name[visIndex] === MOF[idx][3]){
+                  atomColor = atomVis.color[visIndex];
+                  atomRadius = atomVis.radius[visIndex];
+                };
+              };
+              addAtom(newCoor, atomRadius, atomColor);
               idx++;
           };
         } else {
-          recordStructure(MOF, newStructure[structureCount], trialCount, structureCount);
+          //recordStructure(MOF, newStructure[structureCount], trialCount, structureCount);
           structureCount++;
           console.log('New Interpenetration found!');
           reset(objectNumber);

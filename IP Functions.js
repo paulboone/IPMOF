@@ -94,7 +94,7 @@ var radToDeg = function(rad){
 	return rad*180/Math.PI;
 };
 
-var findEmapIndex = function(coor, decimal, minCoor, maxCoor){
+var findEmapIndex = function(coor, decimal, UCsize){
 	var gridSize = Math.abs(minCoor) + Math.abs(maxCoor);
 	for(var i = 0; i < 3; i++){
 		coor[i] = Math.round(coor[i]*decimal)/decimal;
@@ -116,21 +116,11 @@ var PBC = function(coor, cutOff){
 	return pbcCoor;
 };
 
-var findAtomType = function(atomSymbol){
-	var atomIndex;
-	switch(atomSymbol){
-		case 'H':
-			atomIndex = 3;
-			break;
-		case 'C':
-			atomIndex = 4;
-			break;
-		case 'O':
-			atomIndex = 5;
-			break;
-		case 'Zn':
-			atomIndex = 6;
-			break;
+var findAtomType = function(atomSymbol, eMapAtomNames, eMapAtomIndex){
+	for(var atom_idx = 0; atom_idx < eMapAtomNames.length; atom_idx++){
+		if(atomSymbol === eMapAtomNames[atom_idx]){
+			atomIndex = eMapAtomIndex[atom_idx];
+		};
 	};
 	return atomIndex;
 };
