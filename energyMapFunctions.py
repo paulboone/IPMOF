@@ -154,15 +154,16 @@ def exportUniqueEnergyMapjs(eMap, avgEnergyLimit, eMapAtomList, MOFindex, export
     eMapFile = open(exportDir, 'w')
 
     eMapFile.write("var eMapAtomNames = [];\n")
-    atomIndex = 0
-    for atom in eMapAtomList[MOFindex]['name']:
-        eMapFile.write("eMapAtomNames[" + str(atomIndex) + "] = ['" + atom + "'];\n")
-        atomIndex += 1
+    for atomIndex, atom in enumerate(eMapAtomList[MOFindex]['name']):
+        eMapFile.write("eMapAtomNames[" + str(atomIndex) + "] = '" + atom + "';\n")
 
     eMapFile.write("var avgEnergyLimit = " + str(avgEnergyLimit) + ";\n")
 
+    eMapFile.write("var eMapAtomIndex = [];\n")
+    for atomIndex in range(len(eMapAtomList[MOFindex]['name'])):
+        eMapFile.write("eMapAtomIndex[" + str(atomIndex) + "] = " + str(atomIndex+3) + ";\n")
+
     eMapFile.write("var eMap = [];\n")
-    eMapIndex = 0
     for eMapIndex, line in enumerate(eMap):
         eMapFile.write("eMap[" + str(eMapIndex) + "] = ")
         for lineIndex, eMapAtomIndex in enumerate(eMapAtomList[MOFindex]['eMapAtomIndex']):
