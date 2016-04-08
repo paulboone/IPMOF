@@ -13,6 +13,14 @@ var getAtomVisData = function(atomList){
   return atomVis;
 };
 
+var getVisIndex = function(atomName, atomVisData){
+  for(var visIndex = 0; visIndex < atomVisData.name.length; visIndex++){
+    if(atomVisData.name[visIndex] === atomName){
+      return visIndex;
+    };
+  };
+};
+
 var atomVisData = { name: [], radius: [], color: [] };
 atomVisData.name[0] = 'H';
 atomVisData.radius[0] = 53.0;

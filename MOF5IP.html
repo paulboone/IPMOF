@@ -28,6 +28,7 @@
     var camera, renderer, scene, controls;
     var fps = 5;                  // Frame per second (controlled by slider)
     var objectNumber;             // Num of objects in the scene before adding atoms of second structure
+    var visIndex;
 // -----------------------------------------------------------------------------
     var initialCoordinates = [];  // Array of initial coordinates chosen from energy map if energy < (H)(H)
     var energyMap = [];           // Array for storing energy values of each grid point in the unit cell
@@ -37,7 +38,7 @@
     var structureCount = 0;       // Count the number of IP structures found
     var trialCount = 0;           // Number of trials performed for interpenetration
     var initialCoorTrialCount = 0;// To count the number of trials for different initial coordinates
-    var initialCoorIndex = 0;     // Index of coordinates selected from the energy map as inital coordinates
+    var initialCoorIndex = 0;     // Index of coordinates selected from the energy map as inital coordinateS
 // -----------------------------------------------------------------------------
 // ------------------------- Simulation Parameters -----------------------------
     var cutOff = 13;              // Cut-off radius for LJ potential
@@ -111,13 +112,8 @@
 
             translationVector = coorDiff(newCoor, randomPoint);
 
-            for(var visIndex = 0; visIndex < MOFatomVis.name.length; visIndex++){
-        			if(MOFatomVis.name[visIndex] === MOF[idx][3]){
-        				atomColor = MOFatomVis.color[visIndex];
-        				atomRadius = MOFatomVis.radius[visIndex];
-        			};
-        		};
-            addAtom(randomPoint, atomRadius, atomColor);
+            visIndex = getVisIndex(MOF[idx][3], MOFatomVis);
+            addAtom(randomPoint, MOFatomVis.radius[visIndex], MOFatomVis.color[visIndex]);
 
             newStructure[structureCount] = [];
             newStructure[structureCount][idx] = [randomPoint[0], randomPoint[1], randomPoint[2]];
@@ -144,21 +140,14 @@
             eMapIndex = 0;
             //pointEnergy = trInterpolate(pbcCoor);
             atomType = findAtomType(MOF[idx][3], eMapAtomNames, eMapAtomIndex);
-            // CHANGE FIND ATOM TYPE function
-            // Read atom index from the energy map file
+
             if(energyMap[eMapIndex][atomType] >= energyLimit){
               reset(objectNumber);
               console.log('High Energy!!!!');
             } else{
               newStructure[structureCount][idx] = [newCoor[0], newCoor[1], newCoor[2]];
-              var atomRadius, atomColor;
-              for(var visIndex = 0; visIndex < atomVis.name.length; visIndex++){
-                if(atomVis.name[visIndex] === MOF[idx][3]){
-                  atomColor = atomVis.color[visIndex];
-                  atomRadius = atomVis.radius[visIndex];
-                };
-              };
-              addAtom(newCoor, atomRadius, atomColor);
+              visIndex = getVisIndex(MOF[idx][3], MOFatomVis);
+              addAtom(newCoor, MOFatomVis.radius[visIndex], MOFatomVis.color[visIndex]);
               idx++;
           };
         } else {

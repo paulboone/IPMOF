@@ -59,15 +59,11 @@ var initializeAnimation = function(baseMOF, atomVis){
 	addLine([0,0,30], [0,0,-30], black);
 
 	// Visualize all the atoms in the original structure
-	var atomRadius, atomColor;
+	var baseCoor;
 	for(var i = 0 ; i < baseMOF.length; i++){
-		for(var visIndex = 0; visIndex < atomVis.name.length; visIndex++){
-			if(atomVis.name[visIndex] === baseMOF[i][3]){
-				atomColor = atomVis.color[visIndex];
-				atomRadius = atomVis.radius[visIndex];
-			};
-		};
-	  addAtom([baseMOF[i][0], baseMOF[i][1], baseMOF[i][2]], atomRadius, atomColor);
+		visIndex = getVisIndex(baseMOF[i][3], baseAtomVis);
+		baseCoor = [baseMOF[i][0], baseMOF[i][1], baseMOF[i][2]];
+	  addAtom(baseCoor, baseAtomVis.radius[visIndex], baseAtomVis.color[visIndex]);
 	};
 
 	// Record number of total objects before IP
