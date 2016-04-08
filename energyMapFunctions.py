@@ -463,6 +463,24 @@ class Packing:
 
         return packedCoor
 
+    def edgePoints(UCvectors):
+        UCedges = []
+        UCedges.append([0, 0, 0])
+
+        for vec in UCvectors:
+            UCedges.append(vec)
+
+        UCedges.append([UCvectors[0][0]+UCvectors[1][0], UCvectors[0][1]+UCvectors[1][1],
+                        UCvectors[0][2]+UCvectors[1][2]])
+        UCedges.append([UCvectors[1][0]+UCvectors[2][0], UCvectors[1][1]+UCvectors[2][1],
+                        UCvectors[1][2]+UCvectors[2][2]])
+        UCedges.append([UCvectors[0][0]+UCvectors[2][0], UCvectors[0][1]+UCvectors[2][1],
+                        UCvectors[2][0]+UCvectors[2][2]])
+        UCedges.append([UCvectors[0][0]+UCvectors[1][0]+UCvectors[2][0],
+                        UCvectors[0][1]+UCvectors[1][1]+UCvectors[2][1],
+                        UCvectors[0][2]+UCvectors[1][2]+UCvectors[2][2]])
+        return UCedges
+
 
 # Plots atom coordinates for packed unit cells
 def plotPackedCell(packedCoor, azim, elev):
@@ -488,6 +506,39 @@ def plotPackedCell(packedCoor, azim, elev):
         for coor in packedCoor[i]:
             r = i / len(packedCoor)
             ax.scatter(coor[0], coor[1], coor[2], '-o', c=[r, 0.1, 0.1], s=10)
+
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+
+    ax.azim = azim
+    ax.elev = elev
+
+    plt.show()
+
+
+# Plots atom coordinates for packed unit cells
+def plotXYZ(xyzCoor, azim, elev):
+    import numpy as np
+    from mpl_toolkits.mplot3d import Axes3D
+    import matplotlib.pyplot as plt
+
+    from mpl_toolkits.mplot3d import proj3d
+
+    def orthogonal_proj(zfront, zback):
+        a = (zfront+zback)/(zfront-zback)
+        b = -2*(zfront*zback)/(zfront-zback)
+        return np.array([[1, 0, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, a, b],
+                        [0, 0, 0, zback]])
+    proj3d.persp_transformation = orthogonal_proj
+
+    fig = plt.figure(figsize=(10, 8))
+    ax = fig.add_subplot(111, projection='3d')
+
+    for coor in xyzCoor:
+        ax.scatter(coor[0], coor[1], coor[2], '-o', s=10)
 
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
