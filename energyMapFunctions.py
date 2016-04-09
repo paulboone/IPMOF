@@ -17,11 +17,16 @@ def energyMap(MOF1, atomList, cutOff, gridSize):
     cutOff -> cut-off value for LJ potential | gridSize -> grid size array for each dimension
     Packed coordinates for MOF1 must be defined before running the function.
     """
-    ucLimit = [math.ceil(MOF1.UCsize[0]), math.ceil(MOF1.UCsize[1]), math.ceil(MOF1.UCsize[2])]
 
-    xGrid = np.linspace(0, ucLimit[0], ucLimit[0]/gridSize+1)
-    yGrid = np.linspace(0, ucLimit[1], ucLimit[1]/gridSize+1)
-    zGrid = np.linspace(0, ucLimit[2], ucLimit[2]/gridSize+1)
+    sortedX = sorted(MOF1.edgePoints, key=lambda x: x[0], reverse=True)
+    sortedY = sorted(MOF1.edgePoints, key=lambda y: y[1], reverse=True)
+    sortedZ = sorted(MOF1.edgePoints, key=lambda z: z[2], reverse=True)
+    eMapMax = [math.ceil(sortedX[0][0]), math.ceil(sortedY[0][1]), math.ceil(sortedZ[0][2])]
+    eMapMin = [math.floor(sortedX[-1][0]), math.floor(sortedY[-1][1]), math.floor(sortedZ[-1][2])]
+
+    xGrid = np.linspace(eMapMin[0], eMapMax[0], (eMapMax[0]-eMapMin[0])/gridSize+1)
+    yGrid = np.linspace(eMapMin[1], eMapMax[1], (eMapMax[1]-eMapMin[1])/gridSize+1)
+    zGrid = np.linspace(eMapMin[2], eMapMax[2], (eMapMax[2]-eMapMin[2])/gridSize+1)
 
     numAtomsMOF = len(MOF1.uniqueAtomNames)
     numAtomsEnergy = len(atomList['sigma'])
@@ -470,12 +475,16 @@ class Packing:
         for vec in UCvectors:
             UCedges.append(vec)
 
+        # (a, b, 0)
         UCedges.append([UCvectors[0][0]+UCvectors[1][0], UCvectors[0][1]+UCvectors[1][1],
                         UCvectors[0][2]+UCvectors[1][2]])
+        # (0, b, c)
         UCedges.append([UCvectors[1][0]+UCvectors[2][0], UCvectors[1][1]+UCvectors[2][1],
                         UCvectors[1][2]+UCvectors[2][2]])
+        # (a, 0, c)
         UCedges.append([UCvectors[0][0]+UCvectors[2][0], UCvectors[0][1]+UCvectors[2][1],
-                        UCvectors[2][0]+UCvectors[2][2]])
+                        UCvectors[0][2]+UCvectors[2][2]])
+        # (a, b, c)
         UCedges.append([UCvectors[0][0]+UCvectors[1][0]+UCvectors[2][0],
                         UCvectors[0][1]+UCvectors[1][1]+UCvectors[2][1],
                         UCvectors[0][2]+UCvectors[1][2]+UCvectors[2][2]])

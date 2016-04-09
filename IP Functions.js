@@ -29,9 +29,22 @@ var addLine = function(coor1, coor2, lineColor){
         scene.add( line );
 };
 
+var drawUnitCell = function(edgePoints){
+	addLine(edgePoints[0], edgePoints[1], red);
+	addLine(edgePoints[0], edgePoints[2], blue);
+	addLine(edgePoints[0], edgePoints[3], green);
+	addLine(edgePoints[1], edgePoints[4], black);
+	addLine(edgePoints[1], edgePoints[6], black);
+	addLine(edgePoints[2], edgePoints[4], black);
+	addLine(edgePoints[2], edgePoints[5], black);
+	addLine(edgePoints[3], edgePoints[5], black);
+	addLine(edgePoints[3], edgePoints[6], black);
+	addLine(edgePoints[4], edgePoints[7], black);
+	addLine(edgePoints[5], edgePoints[7], black);
+	addLine(edgePoints[6], edgePoints[7], black);
+};
+
 var initializeAnimation = function(baseMOF, atomVis){
-	scene = new THREE.Scene();
-	renderer = new THREE.WebGLRenderer();
 
 	var WIDTH; 			// browser window WIDTH
 	var HEIGHT; 		// browser window HEIGHT
@@ -65,7 +78,7 @@ var initializeAnimation = function(baseMOF, atomVis){
 		baseCoor = [baseMOF[i][0], baseMOF[i][1], baseMOF[i][2]];
 	  addAtom(baseCoor, baseAtomVis.radius[visIndex], baseAtomVis.color[visIndex]);
 	};
-
+	drawUnitCell(edgeP);
 	// Record number of total objects before IP
 	objectNumber = scene.children.length-1;
 };
@@ -90,12 +103,13 @@ var radToDeg = function(rad){
 	return rad*180/Math.PI;
 };
 
-var findEmapIndex = function(coor, decimal, UCsize){
-	var gridSize = Math.abs(minCoor) + Math.abs(maxCoor);
+var findEmapIndex = function(coor, decimal, eMapMax, eMapMin){
+	var sideLength = [];
 	for(var i = 0; i < 3; i++){
+		sideLength.push(eMapMax[i] - eMapMin[i] + 1);
 		coor[i] = Math.round(coor[i]*decimal)/decimal;
 	};
-	var eMapIndex = (coor[0]-minCoor)*Math.pow(gridSize+1,2) + (coor[1]-minCoor)*(gridSize+1) + coor[2]-minCoor;
+	var eMapIndex = coor[0]*sideLength[1]*sideLength[2] + coor[1]*sideLength[2] + coor[2];
 	return eMapIndex;
 };
 

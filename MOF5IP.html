@@ -29,6 +29,8 @@
     var fps = 5;                  // Frame per second (controlled by slider)
     var objectNumber;             // Num of objects in the scene before adding atoms of second structure
     var visIndex;
+    scene = new THREE.Scene();
+    renderer = new THREE.WebGLRenderer();
 // -----------------------------------------------------------------------------
     var initialCoordinates = [];  // Array of initial coordinates chosen from energy map if energy < (H)(H)
     var energyMap = [];           // Array for storing energy values of each grid point in the unit cell
@@ -67,6 +69,17 @@
     console.log(MOFatomVis.name, MOFatomVis.color, MOFatomVis.radius);
     //var UC = [UCsize[0], UCsize[1], UCsize[2]];
     var energyMap = eMap;
+
+    var edgeP = [[0, 0, 0],
+ [6.5647, 0, 0],
+ [-1.4670218892460913, 6.398682119504987, 0],
+ [-1.9346261542700438, -2.428371802279931, 10.913965412860076],
+ [5.097678110753909, 6.398682119504987, 0],
+ [-3.4016480435161354, 3.970310317225056, 10.913965412860076],
+ [4.630073845729957, -2.428371802279931, 10.913965412860076],
+ [3.1630519564838657, 3.970310317225056, 10.913965412860076]];
+
+
 
     initialCoorEnergyLimit = avgEnergyLimit;
     // Determine initial coordinates from energy map
@@ -136,7 +149,9 @@
 
             // Check collisions here
             pbcCoor = PBC(newCoor, 13);
-            //eMapIndex = findEmapIndex(pbcCoor, grid.decimal, minCoor, maxCoor);
+            eMapIndex = findEmapIndex(pbcCoor, grid.decimal, eMapMax, eMapMin);
+            console.log(pbcCoor);
+            console.log(eMapIndex);
             eMapIndex = 0;
             //pointEnergy = trInterpolate(pbcCoor);
             atomType = findAtomType(MOF[idx][3], eMapAtomNames, eMapAtomIndex);
