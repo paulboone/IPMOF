@@ -345,6 +345,38 @@ def getFFparameters(atomNames, FFparameters):
     return atomFFparameters
 
 
+def readAtomRadius():
+    import xlrd
+    import numpy as np
+
+    radiusFileDir = 'C:\\Users\\kutay\\Dropbox\\Academic\\WilmerLab\\Research\\Web-IPMOF\\IPMOFvisualization\\atomicRadius.xlsx'
+    radius_data = xlrd.open_workbook(radiusFileDir)
+
+    atomNames = radius_data.sheets()[0].col_values(0)[:]
+    emprical = radius_data.sheets()[0].col_values(1)[:]
+    calculated = radius_data.sheets()[0].col_values(2)[:]
+    vdW = radius_data.sheets()[0].col_values(3)[:]
+
+    # Combine radius data for calculated and emprical radius values
+    combined = []
+    for radius, emp in zip(calculated, emprical):
+        if radius == 'no data':
+            if emp != 'no data':
+                radius = emp
+            else:
+                radius = -1
+        combined.append(radius)
+
+    # Create atom list to write name and radius values for atoms
+    atomList = {'name': [], 'radius': []}
+    for name, radius in zip(atomNames, combined):
+        if radius != -1:
+            atomList['name'].append(name)
+            atomList['radius'].append(radius)
+
+    return atomList
+
+
 def gridBox(p, grid):
     """
     Calculates surrounding grid points for a given point in energy map
@@ -489,6 +521,35 @@ class Packing:
                         UCvectors[0][1]+UCvectors[1][1]+UCvectors[2][1],
                         UCvectors[0][2]+UCvectors[1][2]+UCvectors[2][2]])
         return UCedges
+
+
+def ucv(MOF):
+
+    a = MOF.UCsize[0]
+    b = MOF.UCsize[1]
+    c = MOF.UCsize[2]
+    alp = math.radians(MOF.UCangle[0])
+    bet = math.radians(MOF.UCangle[1])
+    gam = math.radians(MOF.UCangle[2])
+    V = a*b*c*math.sqrt(1-math.cos(alp)**2-math.cos(bet)**2-math.cos(gam)**2+2*math.cos(alp)*math.cos(bet)*math.cos(gam))
+    return V
+
+
+def atomicVolume(MOF, radiusList):
+
+    uniqueAtomRadius = []
+    for atomName, atomRadius in zip(radiusList['name'], radiusList['radius']):
+        for uniqAtom in MOF.uniqueAtomNames:
+            if atomName == uniqAtom:
+                uniqueAtomRadius.append(atomRadius)
+
+    atomVolumes = 0
+    for atomIndex, atom in enumerate(MOF.atomName):
+        for atomName, atomRadius in zip(MOF.uniqueAtomNames, uniqueAtomRadius):
+            if atomName == atom:
+                atomVolumes += 4/3 * math.pi * (atomRadius/100)**3
+
+    return atomVolumes
 
 
 # Plots atom coordinates for packed unit cells
