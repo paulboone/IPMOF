@@ -10,13 +10,14 @@ import math
 import numpy as np
 
 
-def energyMap(MOF1, atomList, cutOff, gridSize):
+def energyMap(MOF1, atomList, cutOffArray, gridSize):
     """
     Calculate energy map for a given MOF class.
     MOF -> base (map) | atomFFparameters -> sigma and epsilon values for given atoms
     cutOff -> cut-off value for LJ potential | gridSize -> grid size array for each dimension
     Packed coordinates for MOF1 must be defined before running the function.
     """
+    cutOff = min(cutOffArray)
 
     sortedX = sorted(MOF1.edgePoints, key=lambda x: x[0], reverse=True)
     sortedY = sorted(MOF1.edgePoints, key=lambda y: y[1], reverse=True)
@@ -436,8 +437,8 @@ class Packing:
 
     def factor(UCsize, cutOff):
         packingFactor = []
-        for UCdimension in UCsize:
-            packingFactor.append(math.ceil(cutOff/UCdimension)*2+1)
+        for cut_off, UCdimension in zip(cutOff, UCsize):
+            packingFactor.append(math.ceil(cut_off/UCdimension)*2+1)
         return packingFactor
 
     def vectors(packingFactor, UCsize, UCangle):
@@ -533,6 +534,13 @@ def ucv(MOF):
     gam = math.radians(MOF.UCangle[2])
     V = a*b*c*math.sqrt(1-math.cos(alp)**2-math.cos(bet)**2-math.cos(gam)**2+2*math.cos(alp)*math.cos(bet)*math.cos(gam))
     return V
+
+
+def orthorhombic(MOF):
+    ortho = False
+    if MOF.UCangle[0] == 90 and MOF.UCangle[1] == 90 and MOF.UCangle[2] == 90:
+        ortho = True
+    return ortho
 
 
 def atomicVolume(MOF, radiusList):
