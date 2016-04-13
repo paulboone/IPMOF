@@ -209,6 +209,12 @@ def exportMOFjs(MOF, exportDir):
         MOFfile.write("MOFatomNames[" + str(atomIndex) + "] = ['" + atom + "'];\n")
         atomIndex += 1
 
+    MOFfile.write("var MOF_UCsize = [];\n")
+    ucIndex = 0
+    for uc in MOF.UCsize:
+        MOFfile.write("MOF_UCsize[" + str(ucIndex) + "] = " + str(uc) + ";\n")
+        ucIndex += 1
+
     MOFfile.write("var MOF = [];\n")
     for MOFindex in range(len(MOF.atomName)):
         MOFfile.write("MOF[" + str(MOFindex) + "] = [")
@@ -228,6 +234,12 @@ def exportBaseMOFjs(MOF, exportDir):
     for atom in MOF.uniqueAtomNames:
         MOFfile.write("baseMOFatomNames[" + str(atomIndex) + "] = ['" + atom + "'];\n")
         atomIndex += 1
+
+    MOFfile.write("var baseMOF_UCsize = [];\n")
+    ucIndex = 0
+    for uc in MOF.UCsize:
+        MOFfile.write("baseMOF_UCsize[" + str(ucIndex) + "] = " + str(uc) + ";\n")
+        ucIndex += 1
 
     MOFfile.write("var baseMOF = [];\n")
     for MOFindex in range(len(MOF.atomName)):
