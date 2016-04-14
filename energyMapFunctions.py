@@ -138,7 +138,7 @@ def exportEnergyMapjs(eMap, atomList, exportDir):
     eMapFile.write("var eMapAtomNames = [];\n")
     atomIndex = 0
     for atom in atomList['name']:
-        eMapFile.write("eMapAtomNames[" + str(atomIndex) + "] = ['" + atom + "'];\n")
+        eMapFile.write("eMapAtomNames[" + str(atomIndex) + "] = '" + atom + "';\n")
         atomIndex += 1
 
     eMapFile.write("var eMap = [];\n")
@@ -206,13 +206,19 @@ def exportMOFjs(MOF, exportDir):
     MOFfile.write("var MOFatomNames = [];\n")
     atomIndex = 0
     for atom in MOF.uniqueAtomNames:
-        MOFfile.write("MOFatomNames[" + str(atomIndex) + "] = ['" + atom + "'];\n")
+        MOFfile.write("MOFatomNames[" + str(atomIndex) + "] = '" + atom + "';\n")
         atomIndex += 1
 
     MOFfile.write("var MOF_UCsize = [];\n")
     ucIndex = 0
     for uc in MOF.UCsize:
         MOFfile.write("MOF_UCsize[" + str(ucIndex) + "] = " + str(uc) + ";\n")
+        ucIndex += 1
+
+    MOFfile.write("var MOF_UCangle = [];\n")
+    ucIndex = 0
+    for uc in MOF.UCangle:
+        MOFfile.write("MOF_UCangle[" + str(ucIndex) + "] = " + str(uc) + ";\n")
         ucIndex += 1
 
     MOFfile.write("var MOF = [];\n")
@@ -232,13 +238,19 @@ def exportBaseMOFjs(MOF, exportDir):
     MOFfile.write("var baseMOFatomNames = [];\n")
     atomIndex = 0
     for atom in MOF.uniqueAtomNames:
-        MOFfile.write("baseMOFatomNames[" + str(atomIndex) + "] = ['" + atom + "'];\n")
+        MOFfile.write("baseMOFatomNames[" + str(atomIndex) + "] = '" + atom + "';\n")
         atomIndex += 1
 
     MOFfile.write("var baseMOF_UCsize = [];\n")
     ucIndex = 0
     for uc in MOF.UCsize:
         MOFfile.write("baseMOF_UCsize[" + str(ucIndex) + "] = " + str(uc) + ";\n")
+        ucIndex += 1
+
+    MOFfile.write("var baseMOF_UCangle = [];\n")
+    ucIndex = 0
+    for uc in MOF.UCangle:
+        MOFfile.write("baseMOF_UCangle[" + str(ucIndex) + "] = " + str(uc) + ";\n")
         ucIndex += 1
 
     MOFfile.write("var baseMOF = [];\n")
@@ -546,6 +558,36 @@ def ucv(MOF):
     gam = math.radians(MOF.UCangle[2])
     V = a*b*c*math.sqrt(1-math.cos(alp)**2-math.cos(bet)**2-math.cos(gam)**2+2*math.cos(alp)*math.cos(bet)*math.cos(gam))
     return V
+
+
+def car2frac(coor, UCsize, UCangle, UCV):
+    v = UCV
+
+    alp = UCangle[0] / 180 * math.pi
+    bet = UCangle[1] / 180 * math.pi
+    gam = UCangle[2] / 180 * math.pi
+
+    a = UCsize[0]
+    b = UCsize[1]
+    c = UCsize[2]
+
+    x = coor[0]
+    y = coor[1]
+    z = coor[2]
+
+    xfrac = 1/a*x
+    xfrac += - math.cos(gam)/(a*math.sin(gam))*y
+    xfrac += (math.cos(alp)*math.cos(gam)-math.cos(bet))/(a*v*math.sin(gam))*z
+
+    yfrac = 0
+    yfrac += 1/(b*math.sin(gam))*y
+    yfrac += (math.cos(bet)*math.cos(gam)-math.cos(alp))/(b*v*sin(gam))*z
+
+    zfrac = 0
+    zfrac += 0
+    zfrac += math.sin(gam)/(c*v)*z
+
+    return [xfrac, yfrac, zfrac]
 
 
 def orthorhombic(MOF):

@@ -100,7 +100,7 @@ var degToRad = function(deg){
 };
 
 var radToDeg = function(rad){
-	return rad*180/Math.PI;
+	return rad*180/MathI;
 };
 
 var findEmapIndex = function(coor, decimal, eMapMax, eMapMin){
@@ -266,6 +266,47 @@ var trInterpolate = function(coor, numAtoms){
 		V[i] = c;
 	};
 	return V;
+};
+
+var  car2frac = function(coor, UCsize, UCangle){
+
+    alp = UCangle[0] / 180 * Math.PI;
+    bet = UCangle[1] / 180 * Math.PI;
+    gam = UCangle[2] / 180 * Math.PI;
+
+    a = UCsize[0];
+    b = UCsize[1];
+    c = UCsize[2];
+
+    x = coor[0];
+    y = coor[1];
+    z = coor[2];
+
+    v = 1 - Math.pow(Math.cos(alp),2) - Math.pow(Math.cos(bet),2);
+		v += - Math.pow(Math.cos(gam),2) + 2*Math.cos(alp)*Math.cos(bet)*Math.cos(gam);
+		v = Math.sqrt(v);
+
+    xfrac = 1/a*x;
+    xfrac += - Math.cos(gam)/(a*Math.sin(gam))*y;
+    xfrac += (Math.cos(alp)*Math.cos(gam)-Math.cos(bet))/(a*v*Math.sin(gam))*z;
+
+    yfrac = 0;
+    yfrac += 1/(b*Math.sin(gam))*y;
+    yfrac += (Math.cos(bet)*Math.cos(gam)-Math.cos(alp))/(b*v*Math.sin(gam))*z;
+
+    zfrac = 0;
+    zfrac += 0;
+    zfrac += Math.sin(gam)/(c*v)*z;
+
+    return [xfrac, yfrac, zfrac];
+};
+
+var fracPBC = function(fracCoor){
+    pbcCoor = [];
+    for(var coorIndex = 0; coorIndex < fracCoor.length; coorIndex++){
+        pbcCoor.push(fracCoor[coorIndex] - Math.floor(fracCoor[coorIndex]));
+		};
+    return pbcCoor;
 };
 
 var calculateEnergyMap = function(atomsInfo, UC, extendedStructure, cutOff){
