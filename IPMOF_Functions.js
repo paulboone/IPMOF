@@ -17,16 +17,14 @@ var addAtom = function(coor, atomRadius, atomColor){
 };
 
 var addLine = function(coor1, coor2, lineColor){
-        var lineMat = new THREE.LineBasicMaterial({color: lineColor, linewidth: lineWidth});
-        var lineGeo = new THREE.Geometry();
-
-        lineGeo.vertices.push(
-	        new THREE.Vector3(coor1[0], coor1[1], coor1[2]),
-	        new THREE.Vector3(coor2[0], coor2[1], coor2[2])
-        );
-
-        var line = new THREE.Line( lineGeo, lineMat );
-        scene.add( line );
+  var lineMat = new THREE.LineBasicMaterial({color: lineColor, linewidth: lineWidth});
+  var lineGeo = new THREE.Geometry();
+  lineGeo.vertices.push(
+  new THREE.Vector3(coor1[0], coor1[1], coor1[2]),
+  new THREE.Vector3(coor2[0], coor2[1], coor2[2])
+  );
+  var line = new THREE.Line( lineGeo, lineMat );
+  scene.add( line );
 };
 
 var drawUnitCell = function(edgePoints){
@@ -180,9 +178,9 @@ var trInterpolate = function(coor, atomIndex, eMap, eMapMax, eMapMin, gridSize){
 };
 
 var fracVolume = function(UCangle){
-	var alp = UCangle[0] / 180 * Math.PI;
-	var bet = UCangle[1] / 180 * Math.PI;
-	var gam = UCangle[2] / 180 * Math.PI;
+	var alp = degToRad(UCangle[0]);
+	var bet = degToRad(UCangle[1]);
+	var gam = degToRad(UCangle[2]);
 
 	var v = 1 - Math.pow(Math.cos(alp),2) - Math.pow(Math.cos(bet),2);
 	v += - Math.pow(Math.cos(gam),2) + 2*Math.cos(alp)*Math.cos(bet)*Math.cos(gam);
@@ -216,7 +214,7 @@ var car2frac = function(coor, UCsize, UCangle, fracVolume){
 };
 
 var fracPBC = function(fracCoor){
-  pbcCoor = [];
+  var pbcCoor = [];
   for(var coorIndex = 0; coorIndex < fracCoor.length; coorIndex++){
     pbcCoor.push(fracCoor[coorIndex] - Math.floor(fracCoor[coorIndex]));
 	};
