@@ -45,7 +45,7 @@
     // Possible rotation degrees are calculated as 360 / rotation freedom
     var rotationFreedom = 6;
     // Energy limit that is used while checking for collision during interpenetration
-    var energyLimit = avgEnergyLimit;
+    var energyLimit = avgEnergyLimit*100;
     // Energy limit used in eliminating 'bad' points in the energy map
     var initialCoorEnergyLimit = avgEnergyLimit;
     // Number of random rotations performed for each trial point
@@ -61,6 +61,7 @@
     var initialCoorTrialCount = 0;// To count the number of trials for different initial coordinates
     var initialCoorIndex = 0;     // Index of coordinates selected from the energy map as inital coordinateS
     var eMapIndex;                // Index of atom in the energy map
+    var atomName;                 // Atom names for mobile MOF used in newStructure
     // Lower and upper coordinate limits of the energy map - used for finding energy map index
     var eMapMax = [eMap[eMap.length-1][0], eMap[eMap.length-1][1], eMap[eMap.length-1][2]];
     var eMapMin = [eMap[0][0], eMap[0][1], eMap[0][2]];
@@ -99,6 +100,7 @@
             zAngle = Math.PI*2*Math.floor(Math.random()*(rotationFreedom))/rotationFreedom;
 
             // Rotate first atom of the mobile MOF
+            atomName = MOF[idx][3];
             newCoor = [MOF[idx][0], MOF[idx][1], MOF[idx][2]];
             q = q.rotation(newCoor, [0,0,0], [1,0,0], xAngle);
             newCoor = [q.x, q.y, q.z];
@@ -117,12 +119,13 @@
             addAtom(firstPoint, MOFatomVis.radius[visIndex], MOFatomVis.color[visIndex]);
 
             newStructure[structureCount] = [];
-            newStructure[structureCount][idx] = [firstPoint[0], firstPoint[1], firstPoint[2]];
+            newStructure[structureCount][idx] = [firstPoint[0], firstPoint[1], firstPoint[2], atomName];
             idx++;
 
           };
 
           if(idx < MOF.length && idx > 0){
+            atomName = MOF[idx][3];
             newCoor = [MOF[idx][0], MOF[idx][1], MOF[idx][2]];
             q = q.rotation(newCoor, [0,0,0], [1,0,0], xAngle);
             newCoor = [q.x, q.y, q.z];
@@ -148,13 +151,14 @@
               console.log('High Energy!!!!');
               structureTotalEnergy = 0;
             } else{
-              newStructure[structureCount][idx] = [newCoor[0], newCoor[1], newCoor[2]];
+              newStructure[structureCount][idx] = [newCoor[0], newCoor[1], newCoor[2], atomName];
               visIndex = getVisIndex(MOF[idx][3], MOFatomVis);
               addAtom(newCoor, MOFatomVis.radius[visIndex], MOFatomVis.color[visIndex]);
               idx++;
           };
         } else {
-          //recordStructure(baseMOF, newStructure[structureCount], trialCount, structureCount);
+          recordStructure(baseMOF, newStructure[structureCount], trialCount, structureCount,
+                          xAngle, yAngle, zAngle, structureTotalEnergy);
           structureCount++;
           console.log('New Interpenetration found!');
           structureTotalEnergy = 0;

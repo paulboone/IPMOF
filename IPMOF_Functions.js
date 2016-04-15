@@ -140,6 +140,7 @@ var selectInitialCoordinates = function(referenceAtom, eMap, eLimit){
 	};
 	return initialCoor;
 };
+
 // PBC and Interpolation Functions -----------------------------------------------------------------
 // 3D Linear Interpolation
 // MODIFIES INPUT COORDINATE IF A ROUNDED COORDINATE VALUE IS GIVEN!!!!!!!!!!!!!
@@ -331,19 +332,29 @@ var recordSummary = function(IPsuccessful){
 	console.log(firstPoint[0], firstPoint[1], firstPoint[2], xAngle, yAngle, zAngle, trialCount, structureCount, IPsuccessful);
 };
 
-var recordStructure = function(S1, S2, trialCount, structureCount){
-	significantFigure = 3;
-	decimal = Math.pow(10,significantFigure);
+var recordStructure = function(S1, S2, trialCount, structureCount, xAngle, yAngle, zAngle, structureTotalEnergy){
+	var significantFigure = 3;
+	var decimal = Math.pow(10,significantFigure);
+	var xdeg = Math.round(xAngle / Math.PI * 180);
+	var ydeg = Math.round(yAngle / Math.PI * 180);
+	var zdeg = Math.round(zAngle / Math.PI * 180);
 	console.log(S1.length + S2.length);
-	console.log("IP T:" + trialCount + " S: " + structureCount);
+	console.log("IP Trial: " + trialCount + " Structure: " + structureCount);
+	console.log("Rotation x: " + xdeg + " y: " + ydeg + " z: " + zdeg);
+	console.log("Energy: " + structureTotalEnergy);
+	var x, y, z;
 	for(var i = 0; i < S1.length; i++){
-		console.log("C "+ S1[i][0] + " " + S1[i][1] + " " + S1[i][2]);
+		x = Math.round(S1[i][0]*decimal)/decimal;
+		y = Math.round(S1[i][1]*decimal)/decimal;
+		z = Math.round(S1[i][2]*decimal)/decimal;
+		console.log(S1[i][3] + " " + x + " " + y + " " + z);
 	};
+	var x2, y2, z2;
 	for(var i = 0; i < S2.length; i++){
-		x = Math.round(S2[i][0]*decimal)/decimal;
-		y = Math.round(S2[i][1]*decimal)/decimal;
-		z = Math.round(S2[i][2]*decimal)/decimal;
-		console.log("O "+ x + " " + y + " " + z);
+		x2 = Math.round(S2[i][0]*decimal)/decimal;
+		y2 = Math.round(S2[i][1]*decimal)/decimal;
+		z2 = Math.round(S2[i][2]*decimal)/decimal;
+		console.log(S2[i][3] + " " + x2 + " " + y2 + " " + z2);
 	};
 	console.log("--------------------------------------------------------------");
 };
