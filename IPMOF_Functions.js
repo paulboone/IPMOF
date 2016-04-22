@@ -127,7 +127,7 @@ var findAtomType = function(atomSymbol, eMapAtomNames, eMapAtomIndex){
 };
 
 // Uses GLOBAL variabes of eMapAtomNames and eMapAtomIndex
-var selectInitialCoordinates = function(referenceAtom, eMap, eLimit){
+var selectInitialCoordinates = function(referenceAtom, eMap, eLimit, fracUCV){
   var refAtomIndex = findAtomType(referenceAtom, eMapAtomNames, eMapAtomIndex);
   if(refAtomIndex === undefined){
     refAtomIndex = 3; console.log(referenceAtom, ' atom not found!');
