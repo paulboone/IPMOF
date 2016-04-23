@@ -10,15 +10,13 @@ import math
 import numpy as np
 
 
-def energyMap(MOF1, atomList, cutOffArray, gridSize):
+def energyMap(MOF1, atomList, cutOff, gridSize):
     """
     Calculate energy map for a given MOF class.
     MOF -> base (map) | atomFFparameters -> sigma and epsilon values for given atoms
     cutOff -> cut-off value for LJ potential | gridSize -> grid size array for each dimension
     Packed coordinates for MOF1 must be defined before running the function.
     """
-    cutOff = min(cutOffArray)
-
     sortedX = sorted(MOF1.edgePoints, key=lambda x: x[0], reverse=True)
     sortedY = sorted(MOF1.edgePoints, key=lambda y: y[1], reverse=True)
     sortedZ = sorted(MOF1.edgePoints, key=lambda z: z[2], reverse=True)
@@ -530,8 +528,8 @@ class Packing:
 
     def factor(UCsize, cutOff):
         packingFactor = []
-        for cut_off, UCdimension in zip(cutOff, UCsize):
-            packingFactor.append(math.ceil(cut_off/UCdimension)*2+1)
+        for UCdimension in UCsize:
+            packingFactor.append(math.ceil(cutOff/UCdimension)*2+1)
         return packingFactor
 
     def vectors(packingFactor, UCsize, UCangle):
