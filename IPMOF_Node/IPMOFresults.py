@@ -60,6 +60,9 @@ def readSummary(resultsDir):
     structureCount = []
     trialCount = []
     icCount = []
+    rotFreedom = 0
+    rotLimit = 0
+    energyScale = 0
     for line in resFile:
 
         if 'Rotational Freedom' in line:
@@ -87,3 +90,24 @@ def readSummary(resultsDir):
     summary['icCount'] = icCount
 
     return summary
+
+
+def readJobFile(jobFileDir):
+    # Read simulation time data from the job file
+    jobFile = open(jobFileDir, 'r')
+    for line in jobFile:
+        if 'start_time' in line:
+            startTime = line.split()[4]
+        if 'end_time' in line:
+            endTime = line.split()[4]
+    jobFile.close()
+    startTime = startTime.split(':')
+    endTime = endTime.split(':')
+    simulationTime = [0, 0, 0]
+    i = 0
+    for start, end in zip(startTime, endTime):
+        simulationTime[i] = int(end) - int(start)
+        i += 1
+    textTime = str(simulationTime[0]) + ':'
+    textTime += str(simulationTime[1]) + ':' + str(simulationTime[2])
+    return textTime
