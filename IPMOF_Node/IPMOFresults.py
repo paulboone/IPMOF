@@ -103,11 +103,12 @@ def readJobFile(jobFileDir):
     jobFile.close()
     startTime = startTime.split(':')
     endTime = endTime.split(':')
-    simulationTime = [0, 0, 0]
-    i = 0
-    for start, end in zip(startTime, endTime):
-        simulationTime[i] = int(end) - int(start)
-        i += 1
-    textTime = str(simulationTime[0]) + ':'
-    textTime += str(simulationTime[1]) + ':' + str(simulationTime[2])
-    return textTime
+    totStartTime = int(startTime[0])*3600 + int(startTime[1])*60 + int(startTime[2])
+    totEndTime = int(endTime[0])*3600 + int(endTime[1])*60 + int(endTime[2])
+    seconds = totEndTime - totStartTime
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    textTime = "%02d:%02d:%02d" % (h, m, s)
+
+    #return textTime
+    return seconds
