@@ -1,6 +1,8 @@
+import os
+
 def exportIPMOFjs(fileNames, exportParameters, source_dir, export_dir):
-    IPMOFdir = source_dir + '\\IPMOF.js'
-    newIPMOFdir = export_dir + '\\IPMOF.js'
+    IPMOFdir = os.path.join(source_dir, 'IPMOF.js')
+    newIPMOFdir = os.path.join(export_dir, 'IPMOF.js')
 
     energyScale = str(exportParameters[0])
     rotationFreedom = str(exportParameters[1])
@@ -55,7 +57,6 @@ def generateExportList(energyScale, rotationFreedom, rotationLimit, outputStruct
 
     return exportParamList, exportFolderList
 
-import os
 def exportJobSH(jobDir, jobName, queue, wallTime):
     jobsh = []
     jobsh.append('#!/bin/bash')
