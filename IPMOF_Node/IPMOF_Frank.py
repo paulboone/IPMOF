@@ -2,11 +2,11 @@ import os
 import shutil
 
 # IPMOF.js source file directory
-source_dir = "C:\\Kutay\\IPMOF\\IPMOF_Node"
+source_dir = "//ihome//cwilmer//kbs37//git//IPMOF//IPMOF_Node"
 # MOF structure files and eMap files directory
-inputDir = "C:\\Kutay\\IPMOF_Input"
+inputDir = "//ihome//cwilmer//kbs37//IPMOF//MOFs"
 # Simulation files export directory
-export_dir = "C:\\Kutay\\IPMOF_Frank"
+export_dir = "//ihome//cwilmer//kbs37//IPMOF//multIPMOF"
 
 os.chdir(source_dir)
 
@@ -14,7 +14,7 @@ from exportFrank import *
 # --------------------------------------------------------------------------------------------------
 # Energy limit scaling, rotationFreedom, rotationAmount, outputStructures
 ES = [1E-2]
-RF = [30]
+RF = [12]
 RL = [50]
 XYZ = ['true']
 queue = 'shared'
@@ -30,13 +30,15 @@ for baseMOF in os.listdir(inputDir):
 
     mobileMOFdir = os.path.join(inputDir, baseMOF)
     baseMOF_exportDir = os.path.join(export_dir, baseMOF)
-    os.mkdir(baseMOF_exportDir)
+    if not os.path.isdir(baseMOF_exportDir):
+        os.mkdir(baseMOF_exportDir)
 
     for mobileMOF in os.listdir(mobileMOFdir):
 
         inputFolderDir = os.path.join(mobileMOFdir, mobileMOF)
         mobileMOF_exportDir = os.path.join(baseMOF_exportDir, mobileMOF)
-        os.mkdir(mobileMOF_exportDir)
+        if not os.path.isdir(mobileMOF_exportDir):
+            os.mkdir(mobileMOF_exportDir)
 
         inputFiles = os.listdir(inputFolderDir)
 
@@ -53,7 +55,8 @@ for baseMOF in os.listdir(inputDir):
         jobNum = 0
         for expPar, expFold in zip(exportParamList, exportFolderList):
             expDir = os.path.join(mobileMOF_exportDir, expFold)
-            os.mkdir(expDir)
+            if not os.path.isdir(expDir):
+                os.mkdir(expDir)
 
             for inpFile in inputFiles:
                 dstDir = os.path.join(expDir, inpFile)
