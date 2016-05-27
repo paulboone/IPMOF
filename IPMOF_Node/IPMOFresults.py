@@ -1,17 +1,39 @@
 # Functions used for reading results file of the IPMOF simulations
 import os
+import shutil
+import matplotlib.pyplot as plt
 
 def readStructures(resultsDir):
     resultsFileName = 'results.txt'
     resDir = os.path.join(resultsDir, resultsFileName)
     resFile = open(resDir, 'r')
+    resLines = resFile.readlines()
+    resFile.close()
+
+    # Count the total number of structures found by looking at dashed lines
+    totalStructureCount = 0
+    for line in resLines:
+        if 'Base' in line:
+            break
+
+        if '---' in line:
+            totalStructureCount += 1
+            lineIndex = resLines.index(line) + 1
+            nextLine = resLines[lineIndex]
+            if '---' in nextLine:
+                totalStructureCount -= 1
+            if 'Base' in nextLine:
+                totalStructureCount -= 1
+
+    # Create a dictionary for storing information about the structures discovered in simulations
     IPstructures = {'numAtoms': [], 'structureIndex': [], 'IPtrial': [], 'rotation': [], 'structureEnergy': [], 'xyz': []}
     newStructure = True
+    structureCount = 0
     lineCount = 0
     xyz = []
-    for line in resFile:
+    for line in resLines:
 
-        if 'Initial' in line:
+        if structureCount == totalStructureCount:
             break
 
         if '---' in line:
@@ -22,6 +44,7 @@ def readStructures(resultsDir):
             IPstructures['structureEnergy'].append(structureEnergy)
             IPstructures['xyz'].append(xyz)
             newStructure = True
+            structureCount += 1
             lineCount = 0
             xyz = []
             continue
@@ -112,3 +135,95 @@ def readJobFile(jobFileDir):
 
     #return textTime
     return seconds
+
+def exportIPxyz(IPindex, xyzFileName, exportDir):
+    xyzDir = os.path.join(exportDir, xyzFileName + '.xyz')
+    xyzFile = open(xyzDir, 'w')
+
+    # Write file in .xyz format
+
+    # Number of atoms in the structure
+    numAtoms = str(IPstructures['numAtoms'][IPindex])
+    xyzFile.write(numAtoms + '\n')
+
+    # Name of the structure
+    xyzFile.write(xyzFileName + '\n')
+
+    # Atom coordinates
+    for coor in IPstructures['xyz'][IPindex]:
+        xyzFile.write(coor + '\n')
+
+    xyzFile.close()
+
+class PB:
+    def input(MOFname, UCsize, UCangle, exportDir):
+        PBinputDir = os.path.join(exportDir, 'input.dat')
+        PBinputFile = open(PBinputDir, 'w')
+
+        PBinputFile.write(MOFname + '\n')
+
+        UCsizeLine = str(UCsize[0]) + ' ' + str(UCsize[1]) + ' ' + str(UCsize[2]) + '\n'
+        PBinputFile.write(UCsizeLine)
+
+        UCangleLine = str(UCangle[0]) + ' ' + str(UCangle[1]) + ' ' + str(UCangle[2]) + '\n'
+        PBinputFile.write(UCangleLine)
+
+        PBinputFile.close()
+
+    def readResults(PBdir):
+        PBresultsDir = os.path.join(PBdir, 'results.txt')
+        PBresultsFile = open(PBresultsDir, 'r')
+        PBresultsLines = PBresultsFile.readlines()
+        for line in PBresultsLines:
+            if 'surface area per mass' in line:
+                SA = float(line.split()[-1])
+            if 'System density' in line:
+                RO = float(line.split()[-1])
+            if '(point accessible) volume in cm^3/g' in line:
+                PV = float(line.split()[-1])
+        PBres = {}
+        PBres['SA'] = SA
+        PBres['RO'] = RO
+        PBres['PV'] = PV
+
+        return PBres
+
+    def initialize(sourceDir, exportDir):
+        #sourceDir = r'C:\Kutay\poreblazer_v3.0.2_d\Source'
+        for inpFile in os.listdir(sourceDir):
+            inpDir = os.path.join(sourceDir, inpFile)
+            shutil.copy(inpDir, exportDir)
+
+    def PSD(resultsDir):
+        psdDir = os.path.join(resultsDir, 'psd.txt')
+        psdFile = open(psdDir, 'r')
+        psdLines = psdFile.readlines()
+        psdFile.close()
+
+        poreSize = []
+        frequency = []
+        for i, line in enumerate(psdLines):
+            if i > 0:
+                poreSize.append(float(line.split()[0]))
+                frequency.append(float(line.split()[1]))
+
+        PSD = {}
+        PSD['poreSize'] = poreSize
+        PSD['frequency'] = frequency
+        DPDindex = PSD['frequency'].index(max(PSD['frequency']))
+        PSD['DPD'] = PSD['poreSize'][DPDindex]
+
+        return PSD
+
+    def plotPSD(PSD):
+
+        import matplotlib.pyplot as plt
+        plt.subplots(figsize=(8, 5))
+        plt.plot(PSD['poreSize'], PSD['frequency'])
+        plt.title('Pore Size Distribution', y=1.04, fontsize=18)
+        plt.ylabel('Frequency', fontsize = 18)
+        plt.xlabel('Pore Size (Angstrom)', fontsize = 18)
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
+        plt.text(PSD['DPD']*1.1, max(PSD['frequency'])*0.97, 'DPD: ' + str(PSD['DPD']), fontsize=14)
+        plt.show()

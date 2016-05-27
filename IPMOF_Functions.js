@@ -70,7 +70,9 @@ var initializeAnimation = function(baseMOF, atomVis){
 	renderer.setClearColor(0xFFFFFF); // 0xFFFFFF corresponds to white
 	document.body.appendChild(renderer.domElement);
 
-	camera = new THREE.PerspectiveCamera(zoomAmount*1.5, WIDTH / HEIGHT, 0.1, 20000);
+	//camera = new THREE.PerspectiveCamera(zoomAmount*1.5, WIDTH / HEIGHT, 0.1, 20000);
+	camera = new THREE.OrthographicCamera(-WIDTH/zoomAmount,
+		WIDTH/zoomAmount, HEIGHT/zoomAmount, -HEIGHT/zoomAmount);
 	camera.position.set(60,0,90);
 	scene.add(camera);
 

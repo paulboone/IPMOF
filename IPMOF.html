@@ -32,7 +32,7 @@
     scene = new THREE.Scene();    // Initialize Scene
     renderer = new THREE.WebGLRenderer();   // Initialize renderer
     // Calculate camera zoom amount according to the unit cell size of the base MOF
-    var zoomAmount = Math.max(baseMOF_UCsize[0], baseMOF_UCsize[1], baseMOF_UCsize[2]);
+    var zoomAmount = Math.max(baseMOF_UCsize[0], baseMOF_UCsize[1], baseMOF_UCsize[2])*1.2;
     // Get atomic visulation data for base and mobile MOFs from the atomVisData.js file
     var baseAtomVis = getAtomVisData(baseMOFatomNames);
     var MOFatomVis = getAtomVisData(MOFatomNames);
