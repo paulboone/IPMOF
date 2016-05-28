@@ -156,6 +156,9 @@ def exportIPxyz(IPindex, xyzFileName, exportDir):
     xyzFile.close()
 
 class PB:
+    def source(self, sourceDir):
+        self.sourceDir = sourceDir
+ 
     def input(MOFname, UCsize, UCangle, exportDir):
         PBinputDir = os.path.join(exportDir, 'input.dat')
         PBinputFile = open(PBinputDir, 'w')
@@ -169,6 +172,40 @@ class PB:
         PBinputFile.write(UCangleLine)
 
         PBinputFile.close()
+
+    def initialize(self, exportDir):
+        sourceDir = self.sourceDir
+        for inpFile in os.listdir(sourceDir):
+            inpDir = os.path.join(sourceDir, inpFile)
+            shutil.copy(inpDir, exportDir)
+
+    def JobSH(jobDir, jobName, queue, wallTime):
+        jobsh = []
+        jobsh.append('#!/bin/bash')
+        jobsh.append(' ')
+        jobsh.append('#PBS -j oe')
+        jobsh.append('#PBS -N ' + jobName)
+        jobsh.append('#PBS -q ' + queue)
+        jobsh.append('#PBS -l nodes=1:ppn=1')
+        jobsh.append('#PBS -l walltime=' + wallTime)
+        jobsh.append('#PBS -S /bin/bash')
+        jobsh.append(' ')
+        jobsh.append('echo JOB_ID: $PBS_JOBID JOB_NAME: $PBS_JOBNAME HOSTNAME: $PBS_O_HOST')
+        jobsh.append('echo "start_time: `date`"')
+        jobsh.append(' ')
+        jobsh.append('cd $PBS_O_WORKDIR')
+        jobsh.append('./ihome/cwilmer/kbs37/PoreBlazer/poreblazer.exe < input.dat > results.txt')
+        jobsh.append('echo end_time: `date`')
+        jobsh.append(' ')
+        jobsh.append('cp /var/spool/torque/spool/$PBS_JOBID.OU $PBS_O_WORKDIR/$PBS_JOBID.out')
+        jobsh.append('cp /var/spool/torque/spool/$PBS_JOBID.ER $PBS_O_WORKDIR/$PBS_JOBID.err')
+        jobsh.append(' ')
+        jobsh.append('exit')
+        jobSHdir = os.path.join(jobDir, 'job.sh')
+        jobSubmission = open(jobSHdir,'w')
+        for line in jobsh:
+            jobSubmission.write(line + '\n')
+        jobSubmission.close()
 
     def readResults(PBdir):
         PBresultsDir = os.path.join(PBdir, 'results.txt')
@@ -187,12 +224,6 @@ class PB:
         PBres['PV'] = PV
 
         return PBres
-
-    def initialize(sourceDir, exportDir):
-        #sourceDir = r'C:\Kutay\poreblazer_v3.0.2_d\Source'
-        for inpFile in os.listdir(sourceDir):
-            inpDir = os.path.join(sourceDir, inpFile)
-            shutil.copy(inpDir, exportDir)
 
     def PSD(resultsDir):
         psdDir = os.path.join(resultsDir, 'psd.txt')
@@ -216,7 +247,6 @@ class PB:
         return PSD
 
     def plotPSD(PSD):
-
         import matplotlib.pyplot as plt
         plt.subplots(figsize=(8, 5))
         plt.plot(PSD['poreSize'], PSD['frequency'])

@@ -110,6 +110,13 @@ def readMol2(MOFfile):
 
 
 def calculateEnergyLimits(baseMOFIndex, MOFs, eMapAtomList, eMap):
+    """
+    Calculates average energy limit and tabulates results.
+    The average energy limit is calculated by sorting all the energy values in the eMap and
+    taking the Nth highest energy values from the top where N is the total number of atoms in the
+    baseMOF. Then the energy value is calculated as the average of all the energy values belonging
+    to different types of atoms in the energy map.
+    """
     from tabulate import tabulate
     headers = ["MOF Name", "Atoms", "Average Energy Limit"]
     table = [[] for mof in MOFs]
@@ -212,22 +219,20 @@ def exportMOFjs(MOF, exportDir):
     MOFfile = open(exportDir, 'w')
 
     MOFfile.write("var MOFatomNames = [];\n")
-    atomIndex = 0
-    for atom in MOF.uniqueAtomNames:
+    for atomIndex, atom in enumerate(MOF.uniqueAtomNames):
         MOFfile.write("MOFatomNames[" + str(atomIndex) + "] = '" + atom + "';\n")
-        atomIndex += 1
 
     MOFfile.write("var MOF_UCsize = [];\n")
-    ucIndex = 0
-    for uc in MOF.UCsize:
+    for ucIndex, uc in enumerate(MOF.UCsize):
         MOFfile.write("MOF_UCsize[" + str(ucIndex) + "] = " + str(uc) + ";\n")
-        ucIndex += 1
 
     MOFfile.write("var MOF_UCangle = [];\n")
-    ucIndex = 0
-    for uc in MOF.UCangle:
+    for ucIndex, uc in enumerate(MOF.UCangle):
         MOFfile.write("MOF_UCangle[" + str(ucIndex) + "] = " + str(uc) + ";\n")
-        ucIndex += 1
+
+    MOFfile.write("var MOF_edgePoints = [];\n")
+    for edgeIndex, edge in enumerate(MOF.edgePoints):
+        MOFfile.write("MOF_edgePoints[" + str(edgeIndex) + "] = " + str(edge) + ";\n")
 
     MOFfile.write("var MOF = [];\n")
     for MOFindex in range(len(MOF.atomName)):
@@ -244,22 +249,16 @@ def exportGLOBALMOFjs(MOF, exportDir):
     MOFfile = open(exportDir, 'w')
 
     MOFfile.write("GLOBAL.MOFatomNames = [];\n")
-    atomIndex = 0
-    for atom in MOF.uniqueAtomNames:
+    for atomIndex, atom in enumerate(MOF.uniqueAtomNames):
         MOFfile.write("MOFatomNames[" + str(atomIndex) + "] = '" + atom + "';\n")
-        atomIndex += 1
 
     MOFfile.write("GLOBAL.MOF_UCsize = [];\n")
-    ucIndex = 0
-    for uc in MOF.UCsize:
+    for ucIndex, uc in enumerate(MOF.UCsize):
         MOFfile.write("MOF_UCsize[" + str(ucIndex) + "] = " + str(uc) + ";\n")
-        ucIndex += 1
 
     MOFfile.write("GLOBAL.MOF_UCangle = [];\n")
-    ucIndex = 0
-    for uc in MOF.UCangle:
+    for ucIndex, uc in enumerate(MOF.UCangle):
         MOFfile.write("MOF_UCangle[" + str(ucIndex) + "] = " + str(uc) + ";\n")
-        ucIndex += 1
 
     MOFfile.write("GLOBAL.MOF = [];\n")
     for MOFindex in range(len(MOF.atomName)):
@@ -276,22 +275,20 @@ def exportBaseMOFjs(MOF, exportDir):
     MOFfile = open(exportDir, 'w')
 
     MOFfile.write("var baseMOFatomNames = [];\n")
-    atomIndex = 0
-    for atom in MOF.uniqueAtomNames:
+    for atomIndex, atom in enumerate(MOF.uniqueAtomNames):
         MOFfile.write("baseMOFatomNames[" + str(atomIndex) + "] = '" + atom + "';\n")
-        atomIndex += 1
 
     MOFfile.write("var baseMOF_UCsize = [];\n")
-    ucIndex = 0
-    for uc in MOF.UCsize:
+    for ucIndex, uc in enumerate(MOF.UCsize):
         MOFfile.write("baseMOF_UCsize[" + str(ucIndex) + "] = " + str(uc) + ";\n")
-        ucIndex += 1
 
     MOFfile.write("var baseMOF_UCangle = [];\n")
-    ucIndex = 0
-    for uc in MOF.UCangle:
+    for ucIndex, uc in enumerate(MOF.UCangle):
         MOFfile.write("baseMOF_UCangle[" + str(ucIndex) + "] = " + str(uc) + ";\n")
-        ucIndex += 1
+
+    MOFfile.write("var baseMOF_edgePoints = [];\n")
+    for edgeIndex, edge in enumerate(MOF.edgePoints):
+        MOFfile.write("MOF_edgePoints[" + str(edgeIndex) + "] = " + str(edge) + ";\n")
 
     MOFfile.write("var baseMOF = [];\n")
     for MOFindex in range(len(MOF.atomName)):
@@ -308,22 +305,16 @@ def exportGLOBALBaseMOFjs(MOF, exportDir):
     MOFfile = open(exportDir, 'w')
 
     MOFfile.write("GLOBAL.baseMOFatomNames = [];\n")
-    atomIndex = 0
-    for atom in MOF.uniqueAtomNames:
+    for atomIndex, atom in enumerate(MOF.uniqueAtomNames):
         MOFfile.write("baseMOFatomNames[" + str(atomIndex) + "] = '" + atom + "';\n")
-        atomIndex += 1
 
     MOFfile.write("GLOBAL.baseMOF_UCsize = [];\n")
-    ucIndex = 0
-    for uc in MOF.UCsize:
+    for ucIndex, uc in enumerate(MOF.UCsize):
         MOFfile.write("baseMOF_UCsize[" + str(ucIndex) + "] = " + str(uc) + ";\n")
-        ucIndex += 1
 
     MOFfile.write("GLOBAL.baseMOF_UCangle = [];\n")
-    ucIndex = 0
-    for uc in MOF.UCangle:
+    for ucIndex, uc in enumerate(MOF.UCangle):
         MOFfile.write("baseMOF_UCangle[" + str(ucIndex) + "] = " + str(uc) + ";\n")
-        ucIndex += 1
 
     MOFfile.write("GLOBAL.baseMOF = [];\n")
     for MOFindex in range(len(MOF.atomName)):
