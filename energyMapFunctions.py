@@ -81,7 +81,12 @@ def readMol2(MOFfile):
         if '@<TRIPOS>BOND' in line:
             readCoordinates = False
         if readCoordinates and '@<TRIPOS>ATOM' not in line:
-            atomName.append(line.split()[1])
+            name = line.split()[1]
+            for charIndex, char in enumerate(name):
+                if char.isdigit():
+                    digitIndex = charIndex
+                    name = name[:charIndex]
+            atomName.append(name)
             atomX.append(float(line.split()[2]))
             atomY.append(float(line.split()[3]))
             atomZ.append(float(line.split()[4]))
@@ -104,7 +109,7 @@ def readMol2(MOFfile):
     return UCsize, UCangle, atomName, atomCoor
 
 
-def calculateEnergyLimits(baseMOFIndex, MOFs, MOFlist, eMapAtomList, eMap):
+def calculateEnergyLimits(baseMOFIndex, MOFs, eMapAtomList, eMap):
     from tabulate import tabulate
     headers = ["MOF Name", "Atoms", "Average Energy Limit"]
     table = [[] for mof in MOFs]
@@ -119,7 +124,7 @@ def calculateEnergyLimits(baseMOFIndex, MOFs, MOFlist, eMapAtomList, eMap):
             atomName.append(eMapAtomList[MOFindex2]['name'][atomIndex])
         avgEnergyLimit = sum(energyLimit)/len(energyLimit)
         averageEnergyLimits.append(avgEnergyLimit)
-        MOFname = MOFlist[MOFindex2].split('.')[0]
+        MOFname = MOFs[MOFindex2].name
         table[MOFindex2].append(MOFname)
         table[MOFindex2].append(atomName)
         # table[MOFindex2].append(energyLimit)
@@ -437,11 +442,10 @@ def getFFparameters(atomNames, FFparameters):
     return atomFFparameters
 
 
-def readAtomRadius():
+def readAtomRadius(radiusFileDir):
     import xlrd
     import numpy as np
 
-    radiusFileDir = 'C:\\Users\\kutay\\Dropbox\\Academic\\WilmerLab\\Research\\Web-IPMOF\\IPMOFvisualization\\atomicRadius.xlsx'
     radius_data = xlrd.open_workbook(radiusFileDir)
 
     atomNames = radius_data.sheets()[0].col_values(0)[:]
