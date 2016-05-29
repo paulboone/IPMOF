@@ -66,6 +66,36 @@ def readStructures(resultsDir):
     return IPstructures
 
 
+def readUnitCell(IPstructures, resultsDir):
+    resultsFileName = 'results.txt'
+    resDir = os.path.join(resultsDir, resultsFileName)
+    resFile = open(resDir, 'r')
+    resLines = resFile.readlines()
+    resFile.close()
+
+    for line in resLines:
+        if 'Base MOF Unit Cell a:' in line:
+            bMOF_a = float(line.split()[5])
+            bMOF_b = float(line.split()[7])
+            bMOF_c = float(line.split()[9])
+        if 'Base MOF Unit Cell alpha:' in line:
+            bMOF_alpha = float(line.split()[5])
+            bMOF_beta = float(line.split()[7])
+            bMOF_gamma = float(line.split()[9])
+        if 'Mobile MOF Unit Cell a:' in line:
+            mMOF_a = float(line.split()[5])
+            mMOF_b = float(line.split()[7])
+            mMOF_c = float(line.split()[9])
+        if 'Mobile MOF Unit Cell alpha:' in line:
+            mMOF_alpha = float(line.split()[5])
+            mMOF_beta = float(line.split()[7])
+            mMOF_gamma = float(line.split()[9])
+
+    IPstructures['bMOF_UCsize'] = [bMOF_a, bMOF_b, bMOF_c]
+    IPstructures['bMOF_UCangle'] = [bMOF_alpha, bMOF_beta, bMOF_gamma]
+    IPstructures['mMOF_UCsize'] = [mMOF_a, mMOF_b, mMOF_c]
+    IPstructures['mMOF_UCangle'] = [mMOF_alpha, mMOF_beta, mMOF_gamma]
+
 def getMinEnergyStructures(IPstructures, numStructures):
     minEnergyStructures = []
     if numStructures > len(IPstructures['structureEnergy']):
@@ -143,10 +173,8 @@ def exportIPxyz(IPstructures, xyzFileName, exportDir):
     xyzDir = os.path.join(exportDir, xyzFileName + '.xyz')
     xyzFile = open(xyzDir, 'w')
 
-    # Write file in .xyz format
-
     # Number of atoms in the structure
-    numAtoms = str(IPstructures['numAtoms'])
+    numAtoms = str(len(IPstructures['xyz']))
     xyzFile.write(numAtoms + '\n')
 
     # Name of the structure
@@ -158,10 +186,37 @@ def exportIPxyz(IPstructures, xyzFileName, exportDir):
 
     xyzFile.close()
 
+
+def exportIPpdb(IPstructures, pdbFileName, exportDir):
+    pdbDir = os.path.join(exportDir, pdbFileName + '.pdb')
+    pdbFile = open(pdbDir, 'w')
+
+    pdbFile.write('HEADER    CSD ENTRY ' + pdbFileName + '\n')
+
+    UCsize = str(IPstructures['bMOF_UCsize'][0]) + '    '
+    UCsize += str(IPstructures['bMOF_UCsize'][1]) + '    '
+    UCsize += str(IPstructures['bMOF_UCsize'][2])
+
+    UCangle = str(IPstructures['bMOF_UCangle'][0]) + '  '
+    UCangle += str(IPstructures['bMOF_UCangle'][1]) + '  '
+    UCangle += str(IPstructures['bMOF_UCangle'][2])
+
+    pdbFile.write('CRYST1    ' + UCsize + '  ' + UCangle + ' P1\n')
+
+    # Atom coordinates
+    for coorIndex, coor in enumerate(IPstructures['xyz']):
+        coorLine = 'HETATM\t\t' + str(coorIndex) + '\t' + coor.split()[0] + '\tUNK\t1\t\t'
+        coorLine += coor.split()[1] + '\t' + coor.split()[2] + '\t' + coor.split()[3]
+        coorLine += '\t1.00\t0.00\t\t\t' + coor.split()[0]
+        pdbFile.write(coorLine + '\n')
+
+    pdbFile.close()
+
+
 class PB:
     def source(self, sourceDir):
         self.sourceDir = sourceDir
- 
+
     def input(MOFname, UCsize, UCangle, exportDir):
         PBinputDir = os.path.join(exportDir, 'input.dat')
         PBinputFile = open(PBinputDir, 'w')
