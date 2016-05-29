@@ -176,7 +176,8 @@ for(var t = 0; t < trialLimit; t++){
         structureTotalEnergy = 0;
         break loop1;
       } else{
-        newStructure[structureCount][idx] = [newCoor[0], newCoor[1], newCoor[2], atomName];
+        //newStructure[structureCount][idx] = [newCoor[0], newCoor[1], newCoor[2], atomName];
+        newStructure[structureCount][idx] = [pbcCoor[0], pbcCoor[1], pbcCoor[2], atomName];
       };
     };
 

@@ -68,8 +68,11 @@ def readStructures(resultsDir):
 
 def getMinEnergyStructures(IPstructures, numStructures):
     minEnergyStructures = []
+    if numStructures > len(IPstructures['structureEnergy']):
+        numStructures = len(IPstructures['structureEnergy'])
+        print('Omitting excess structures...')
     for strIdx in range(numStructures):
-        minEnergy = sorted(IPstructures['structureEnergy'])[0]
+        minEnergy = sorted(IPstructures['structureEnergy'])[strIdx]
         minIndex = IPstructures['structureEnergy'].index(minEnergy)
         minEnergyStructures.append(minIndex)
     return minEnergyStructures
@@ -136,21 +139,21 @@ def readJobFile(jobFileDir):
     #return textTime
     return seconds
 
-def exportIPxyz(IPindex, xyzFileName, exportDir):
+def exportIPxyz(IPstructures, xyzFileName, exportDir):
     xyzDir = os.path.join(exportDir, xyzFileName + '.xyz')
     xyzFile = open(xyzDir, 'w')
 
     # Write file in .xyz format
 
     # Number of atoms in the structure
-    numAtoms = str(IPstructures['numAtoms'][IPindex])
+    numAtoms = str(IPstructures['numAtoms'])
     xyzFile.write(numAtoms + '\n')
 
     # Name of the structure
     xyzFile.write(xyzFileName + '\n')
 
     # Atom coordinates
-    for coor in IPstructures['xyz'][IPindex]:
+    for coor in IPstructures['xyz']:
         xyzFile.write(coor + '\n')
 
     xyzFile.close()
