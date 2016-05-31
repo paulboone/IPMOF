@@ -173,3 +173,9 @@ def car2frac(coor, uc_size, uc_angle, UCV):
     zfrac += math.sin(gam)/(c*v)*z
 
     return [xfrac, yfrac, zfrac]
+
+def frac_pbc(frac_coor):
+    pbc_coor = []
+    for coor in frac_coor:
+        pbc_coor.append(coor - math.floor(coor))
+    return pbc_coor

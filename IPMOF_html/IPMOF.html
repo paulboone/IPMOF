@@ -1,0 +1,177 @@
+<html>
+<head>
+  <title>Web-IPMOF</title>
+</head>
+
+<body>
+  <script src="Source/three.js"></script>              <!-- Load Three.js -->
+  <script src="Source/OrbitControls.js"></script>      <!-- Load mouse controls -->
+  <script src="IPMOF_Functions.js"></script>
+  <script src="atomVisData.js"></script>
+  <script src="OFODAP.js"></script>
+  <script src="UNIGEE.js"></script>
+  <script src="OFODAP+UNIGEE_eMap.js"></script>
+
+  <input style="position: absolute;left:-9999px;" type="radio" name="Pause" id="Play" />
+	<label for="Play">
+	<img src="Source/play-48.png" style="display:inline-block; position:absolute; left:0px;top:0px; cursor:pointer; padding:0px;"/></label>
+
+  <input style="position: absolute;left:-9999px;" type="radio" name="Pause" id="Pause" />
+	<label for="Pause">
+	<img src="Source/pause-48.png" style="display:inline-block; position:absolute; left:40px;top:0px; cursor:pointer; padding:0px;"/></label>
+
+  <input style="position: absolute; top:15px; left: 127px" type="range" name="fps" id="speed" value="5" min="0.1" max="120" />
+
+  <script>
+    // Define global variables
+    // ---------------------------------- ANIMATION VARIABLES ---------------------------------------------
+    var camera, renderer, scene, controls;
+    var fps = 5;                  // Frame per second (controlled by slider)
+    var objectNumber;             // Num of objects in the scene before adding atoms of second structure
+    var visIndex;                 // Atom Index for radius and color value from the atomVisData.js file
+    scene = new THREE.Scene();    // Initialize Scene
+    renderer = new THREE.WebGLRenderer();   // Initialize renderer
+    // Calculate camera zoom amount according to the unit cell size of the base MOF
+    var zoomAmount = Math.max(baseMOF_UCsize[0], baseMOF_UCsize[1], baseMOF_UCsize[2])*1.2;
+    // Get atomic visulation data for base and mobile MOFs from the atomVisData.js file
+    var baseAtomVis = getAtomVisData(baseMOFatomNames);
+    var MOFatomVis = getAtomVisData(MOFatomNames);
+    var rotatedEdgePoints;        // Coordinates of unit cell after rotation is performed
+// --------------------------------------------------------------------------------------------------------
+// ------------------------------------ Simulation Parameters ---------------------------------------------
+    // Grid size of the energy map (Default value is 1)
+    var gridSize = 1;
+    // Rotation degree is select according to this parameter
+    // Possible rotation degrees are calculated as 360 / rotation freedom
+    var rotationFreedom = 6;
+    // Energy limit that is used while checking for collision during interpenetration
+    var energyLimit = avgEnergyLimit*100;
+    // Energy limit used in eliminating 'bad' points in the energy map
+    var initialCoorEnergyLimit = avgEnergyLimit;
+    // Number of random rotations performed for each trial point
+    var rotationLimit = 20;
+// --------------------------------------------------------------------------------------------------------
+// ---------------------------Interpenetration Global Variables -------------------------------------------
+    var structureTotalEnergy = 0; // Total potential energy of the interpenetrating MOF
+    var newStructure = [];        // Array for storing coordinates of interpenetrating structure
+    var firstPoint;               // Initial point for first atom selected randomly from initialCoordinates
+    var idx = 0;                  // Index for going through atoms in MOF unit cell
+    var structureCount = 0;       // Count the number of IP structures found
+    var trialCount = 0;           // Number of trials performed for interpenetration
+    var initialCoorTrialCount = 0;// To count the number of trials for different initial coordinates
+    var initialCoorIndex = 0;     // Index of coordinates selected from the energy map as inital coordinateS
+    var eMapIndex;                // Index of atom in the energy map
+    var atomName;                 // Atom names for mobile MOF used in newStructure
+    // Lower and upper coordinate limits of the energy map - used for finding energy map index
+    var eMapMax = [eMap[eMap.length-1][0], eMap[eMap.length-1][1], eMap[eMap.length-1][2]];
+    var eMapMin = [eMap[0][0], eMap[0][1], eMap[0][2]];
+    // Calculate fractional unit cell volume
+    var fracUCV = fracVolume(baseMOF_UCangle);
+    // Determine initial coordinates from energy map by omitting points with e > initialCoorEnergyLimit
+    var initialCoordinates = selectInitialCoordinates('C', eMap, initialCoorEnergyLimit);
+// ------------------------------------ Rotation Variables ------------------------------------------------
+    var q = new quaternion(0,1,1,1);
+    var xAngle, yAngle, zAngle, newX, newY, newZ;
+    var translationVector;
+// --------------------------------------------------------------------------------------------------------
+    function animate() {
+    	// Reads the input speed from the slider
+    	fps = document.getElementById("speed").value;
+    	// Sets the animation frame per second
+        setTimeout( function() { requestAnimationFrame( animate ); }, 1000 / fps );
+
+        renderer.render(scene, camera);
+
+        controls.update();
+
+        if(document.getElementById('Play').checked) {
+
+          if(idx === 0){
+
+            if(trialCount % rotationLimit === 0){
+              firstPoint = initialCoordinates[initialCoorIndex];
+              initialCoorIndex++;
+              initialCoorTrialCount++;
+            };
+
+            // Select rotation axis and angle
+            xAngle = Math.PI*2*Math.floor(Math.random()*(rotationFreedom))/rotationFreedom;
+            yAngle = Math.PI*2*Math.floor(Math.random()*(rotationFreedom))/rotationFreedom;
+            zAngle = Math.PI*2*Math.floor(Math.random()*(rotationFreedom))/rotationFreedom;
+
+            // Rotate first atom of the mobile MOF
+            atomName = MOF[idx][3];
+            newCoor = [MOF[idx][0], MOF[idx][1], MOF[idx][2]];
+            q = q.rotation(newCoor, [0,0,0], [1,0,0], xAngle);
+            newCoor = [q.x, q.y, q.z];
+            q = q.rotation(newCoor, [0,0,0], [0,1,0], yAngle);
+            newCoor = [q.x, q.y, q.z];
+            q = q.rotation(newCoor, [0,0,0], [0,0,1], zAngle);
+            newCoor = [q.x, q.y, q.z];
+            trialCount++;
+
+            translationVector = coorDiff(newCoor, firstPoint);
+
+            rotatedEdgePoints = rotateUnitCell(MOFedgeP, xAngle, yAngle, zAngle, translationVector);
+            drawUnitCell(rotatedEdgePoints);
+
+            visIndex = getVisIndex(MOF[idx][3], MOFatomVis);
+            addAtom(firstPoint, MOFatomVis.radius[visIndex], MOFatomVis.color[visIndex]);
+
+            newStructure[structureCount] = [];
+            newStructure[structureCount][idx] = [firstPoint[0], firstPoint[1], firstPoint[2], atomName];
+            idx++;
+
+          };
+
+          if(idx < MOF.length && idx > 0){
+            atomName = MOF[idx][3];
+            newCoor = [MOF[idx][0], MOF[idx][1], MOF[idx][2]];
+            q = q.rotation(newCoor, [0,0,0], [1,0,0], xAngle);
+            newCoor = [q.x, q.y, q.z];
+            q = q.rotation(newCoor, [0,0,0], [0,1,0], yAngle);
+            newCoor = [q.x, q.y, q.z];
+            q = q.rotation(newCoor, [0,0,0], [0,0,1], zAngle);
+            newCoor = [q.x, q.y, q.z];
+
+            newCoor = coorAdd(newCoor, translationVector);
+            fracCoor = car2frac(newCoor, baseMOF_UCsize, baseMOF_UCangle, fracUCV);
+            pbcCoor = fracPBC(fracCoor);
+
+            // Check collisions here
+            pbcCoor = frac2car(pbcCoor, baseMOF_UCsize, baseMOF_UCangle, fracUCV);
+            eMapIndex = findEmapIndex(pbcCoor, gridSize, eMapMax, eMapMin);
+
+            atomIndex = findAtomType(MOF[idx][3], eMapAtomNames, eMapAtomIndex);
+            pointEnergy = trInterpolate(pbcCoor, atomIndex, eMap, eMapMax, eMapMin, gridSize);
+            structureTotalEnergy += pointEnergy;
+            //console.log('S E: ' , structureTotalEnergy, 'P E: ', pointEnergy , 'Coor: ', pbcCoor);
+            if(pointEnergy >= energyLimit){
+              resetScene(objectNumber);
+              console.log('High Energy!!!!');
+              structureTotalEnergy = 0;
+            } else{
+              newStructure[structureCount][idx] = [newCoor[0], newCoor[1], newCoor[2], atomName];
+              visIndex = getVisIndex(MOF[idx][3], MOFatomVis);
+              addAtom(newCoor, MOFatomVis.radius[visIndex], MOFatomVis.color[visIndex]);
+              idx++;
+          };
+        } else {
+          recordStructure(baseMOF, newStructure[structureCount], trialCount, structureCount,
+                          xAngle, yAngle, zAngle, structureTotalEnergy);
+          structureCount++;
+          console.log('New Interpenetration found!');
+          structureTotalEnergy = 0;
+          resetScene(objectNumber);
+        };
+    };
+  };
+
+    initializeAnimation(baseMOF, baseAtomVis);
+
+    animate();
+
+  </script>
+
+</body>
+</html>
