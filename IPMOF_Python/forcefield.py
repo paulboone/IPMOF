@@ -19,8 +19,10 @@ def read_ff_parameters(excel_file_path, ff_selection):
     uff_epsilon = force_field_data.sheets()[0].col_values(2)[2:]
     dre_sigma = force_field_data.sheets()[0].col_values(3)[2:]
     dre_epsilon = force_field_data.sheets()[0].col_values(4)[2:]
-    uff = [atom_names, uff_sigma, uff_epsilon]
-    dre = [atom_names, dre_sigma, dre_epsilon]
+
+    uff = { 'atom': atom_names, 'sigma': uff_sigma, 'epsilon': uff_epsilon}
+    dre = { 'atom': atom_names, 'sigma': dre_sigma, 'epsilon': dre_epsilon}
+
     if ff_selection == 'uff':
         return uff
     if ff_selection == 'dre':
@@ -35,11 +37,11 @@ def get_ff_parameters(atom_names, ff_parameters):
     """
     atom_ff_parameters = []
     for atom in atom_names:
-        for i in range(len(ff_parameters[0])):
-            if atom == ff_parameters[0][i]:
+        for ff_index, ff_atom in enumerate(ff_parameters['atom']):
+            if atom == ff_atom:
                 atom_name = atom
-                sigma = ff_parameters[1][i]
-                epsilon = ff_parameters[2][i]
+                sigma = ff_parameters['sigma'][ff_index]
+                epsilon = ff_parameters['epsilon'][ff_index]
                 atom_ff_parameters.append([atom_name, sigma, epsilon])
     return atom_ff_parameters
 
@@ -64,4 +66,4 @@ def lennard_jones(r, sig, eps):
     Calculate Lennard Jones potential for given distance, sigma, and epsilon values.
     Energy unit: (kB)
     """
-    return 4 * eps * ((sig/r)**12 - (sig/r)**6)
+    return 4 * eps * ((sig / r)**12 - (sig / r)**6)

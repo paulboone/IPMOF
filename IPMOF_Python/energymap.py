@@ -24,14 +24,14 @@ def energy_map(MOF1, atom_list, cut_off, grid_size):
     emap_max = [ceil(sorted_x[0][0]), ceil(sorted_y[0][1]), ceil(sorted_z[0][2])]
     emap_min = [floor(sorted_x[-1][0]), floor(sorted_y[-1][1]), floor(sorted_z[-1][2])]
 
-    x_grid = np.linspace(emap_min[0], emap_max[0], (emap_max[0]-emap_min[0])/grid_size+1)
-    y_grid = np.linspace(emap_min[1], emap_max[1], (emap_max[1]-emap_min[1])/grid_size+1)
-    z_grid = np.linspace(emap_min[2], emap_max[2], (emap_max[2]-emap_min[2])/grid_size+1)
+    x_grid = np.linspace(emap_min[0], emap_max[0], (emap_max[0] - emap_min[0]) / grid_size + 1)
+    y_grid = np.linspace(emap_min[1], emap_max[1], (emap_max[1] - emap_min[1]) / grid_size + 1)
+    z_grid = np.linspace(emap_min[2], emap_max[2], (emap_max[2] - emap_min[2]) / grid_size + 1)
 
     num_atoms = len(atom_list['sigma'])
 
     # Initialize energy map according to grid size and coordinates plus number of unique atoms
-    energy_map = np.zeros([len(x_grid)*len(y_grid)*len(z_grid), num_atoms+3])
+    energy_map = np.zeros([len(x_grid) * len(y_grid) * len(z_grid), num_atoms + 3])
 
     sig, eps = LBmix(MOF1.sigma, atom_list['sigma'], MOF1.epsilon, atom_list['epsilon'])
 
@@ -52,14 +52,14 @@ def energy_map(MOF1, atom_list, cut_off, grid_size):
                         if dist > cut_off:
                             continue
                         if dist == 0:
-                            energy_map[map_index][3:(num_atoms+3)] = np.ones([1, num_atoms])*inf
+                            energy_map[map_index][3:(num_atoms + 3)] = np.ones([1, num_atoms]) * inf
                         else:
-                            fodistatom_index_2 in range(num_atoms):
+                            for atom_index_2 in range(num_atoms):
                                 sig_mix = sig[atom_index_1][atom_index_2]
                                 eps_mix = eps[atom_index_1][atom_index_2]
                                 v[atom_index_2] = lennard_jones(dist, sig_mix, eps_mix)
                                 v_total[atom_index_2] = v_total[atom_index_2] + v[atom_index_2]
-                energy_map[map_index][3:(num_atoms+3)] = v_total
+                energy_map[map_index][3:(num_atoms + 3)] = v_total
                 map_index += 1
     return energy_map
 
