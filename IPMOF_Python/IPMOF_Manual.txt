@@ -5,7 +5,7 @@ crystal.py:
 - read_mol2
 - separate_atoms
 - Packing class
-- ucv
+- unit_cell_volume
 - car2frac
 - frac_pbc
 
@@ -33,8 +33,9 @@ js_export.py:
 
 visualize.py:
 - plotEnergyMap
-- plotXYZ
-- plotPackedCell
+- plot_xyz
+- plot_packed_cell
+- plot_unit_cell
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 crystal.py

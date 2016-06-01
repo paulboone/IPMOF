@@ -15,8 +15,7 @@ def energy_map(MOF, atom_list, cut_off, grid_size):
     """
     Calculate energy map for a given MOF class with following properties:
         - edge_points   - uniq_atom_names   - atom_names    - packed_coors
-        - sigma
-        - epsilon
+        - sigma         - epsilon
     MOF -> base (map) | atomFFparameters -> sigma and epsilon values for given atoms
     cut_off -> cut-off value for LJ potential | grid_size -> grid size array for each dimension
     Packed coordinates for MOF must be defined before running the function.
@@ -96,7 +95,7 @@ def get_uniq_atom_list(mof_list):
     """
     all_atom_list = {'atom': [], 'sigma': [], 'epsilon': []}
     for mof in mof_list:
-        for atom, sig, eps in zip(mof.uniq_atom_names, mof.sigma. mof.epsilon):
+        for atom, sig, eps in zip(mof.uniq_atom_names, mof.sigma, mof.epsilon):
             all_atom_list['atom'].append(atom)
             all_atom_list['sigma'].append(sig)
             all_atom_list['epsilon'].append(eps)
@@ -112,7 +111,7 @@ def get_uniq_atom_list(mof_list):
     # Epsilon and sigma values are overwritten multiple times for repeating atoms
     for atom, sig, eps in zip(all_atom_list['atom'], all_atom_list['sigma'], all_atom_list['epsilon']):
         if atom in uniq_atom_list['atom']:
-            uniq_index = uniq_atom_list['atom'].index(atom_names)
+            uniq_index = uniq_atom_list['atom'].index(atom)
             uniq_atom_list['epsilon'][uniq_index] = eps
             uniq_atom_list['sigma'][uniq_index] = sig
 

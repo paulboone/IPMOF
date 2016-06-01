@@ -2,6 +2,7 @@
 # Date: June 2016
 # Author: Kutay B. Sezginel
 import math
+import os
 from forcefield import *
 
 
@@ -12,13 +13,15 @@ class MOF:
     def initialize(self):
         self.uc_size, self.uc_angle, self.atom_names, self.atom_coors = read_mol2(self.mol2_path)
         self.uniq_atom_names, self.uniq_atom_coors = separate_atoms(self.atom_coors, self.atom_names)
+        self.ucv = unit_cell_volume(self)
+        self.name = os.path.split(self.mol2_path)[-1].split('.')[0]
 
     def initialize_ff(self, ff_type):
-        ff_param = get_ff_parameters(self.uniq_atom_names_names, ff_type)
+        ff_param = get_ff_parameters(self.uniq_atom_names, ff_type)
         self.sigma = []
         self.epsilon = []
         for i in range(len(ff_param)):
-            self.uniq_atom_names_names[i] = ff_param[i][0]
+            self.uniq_atom_names[i] = ff_param[i][0]
             self.sigma.append(ff_param[i][1])
             self.epsilon.append(ff_param[i][2])
 
@@ -144,11 +147,10 @@ class Packing:
 
         return translation_vectors
 
-    def UC(translation_vectors, packing_factors, uc_vectors, atom_coors):
+    def uc_coors(translation_vectors, packing_factors, uc_vectors, atom_coors):
         """
         Calculate packed coordinates for given:
-        - translation vectors  - packing factor
-        - unit cell vectors    - atom coordinates
+        - translation vectors  - packing factor     - unit cell vectors    - atom coordinates
         """
         x_v = uc_vectors[0]
         y_v = uc_vectors[1]
@@ -198,7 +200,7 @@ class Packing:
         return uc_edges
 
 
-def ucv(MOF):
+def unit_cell_volume(MOF):
     a = MOF.uc_size[0]
     b = MOF.uc_size[1]
     c = MOF.uc_size[2]

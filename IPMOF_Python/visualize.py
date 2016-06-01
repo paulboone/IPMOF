@@ -1,5 +1,5 @@
 # Plots atom coordinates for packed unit cells
-def plotPackedCell(packedCoor, azim, elev):
+def plot_packed_cell(packed_uc_coors, edge_points, azim, elev):
     import numpy as np
     from mpl_toolkits.mplot3d import Axes3D
     import matplotlib.pyplot as plt
@@ -7,8 +7,8 @@ def plotPackedCell(packedCoor, azim, elev):
     from mpl_toolkits.mplot3d import proj3d
 
     def orthogonal_proj(zfront, zback):
-        a = (zfront+zback)/(zfront-zback)
-        b = -2*(zfront*zback)/(zfront-zback)
+        a = (zfront + zback) / (zfront - zback)
+        b = -2 * (zfront * zback) / (zfront - zback)
         return np.array([[1, 0, 0, 0],
                         [0, 1, 0, 0],
                         [0, 0, a, b],
@@ -18,10 +18,13 @@ def plotPackedCell(packedCoor, azim, elev):
     fig = plt.figure(figsize=(10, 8))
     ax = fig.add_subplot(111, projection='3d')
 
-    for i in range(len(packedCoor)):
-        for coor in packedCoor[i]:
-            r = i / len(packedCoor)
+    for i in range(len(packed_uc_coors)):
+        for coor in packed_uc_coors[i]:
+            r = i / len(packed_uc_coors)
             ax.scatter(coor[0], coor[1], coor[2], '-o', c=[r, 0.1, 0.1], s=10)
+
+    for edge in edge_points:
+        ax.scatter(edge[0], edge[1], edge[2], s=30)
 
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
@@ -33,17 +36,20 @@ def plotPackedCell(packedCoor, azim, elev):
     plt.show()
 
 
-# Plots atom coordinates for packed unit cells
-def plotXYZ(xyzCoor, azim, elev):
+def plot_unit_cell(atom_coors, edge_points, azim, elev):
+    """
+    Plots atom coordinates of a single unit cell with unit cell lines
+    view on a => z vs y (azim = 0 , elev = 180)
+    view on c +> y vs x (axim = 90, elev = -90)
+    """
     import numpy as np
     from mpl_toolkits.mplot3d import Axes3D
     import matplotlib.pyplot as plt
-
     from mpl_toolkits.mplot3d import proj3d
 
     def orthogonal_proj(zfront, zback):
-        a = (zfront+zback)/(zfront-zback)
-        b = -2*(zfront*zback)/(zfront-zback)
+        a = (zfront + zback) / (zfront - zback)
+        b = -2 * (zfront * zback) / (zfront - zback)
         return np.array([[1, 0, 0, 0],
                         [0, 1, 0, 0],
                         [0, 0, a, b],
@@ -53,7 +59,49 @@ def plotXYZ(xyzCoor, azim, elev):
     fig = plt.figure(figsize=(10, 8))
     ax = fig.add_subplot(111, projection='3d')
 
-    for coor in xyzCoor:
+    for coor in atom_coors:
+        ax.scatter(coor[0], coor[1], coor[2], '-o', s=10)
+
+    for edge in edge_points:
+        ax.scatter(edge[0], edge[1], edge[2], c='r', s=30)
+
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+
+    ax.azim = azim
+    ax.elev = elev
+    # view on a => z vs y (azim = 0 , elev = 180)
+    # view on b => x vs z => does not work (azim = 90 , elev = 0)
+    # view on c +> y vs x (axim = 90, elev = -90)
+
+    plt.show()
+
+
+# Plots atom coordinates for packed unit cells
+def plot_xyz(xyz_coor, azim, elev):
+    """
+    Plots atom coordinates of a single unit cell
+    """
+    import numpy as np
+    from mpl_toolkits.mplot3d import Axes3D
+    import matplotlib.pyplot as plt
+
+    from mpl_toolkits.mplot3d import proj3d
+
+    def orthogonal_proj(zfront, zback):
+        a = (zfront + zback) / (zfront - zback)
+        b = -2 * (zfront * zback) / (zfront - zback)
+        return np.array([[1, 0, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, a, b],
+                        [0, 0, 0, zback]])
+    proj3d.persp_transformation = orthogonal_proj
+
+    fig = plt.figure(figsize=(10, 8))
+    ax = fig.add_subplot(111, projection='3d')
+
+    for coor in xyz_coor:
         ax.scatter(coor[0], coor[1], coor[2], '-o', s=10)
 
     ax.set_xlabel('X')
