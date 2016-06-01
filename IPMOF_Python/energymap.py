@@ -11,16 +11,20 @@ import numpy as np
 from forcefield import *
 
 
-def energy_map(MOF1, atom_list, cut_off, grid_size):
+def energy_map(MOF, atom_list, cut_off, grid_size):
     """
-    Calculate energy map for a given MOF class.
+    Calculate energy map for a given MOF class with following properties:
+        - edge_points   - uniq_atom_names   - atom_names    - packed_coors
+        - sigma
+        - epsilon
     MOF -> base (map) | atomFFparameters -> sigma and epsilon values for given atoms
     cut_off -> cut-off value for LJ potential | grid_size -> grid size array for each dimension
-    Packed coordinates for MOF1 must be defined before running the function.
+    Packed coordinates for MOF must be defined before running the function.
     """
-    sorted_x = sorted(MOF1.edgePoints, key=lambda x: x[0], reverse=True)
-    sorted_y = sorted(MOF1.edgePoints, key=lambda y: y[1], reverse=True)
-    sorted_z = sorted(MOF1.edgePoints, key=lambda z: z[2], reverse=True)
+    # Determine max and min coordinates for the unit cell to construct bounding box grid
+    sorted_x = sorted(MOF.edge_points, key=lambda x: x[0], reverse=True)
+    sorted_y = sorted(MOF.edge_points, key=lambda y: y[1], reverse=True)
+    sorted_z = sorted(MOF.edge_points, key=lambda z: z[2], reverse=True)
     emap_max = [ceil(sorted_x[0][0]), ceil(sorted_y[0][1]), ceil(sorted_z[0][2])]
     emap_min = [floor(sorted_x[-1][0]), floor(sorted_y[-1][1]), floor(sorted_z[-1][2])]
 
@@ -33,7 +37,7 @@ def energy_map(MOF1, atom_list, cut_off, grid_size):
     # Initialize energy map according to grid size and coordinates plus number of unique atoms
     energy_map = np.zeros([len(x_grid) * len(y_grid) * len(z_grid), num_atoms + 3])
 
-    sig, eps = LBmix(MOF1.sigma, atom_list['sigma'], MOF1.epsilon, atom_list['epsilon'])
+    sig, eps = lorentz_berthelot_mix(MOF.sigma, atom_list['sigma'], MOF.epsilon, atom_list['epsilon'])
 
     map_index = 0
     v = np.zeros([num_atoms])
@@ -43,12 +47,12 @@ def energy_map(MOF1, atom_list, cut_off, grid_size):
             for z in z_grid:
                 energy_map[map_index][0:3] = [x, y, z]
                 v_total = np.zeros([num_atoms])
-                for unit_cell in MOF1.packedCoor:
-                    MOF1index = 0
-                    for atomCoor in unit_cell:
-                        atom_index_1 = MOF1.uniqueAtomNames.index(MOF1.atomName[MOF1index])
-                        MOF1index += 1
-                        dist = coor_dist(atomCoor, [x, y, z])
+                for unit_cell in MOF.packed_coors:
+                    mof_index = 0
+                    for atom_coor in unit_cell:
+                        atom_index_1 = MOF.uniq_atom_names.index(MOF.atom_names[mof_index])
+                        mof_index += 1
+                        dist = coor_dist(atom_coor, [x, y, z])
                         if dist > cut_off:
                             continue
                         if dist == 0:
@@ -61,6 +65,7 @@ def energy_map(MOF1, atom_list, cut_off, grid_size):
                                 v_total[atom_index_2] = v_total[atom_index_2] + v[atom_index_2]
                 energy_map[map_index][3:(num_atoms + 3)] = v_total
                 map_index += 1
+
     return energy_map
 
 
@@ -69,3 +74,46 @@ def coor_dist(coor1, coor2):
     Calculates distance between two given coordinates: [x1, y1, z1] and [x2, y2, z2]
     """
     return math.sqrt((coor1[0] - coor2[0])**2 + (coor1[1] - coor2[1])**2 + (coor1[2] - coor2[2])**2)
+
+
+def get_mof_list(file_dir, file_format):
+    """
+    Generates a list of MOF file names in a given directory and MOF file format
+    """
+    file_list = os.listdir(file_dir)
+    mof_list = []
+    for file_name in file_list:
+        if file_format in file_name:
+            mof_list.append(file_name)
+
+    return mof_list
+
+
+def get_uniq_atom_list(mof_list):
+    """
+    Gets atom name, epsilon, and sigma values for non-repeating (unique) atoms in a list of
+    MOF classes.
+    """
+    all_atom_list = {'atom': [], 'sigma': [], 'epsilon': []}
+    for mof in mof_list:
+        for atom, sig, eps in zip(mof.uniq_atom_names, mof.sigma. mof.epsilon):
+            all_atom_list['atom'].append(atom)
+            all_atom_list['sigma'].append(sig)
+            all_atom_list['epsilon'].append(eps)
+
+    uniq_atom_list = {'atom': [], 'sigma': [], 'epsilon': []}
+    # Creates a list of unique entries in all_atom_list atom names
+    uniq_atom_list['atom'] = list(set(all_atom_list['atom']))
+    # Initializes epsilon and sigma arrays according to the length of unique atom names
+    uniq_atom_list['epsilon'] = [0] * len(uniq_atom_list['atom'])
+    uniq_atom_list['sigma'] = [0] * len(uniq_atom_list['atom'])
+
+    # Finds epsilon and sigma values for unique atoms by comparing the atom names in both lists
+    # Epsilon and sigma values are overwritten multiple times for repeating atoms
+    for atom, sig, eps in zip(all_atom_list['atom'], all_atom_list['sigma'], all_atom_list['epsilon']):
+        if atom in uniq_atom_list['atom']:
+            uniq_index = uniq_atom_list['atom'].index(atom_names)
+            uniq_atom_list['epsilon'][uniq_index] = eps
+            uniq_atom_list['sigma'][uniq_index] = sig
+
+    return uniq_atom_list

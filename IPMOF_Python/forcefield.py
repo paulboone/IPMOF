@@ -20,8 +20,8 @@ def read_ff_parameters(excel_file_path, ff_selection):
     dre_sigma = force_field_data.sheets()[0].col_values(3)[2:]
     dre_epsilon = force_field_data.sheets()[0].col_values(4)[2:]
 
-    uff = { 'atom': atom_names, 'sigma': uff_sigma, 'epsilon': uff_epsilon}
-    dre = { 'atom': atom_names, 'sigma': dre_sigma, 'epsilon': dre_epsilon}
+    uff = {'atom': atom_names, 'sigma': uff_sigma, 'epsilon': uff_epsilon}
+    dre = {'atom': atom_names, 'sigma': dre_sigma, 'epsilon': dre_epsilon}
 
     if ff_selection == 'uff':
         return uff
