@@ -3,7 +3,7 @@
 # Author: Kutay B. Sezginel
 import math
 import os
-from forcefield import *
+from forcefield import get_ff_parameters
 
 
 class MOF:

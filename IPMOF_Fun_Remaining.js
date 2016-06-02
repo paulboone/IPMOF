@@ -20,30 +20,6 @@ GLOBAL.findAtomType = function(atomSymbol, eMapAtomNames, eMapAtomIndex){
 	return atomIndex;
 };
 
-// Uses GLOBAL variabes of eMapAtomNames and eMapAtomIndex
-GLOBAL.selectInitialCoordinates = function(referenceAtom, eMap, eLimit, fracUCV){
-  var refAtomIndex = findAtomType(referenceAtom, eMapAtomNames, eMapAtomIndex);
-  if(refAtomIndex === undefined){
-    refAtomIndex = 3; console.log(referenceAtom, ' atom not found!');
-  };
-	var initialCoor = []; var eMapCoor, fracCoor, pbcCoor, pbcX, pbcY, pbcZ;
-  for(var i = 0; i < eMap.length; i++){
-		eMapCoor = [eMap[i][0], eMap[i][1], eMap[i][2]];
-		fracCoor = car2frac(eMapCoor, baseMOF_UCsize, baseMOF_UCangle, fracUCV);
-		pbcCoor = fracPBC(fracCoor);
-		pbcCoor = frac2car(pbcCoor, baseMOF_UCsize, baseMOF_UCangle, fracUCV);
-		pbcX = Math.round(eMapCoor[0]*10)/10;
-		pbcY = Math.round(eMapCoor[1]*10)/10;
-		pbcZ = Math.round(eMapCoor[2]*10)/10;
-		if(pbcX === eMapCoor[0] && pbcY === eMapCoor[1] && pbcZ === eMapCoor[2]){
-			if(eMap[i][refAtomIndex] < eLimit){
-				initialCoor.push([eMap[i][0], eMap[i][1], eMap[i][2]]);
-			};
-		};
-	};
-	return initialCoor;
-};
-
 // PBC and Interpolation Functions -----------------------------------------------------------------
 // 3D Linear Interpolation
 // MODIFIES INPUT COORDINATE IF A ROUNDED COORDINATE VALUE IS GIVEN!!!!!!!!!!!!!

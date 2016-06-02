@@ -30,15 +30,9 @@ class Quaternion(object):
         Multiply quaternion by another.
 
         Example usage::
-
-          >>> q1 = Quat((20,30,40))
-          >>> q2 = Quat((30,40,50))
-          >>> (q1 * q2).equatorial
-          array([ 349.73395729,   76.25393056,  127.61636727])
-
-        :returns: product q1 * q2
-        :rtype: Quat
-
+          >>> q1 = Quaternion([1, 2, 3, 4])
+          >>> q2 = Quaternion([2, 3, 4, 5])
+          >>> q1 * q2 -> <Quaternion object w:-36 x:6 y:12 z:12>
         """
 
         q1 = self
@@ -53,28 +47,19 @@ class Quaternion(object):
 
     def __truediv__(self, quat2):
         """
-        Divide one quaternion by another.
+        Divide one quaternion by another. Performs the operation as q1 * inverse q2.
 
         Example usage::
-
-         >>> q1 = Quat((20,30,40))
-         >>> q2 = Quat((30,40,50))
-         >>> q = q1 / q2
-
-        Performs the operation as q1 * inverse q2
-
-        :returns: product q1 * inverse q2
-        :rtype: Quat
-
+          >>> q1 = Quaternion([1, 2, 3, 4])
+          >>> q2 = Quaternion([2, 3, 4, 5])
+          >>> q1 / q2 -> <Quaternion object w:0.7407 x:0.0370 y:0.0 z:0.0741>
         """
         return self * quat2.inv()
 
     def inv(self):
         """
-        Invert the quaternion
+        Returns the inverse of the quaternion as a new quaternion.
 
-        :returns: inverted quaternion
-        :rtype: Quat
         """
         norm = self.w ** 2 + self.x ** 2 + self.y ** 2 + self.z ** 2
 

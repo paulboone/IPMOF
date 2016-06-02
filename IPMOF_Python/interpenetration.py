@@ -125,6 +125,20 @@ class Coor(object):
 
         return Coor([x, y, z])
 
+    def pbc(self, uc_size, uc_angle):
+        """
+        Apply perodic boundary conditions to given cartesian coordinates and unit cell parameters.
+
+        Example usage:
+         >>> coor1 = Coor([0.23, 2.21, -1.33])
+         >>> coor1.pbc([26, 26, 26], [90, 90, 90]) -> <Coordinate object x:0.23 y:0.21 z:0.67>
+        """
+        frac_coor = self.frac(uc_size, uc_angle)
+        frac_pbc_coor = frac_coor.frac_pbc()
+        car_pbc_coor = frac_pbc_coor.car(uc_size, uc_angle)
+
+        return car_pbc_coor
+
     def frac_pbc(self):
         """
         Apply perodic boundary conditions to given fractional coordinates.
@@ -138,3 +152,30 @@ class Coor(object):
         pbc_z = self.z - math.floor(self.z)
 
         return Coor([pbc_x, pbc_y, pbc_z])
+
+
+def initial_coordinates(MOF, energy_map, atom_list, energy_limit):
+    reference_atom = 'C'
+    ref_atom_index = atom_list['atom'].index(reference_atom) + 3
+    initial_coors = []
+    energy_count = 0
+    pbc_count = 0
+    for emap_line in energy_map:
+        emap_coor = Coor([emap_line[0], emap_line[1], emap_line[2]])
+        frac_coor = emap_coor.frac(MOF.uc_size, MOF.uc_angle)
+        pbc_coor = frac_coor.frac_pbc()
+        pbc_coor = pbc_coor.car(MOF.uc_size, MOF.uc_angle)
+        pbc_x = round(pbc_coor.x, 1)
+        pbc_y = round(pbc_coor.y, 1)
+        pbc_z = round(pbc_coor.z, 1)
+        print(emap_coor.x, pbc_x)
+        if pbc_x == emap_coor.x and pbc_y == emap_coor.y and pbc_z == emap_coor.z:
+            if emap_line[ref_atom_index] < energy_limit:
+                initial_coors.append(Coor([emap_line[0], emap_line[1], emap_line[2]]))
+            else:
+                energy_count += 1
+        else:
+            pbc_count += 1
+
+    print('Ommited PBC: ', pbc_count, ' Energy: ', energy_count)
+    return initial_coors

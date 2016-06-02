@@ -3,12 +3,9 @@
 # Author: Kutay B. Sezginel
 import os
 import xlrd
-import math
-from math import floor
-from math import ceil
-from math import inf
 import numpy as np
-from forcefield import *
+from math import floor, ceil, inf, sqrt
+from forcefield import lorentz_berthelot_mix, lennard_jones
 
 
 def energy_map(MOF, atom_list, cut_off, grid_size):
@@ -72,7 +69,7 @@ def coor_dist(coor1, coor2):
     """
     Calculates distance between two given coordinates: [x1, y1, z1] and [x2, y2, z2]
     """
-    return math.sqrt((coor1[0] - coor2[0])**2 + (coor1[1] - coor2[1])**2 + (coor1[2] - coor2[2])**2)
+    return sqrt((coor1[0] - coor2[0])**2 + (coor1[1] - coor2[1])**2 + (coor1[2] - coor2[2])**2)
 
 
 def get_mof_list(file_dir, file_format):
