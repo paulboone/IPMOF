@@ -45,7 +45,7 @@ class Quaternion(object):
 
         return Quaternion([w3, x3, y3, z3])
 
-    def __div__(self, quat2):
+    def __truediv__(self, quat2):
         """
         Divide one quaternion by another.
 

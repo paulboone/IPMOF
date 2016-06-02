@@ -30,13 +30,16 @@ js_export.py:
 - exportBaseMOFjs
 - exportGLOBALBaseMOFjs
 
-
 visualize.py:
 - plotEnergyMap
 - plot_xyz
 - plot_packed_cell
 - plot_unit_cell
 
+quaternion.py:
+- Quaternion class
+  - Multiplication - Division - Inverse
+  - Rotation  - Output List <Q.xyz()>
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 crystal.py
 ----------------------------------------------------------------------------------------------------
