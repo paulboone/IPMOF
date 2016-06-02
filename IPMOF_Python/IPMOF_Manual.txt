@@ -40,6 +40,11 @@ quaternion.py:
 - Quaternion class
   - Multiplication - Division - Inverse
   - Rotation  - Output List <Q.xyz()>
+
+interpenetration.py:
+- Coor class
+  - Addition  - Subtraction - Distance  - To fractional - To cartesian
+  - Periodic boundary conditions in fractional coordinates
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 crystal.py
 ----------------------------------------------------------------------------------------------------

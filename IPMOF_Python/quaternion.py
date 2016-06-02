@@ -16,6 +16,12 @@ class Quaternion(object):
         else:
             raise TypeError('Input type not supported. Use list [w, x, y, z]')
 
+    def __repr__(self):
+        return "<Quaternion object w:%s x:%s y:%s z:%s>" % (self.w, self.x, self.y, self.z)
+
+    def __str__(self):
+        return "x:%s y:%s z:%s" % (self.x, self.y, self.z)
+
     def xyz(self):
         return [self.x, self.y, self.z]
 
