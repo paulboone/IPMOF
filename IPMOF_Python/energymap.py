@@ -16,6 +16,8 @@ def energy_map(MOF, atom_list, cut_off, grid_size):
     MOF -> base (map) | atomFFparameters -> sigma and epsilon values for given atoms
     cut_off -> cut-off value for LJ potential | grid_size -> grid size array for each dimension
     Packed coordinates for MOF must be defined before running the function.
+    Resulting energy map is structured as follows:
+        emap[0] = [x, y, z, atom1_energy, atom2_energy, atom3_energy, ...]
     """
     # Determine max and min coordinates for the unit cell to construct bounding box grid
     sorted_x = sorted(MOF.edge_points, key=lambda x: x[0], reverse=True)
@@ -63,6 +65,44 @@ def energy_map(MOF, atom_list, cut_off, grid_size):
                 map_index += 1
 
     return energy_map
+
+
+def energy_map_index(coor, emap_max, emap_min):
+    """
+    Finds index of a coordinate in the energy map. Only works for grid_size = 1.
+    emap_max = [emap[-1][0], emap[-1][1], emap[-1][2]]
+    emap_min = [emap[0][0], emap[0][1], emap[0][2]]
+    """
+    side_length = []
+    round_coor = []
+
+    for c, emax, emin in zip(coor, emap_max, emap_min):
+        side_length.append(emax - emin + 1)
+        round_coor.append(round(c))
+    emap_index = round_coor[0] * side_length[1] * side_length[2]
+    emap_index += round_coor[1] * side_length[2] + round_coor[2]
+
+    return int(emap_index)
+
+
+def energy_map_atom_index(atom_name, emap_atom_list):
+    """
+    Returns index of a given atom in the energy map.
+
+    given an energy map in the form:
+        emap[i] = [x, y, z, C_atom_energy, H_atom_energy, O_atom_energy, Zn_atom_energy]
+
+    Example usage:
+     >>> atom_index = energy_map_atom_index('O', atom_list)
+     ... 5
+
+    so emap[i][5] would give the energy value for O atom
+    """
+    for atom_index, atom in enumerate(emap_atom_list['atom']):
+        if atom == atom_name:
+            emap_atom_index = atom_index
+
+    return int(emap_atom_index + 3)
 
 
 def coor_dist(coor1, coor2):

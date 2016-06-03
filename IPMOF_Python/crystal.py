@@ -17,7 +17,7 @@ class MOF:
         """
         self.uc_size, self.uc_angle, self.atom_names, self.atom_coors = read_mol2(self.mol2_path)
         self.uniq_atom_names, self.uniq_atom_coors = separate_atoms(self.atom_coors, self.atom_names)
-        self.ucv = unit_cell_volume(self)
+        self.ucv, self.frac_ucv = unit_cell_volume(self.uc_size, self.uc_angle)
         self.name = os.path.split(self.mol2_path)[-1].split('.')[0]
 
     def initialize_ff(self, ff_type):
@@ -31,6 +31,9 @@ class MOF:
             self.uniq_atom_names[i] = ff_param[i][0]
             self.sigma.append(ff_param[i][1])
             self.epsilon.append(ff_param[i][2])
+
+    def __len__(self):
+        return len(self.atom_coors)
 
 
 def read_mol2(mof_mol2_path):
@@ -212,30 +215,32 @@ class Packing:
         return uc_edges
 
 
-def unit_cell_volume(MOF):
+def unit_cell_volume(uc_size, uc_angle):
     """
     Calculates unit cell volume of a given MOF object.
     """
-    a = MOF.uc_size[0]
-    b = MOF.uc_size[1]
-    c = MOF.uc_size[2]
-    alp = math.radians(MOF.uc_angle[0])
-    bet = math.radians(MOF.uc_angle[1])
-    gam = math.radians(MOF.uc_angle[2])
+    a = uc_size[0]
+    b = uc_size[1]
+    c = uc_size[2]
+    alp = math.radians(uc_angle[0])
+    bet = math.radians(uc_angle[1])
+    gam = math.radians(uc_angle[2])
 
     volume = 1 - math.cos(alp)**2 - math.cos(bet)**2 - math.cos(gam)**2
     volume += 2 * math.cos(alp) * math.cos(bet) * math.cos(gam)
     volume = a * b * c * math.sqrt(volume)
-    return volume
+    frac_volume = volume / (a * b * c)
+
+    return volume, frac_volume
 
 
 def calculate_cut_off(MOF):
     """"
     Calculate cut-off radius as Rc = L/2 from a given MOF object.
     """
-    width_a = MOF.ucv / (MOF.uc_size[1]*MOF.uc_size[2] / math.sin(math.radians(MOF.uc_angle[0])))
-    width_b = MOF.ucv / (MOF.uc_size[0]*MOF.uc_size[2] / math.sin(math.radians(MOF.uc_angle[1])))
-    width_c = MOF.ucv / (MOF.uc_size[0]*MOF.uc_size[1] / math.sin(math.radians(MOF.uc_angle[2])))
+    width_a = MOF.ucv / (MOF.uc_size[1] * MOF.uc_size[2] / math.sin(math.radians(MOF.uc_angle[0])))
+    width_b = MOF.ucv / (MOF.uc_size[0] * MOF.uc_size[2] / math.sin(math.radians(MOF.uc_angle[1])))
+    width_c = MOF.ucv / (MOF.uc_size[0] * MOF.uc_size[1] / math.sin(math.radians(MOF.uc_angle[2])))
     MOF.cut_off = min(width_a / 2, width_b / 2, width_c / 2)
 
     return MOF.cut_off

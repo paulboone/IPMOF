@@ -4,8 +4,8 @@
 # Date: June 2016
 # Author: Kutay B. Sezginel
 import math
-from crystal import Packing
-from crystal import MOF
+from crystal import Packing, MOF
+from energymap import energy_map_index, energy_map_atom_index
 
 
 class Coor(object):
@@ -57,7 +57,7 @@ class Coor(object):
         """
         return [self.x, self.y, self.z]
 
-    def frac(self, uc_size, uc_angle):
+    def frac(self, uc_size, uc_angle, frac_ucv):
         """
         Converts cartesian coordinates to fractional coordinates.
         *The fractional unit cell volume is calculated each time. Instead can be given as input.
@@ -70,10 +70,10 @@ class Coor(object):
         bet = math.radians(uc_angle[1])
         gam = math.radians(uc_angle[2])
 
-        v = 1 - math.cos(alp) ** 2 - math.cos(bet) ** 2
-        v += - math.cos(gam) ** 2 + 2 * math.cos(alp) * math.cos(bet) * math.cos(gam)
-        v = math.sqrt(v)
-        # v = frac_ucv
+        v = frac_ucv
+        # v = 1 - math.cos(alp) ** 2 - math.cos(bet) ** 2
+        # v += - math.cos(gam) ** 2 + 2 * math.cos(alp) * math.cos(bet) * math.cos(gam)
+        # v = math.sqrt(v)
 
         a = uc_size[0]
         b = uc_size[1]
@@ -94,10 +94,10 @@ class Coor(object):
 
         return Coor([x_frac, y_frac, z_frac])
 
-    def car(self, uc_size, uc_angle):
+    def car(self, uc_size, uc_angle, frac_ucv):
         """
         Converts fractional coordinates to cartesian coordinates.
-        *The fractional unit cell volume is calculated each time. Instead can be given as input.
+        Takes unit cell size, angles and fractional unit cell volume as input.
 
         Example usage:
          >>> coor1 = Coor([0.23, 2.21, -1.33])
@@ -107,9 +107,10 @@ class Coor(object):
         bet = math.radians(uc_angle[1])
         gam = math.radians(uc_angle[2])
 
-        v = 1 - math.cos(alp) ** 2 - math.cos(bet) ** 2
-        v += - math.cos(gam) ** 2 + 2 * math.cos(alp) * math.cos(bet) * math.cos(gam)
-        v = math.sqrt(v)
+        v = frac_ucv
+        # v = 1 - math.cos(alp) ** 2 - math.cos(bet) ** 2
+        # v += - math.cos(gam) ** 2 + 2 * math.cos(alp) * math.cos(bet) * math.cos(gam)
+        # v = math.sqrt(v)
 
         a = uc_size[0]
         b = uc_size[1]
@@ -130,7 +131,7 @@ class Coor(object):
 
         return Coor([x, y, z])
 
-    def pbc(self, uc_size, uc_angle):
+    def pbc(self, uc_size, uc_angle, frac_ucv):
         """
         Apply perodic boundary conditions to given cartesian coordinates and unit cell parameters.
 
@@ -138,9 +139,9 @@ class Coor(object):
          >>> coor1 = Coor([0.23, 2.21, -1.33])
          >>> coor1.pbc([26, 26, 26], [90, 90, 90]) -> <Coordinate object x:0.23 y:0.21 z:0.67>
         """
-        frac_coor = self.frac(uc_size, uc_angle)
+        frac_coor = self.frac(uc_size, uc_angle, frac_ucv)
         frac_pbc_coor = frac_coor.frac_pbc()
-        car_pbc_coor = frac_pbc_coor.car(uc_size, uc_angle)
+        car_pbc_coor = frac_pbc_coor.car(uc_size, uc_angle, frac_ucv)
 
         return car_pbc_coor
 
@@ -172,13 +173,11 @@ def initial_coordinates(MOF, energy_map, atom_list, energy_limit):
     pbc_count = 0
     for emap_line in energy_map:
         emap_coor = Coor([emap_line[0], emap_line[1], emap_line[2]])
-        frac_coor = emap_coor.frac(MOF.uc_size, MOF.uc_angle)
-        pbc_coor = frac_coor.frac_pbc()
-        pbc_coor = pbc_coor.car(MOF.uc_size, MOF.uc_angle)
+        pbc_coor = emap_coor.pbc(MOF.uc_size, MOF.uc_angle, MOF.frac_ucv)
         pbc_x = round(pbc_coor.x, 1)
         pbc_y = round(pbc_coor.y, 1)
         pbc_z = round(pbc_coor.z, 1)
-        print(emap_coor.x, pbc_x)
+        # print(emap_coor.x, pbc_x)
         if pbc_x == emap_coor.x and pbc_y == emap_coor.y and pbc_z == emap_coor.z:
             if emap_line[ref_atom_index] < energy_limit:
                 initial_coors.append(Coor([emap_line[0], emap_line[1], emap_line[2]]))
@@ -187,8 +186,47 @@ def initial_coordinates(MOF, energy_map, atom_list, energy_limit):
         else:
             pbc_count += 1
 
-    print('Ommited PBC: ', pbc_count, ' Energy: ', energy_count)
+    # print('Ommited PBC: ', pbc_count, ' Energy: ', energy_count)
     return initial_coors
+
+
+def trilinear_interpolate(point, atom_index, emap, emap_max, emap_min):
+    """
+    *** Working but needs to be checked for accuracy ***
+    3D Linear Interpolation for given energy map and point in space (point must be in emap).
+    Only works for energy map constructed with a grid size of 1.
+    MODIFIES INPUT COORDINATE IF A ROUNDED COORDINATE VALUE IS GIVEN!!!!!!!!!!!!!
+    """
+    point1 = []
+    point0 = []
+    dif = []
+    for p in point:
+        if round(p) == p:
+            p += 1E-10
+        point0.append(math.floor(p))
+        point1.append(math.ceil(p))
+        dif.append((p - point0[-1]) / (point1[-1] - point0[-1]))
+
+    i000 = energy_map_index(point0, emap_max, emap_min)                               # (0, 0, 0)
+    i100 = energy_map_index([point1[0], point0[1], point0[2]], emap_max, emap_min)    # (1, 0, 0)
+    i001 = energy_map_index([point0[0], point0[1], point1[2]], emap_max, emap_min)    # (0, 0, 1)
+    i101 = energy_map_index([point1[0], point0[1], point1[2]], emap_max, emap_min)    # (1, 0, 1)
+    i010 = energy_map_index([point0[0], point1[1], point0[2]], emap_max, emap_min)    # (0, 1, 0)
+    i110 = energy_map_index([point1[0], point1[1], point0[2]], emap_max, emap_min)    # (1, 1, 0)
+    i011 = energy_map_index([point0[0], point1[1], point1[2]], emap_max, emap_min)    # (0, 1, 1)
+    i111 = energy_map_index(point1, emap_max, emap_min)                               # (1, 1, 1)
+
+    c00 = emap[i000][atom_index] * (1 - dif[0]) + emap[i100][atom_index] * dif[0]
+    c01 = emap[i001][atom_index] * (1 - dif[0]) + emap[i101][atom_index] * dif[0]
+    c10 = emap[i010][atom_index] * (1 - dif[0]) + emap[i110][atom_index] * dif[0]
+    c11 = emap[i011][atom_index] * (1 - dif[0]) + emap[i111][atom_index] * dif[0]
+
+    c0 = c00 * (1 - dif[1]) + c10 * dif[1]
+    c1 = c01 * (1 - dif[1]) + c11 * dif[1]
+
+    c = c0 * (1 - dif[2]) + c1 * dif[2]
+
+    return c
 
 
 def check_extension(MOF, emap, ext_cut_off):
