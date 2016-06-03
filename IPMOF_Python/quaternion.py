@@ -23,6 +23,9 @@ class Quaternion(object):
         return "x:%s y:%s z:%s" % (self.x, self.y, self.z)
 
     def xyz(self):
+        """
+        Returns x, y, z values of the quaternion in list format.
+        """
         return [self.x, self.y, self.z]
 
     def __mul__(self, quat2):

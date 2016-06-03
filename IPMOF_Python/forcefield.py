@@ -9,7 +9,7 @@ import numpy as np
 
 def read_ff_parameters(excel_file_path, ff_selection):
     """
-    # Read force field parameters from an excel file according to force field selection
+    Read force field parameters from an excel file according to force field selection
     """
     # Read Excel File
     force_field_data = xlrd.open_workbook(excel_file_path)

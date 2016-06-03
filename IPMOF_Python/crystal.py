@@ -11,12 +11,19 @@ class MOF:
     MOF class that holds coordinate, atom name, and unit cell information
     """
     def initialize(self):
+        """
+        Initialize MOF name, unit cell volume and parameters, atom names and coordinates, and
+        unique atom names and coordinates by reading values from mol2 file.
+        """
         self.uc_size, self.uc_angle, self.atom_names, self.atom_coors = read_mol2(self.mol2_path)
         self.uniq_atom_names, self.uniq_atom_coors = separate_atoms(self.atom_coors, self.atom_names)
         self.ucv = unit_cell_volume(self)
         self.name = os.path.split(self.mol2_path)[-1].split('.')[0]
 
     def initialize_ff(self, ff_type):
+        """
+        Initialzes force field parameters according to unique atom names.
+        """
         ff_param = get_ff_parameters(self.uniq_atom_names, ff_type)
         self.sigma = []
         self.epsilon = []
@@ -177,6 +184,11 @@ class Packing:
         return packed_coors
 
     def edge_points(uc_vectors):
+        """
+        Calculate coordinates of unit cell edges in order of:
+        (0, 0, 0) - (a, 0, 0) - (b, 0, 0) - (c, 0, 0)
+        (a, b, 0) - (0, b, c) - (a, 0, c) - (a, b, c)
+        """
         uc_edges = []
         uc_edges.append([0, 0, 0])
 
@@ -201,6 +213,9 @@ class Packing:
 
 
 def unit_cell_volume(MOF):
+    """
+    Calculates unit cell volume of a given MOF object.
+    """
     a = MOF.uc_size[0]
     b = MOF.uc_size[1]
     c = MOF.uc_size[2]
@@ -214,38 +229,13 @@ def unit_cell_volume(MOF):
     return volume
 
 
-def car2frac(coor, uc_size, uc_angle, UCV):
-    v = UCV
+def calculate_cut_off(MOF):
+    """"
+    Calculate cut-off radius as Rc = L/2 from a given MOF object.
+    """
+    width_a = MOF.ucv / (MOF.uc_size[1]*MOF.uc_size[2] / math.sin(math.radians(MOF.uc_angle[0])))
+    width_b = MOF.ucv / (MOF.uc_size[0]*MOF.uc_size[2] / math.sin(math.radians(MOF.uc_angle[1])))
+    width_c = MOF.ucv / (MOF.uc_size[0]*MOF.uc_size[1] / math.sin(math.radians(MOF.uc_angle[2])))
+    MOF.cut_off = min(width_a / 2, width_b / 2, width_c / 2)
 
-    alp = uc_angle[0] / 180 * math.pi
-    bet = uc_angle[1] / 180 * math.pi
-    gam = uc_angle[2] / 180 * math.pi
-
-    a = uc_size[0]
-    b = uc_size[1]
-    c = uc_size[2]
-
-    x = coor[0]
-    y = coor[1]
-    z = coor[2]
-
-    xfrac = 1 / a * x
-    xfrac += - math.cos(gam) / (a * math.sin(gam)) * y
-    xfrac += (math.cos(alp) * math.cos(gam) - math.cos(bet)) / (a * v * math.sin(gam)) * z
-
-    yfrac = 0
-    yfrac += 1 / (b * math.sin(gam)) * y
-    yfrac += (math.cos(bet) * math.cos(gam) - math.cos(alp)) / (b * v * sin(gam)) * z
-
-    zfrac = 0
-    zfrac += 0
-    zfrac += math.sin(gam) / (c * v) * z
-
-    return [xfrac, yfrac, zfrac]
-
-
-def frac_pbc(frac_coor):
-    pbc_coor = []
-    for coor in frac_coor:
-        pbc_coor.append(coor - math.floor(coor))
-    return pbc_coor
+    return MOF.cut_off

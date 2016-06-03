@@ -4,9 +4,14 @@
 # Date: June 2016
 # Author: Kutay B. Sezginel
 import math
+from crystal import Packing
+from crystal import MOF
 
 
 class Coor(object):
+    """
+    Coor class for holding 3D space coordinates.
+    """
     def __init__(self, input):
         if isinstance(input, list):
             self.x = input[0]
@@ -155,6 +160,11 @@ class Coor(object):
 
 
 def initial_coordinates(MOF, energy_map, atom_list, energy_limit):
+    """
+    Determine initial coordinates to start interpenetration simulations from.
+    Points are determined acoording to their energy (accepted if energy < energy_limit)
+    and their position (accepted if applying pbc does not change its coordinates)
+    """
     reference_atom = 'C'
     ref_atom_index = atom_list['atom'].index(reference_atom) + 3
     initial_coors = []
@@ -179,3 +189,33 @@ def initial_coordinates(MOF, energy_map, atom_list, energy_limit):
 
     print('Ommited PBC: ', pbc_count, ' Energy: ', energy_count)
     return initial_coors
+
+
+def check_extension(MOF, emap, ext_cut_off):
+    """
+    *** Not Complete ***
+    Checks collision between interpenetrating layer and base layer for a determined distance.
+    Distance is calculated from given ext_cut_off value which determines the packing amount of the
+    interpenetrating layer.
+    Each coordinate in the interpenetrating layer is checked for high energy values by applying
+    perodic boundary conditions to the coordinate according to energy map of the base layer.
+    """
+    packing_factor = Packing.factor(MOF.uc_size, ext_cut_off)
+    uc_vectors = Packing.uc_vectors(MOF.uc_size, MOF.uc_angle)
+    trans_vec = Packing.translation_vectors(packing_factor, uc_vectors)
+    MOF.packed_coors = Packing.uc_coors(trans_vec, packing_factor, uc_vectors, MOF.atom_coors)
+
+    rotated_packed_coors = rotate_unit_cell(MOF)
+
+    for coor in rotated_packed_coors:
+        atom_coor = Coor(coor)
+        pbc_coor = pbc_coor.pbc(uc_size, uc_angle)
+
+        emap_index = energy_map_index(pbc_coor)
+        atom_index = find_atom_index(emap)
+
+        energy = emap[emap_index][atom_index]
+        if energy < energy_limit:
+            continue
+        else:
+            break
