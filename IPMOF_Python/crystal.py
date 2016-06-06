@@ -57,10 +57,11 @@ def read_mol2(mof_mol2_path):
             read_coor = False
         if read_coor and '@<TRIPOS>ATOM' not in line:
             name = line.split()[1]
-            for charIndex, char in enumerate(name):
+            for char_index, char in enumerate(name):
                 if char.isdigit():
-                    digitIndex = charIndex
-                    name = name[:charIndex]
+                    name = name[:char_index]
+                elif char == '(':
+                    name = name[:char_index]
             atom_names.append(name)
             atom_x = float(line.split()[2])
             atom_y = float(line.split()[3])
