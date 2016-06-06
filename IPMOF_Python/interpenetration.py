@@ -5,6 +5,7 @@
 # Author: Kutay B. Sezginel
 import math
 from crystal import Packing, MOF
+from quaternion import Quaternion
 from energymap import energy_map_index, energy_map_atom_index
 
 
@@ -229,7 +230,130 @@ def trilinear_interpolate(point, atom_index, emap, emap_max, emap_min):
     return c
 
 
-def check_extension(base_MOF, mobile_MOF, emap, emap_atom_list, energy_limit, ext_cut_off):
+def run_interpenetration(sim_par, emap):
+    """
+    *** Not complete ***
+    Run interpenetration algorithm with given simulation parameters and energy map.
+    Returns simulation summary and structural information on the discovered structures.
+    """
+    # Initialize simulation parameters
+    structure_energy_limit = sim_par['structure_energy_limit']
+    atom_energy_limit = sim_par['atom_energy_limit']
+    rotation_limit = sim_par['rotation_limit']
+    rotation_freedom = sim_par['rotation_freedom']
+    summary_percent = sim_par['summary_percent']
+
+    # Initialize simulation variables
+    Quat = Quaternion([0, 1, 1, 1])
+
+    initial_coors = initial_coordinates(base_mof, emap, atom_list, 3E10)
+    trial_limit = len(initial_coors) * rotation_limit
+    rot_freedom = rot_freedom
+    # omitted_coordinates = len(emap) - len(initial_coors)
+
+    div = round(trial_limit / (100 / summary_percent))
+    summary = {'percent': [], 'structure_count': [], 'trial_count': []}
+    new_structures = []
+
+    abort_ip = False
+    structure_count = 0
+    structure_total_energy = 0
+    initial_coor_index = 0
+
+    # Main interpenetration algorithm
+    for t in range(trial_limit):  # Can iterate over something else???
+        abort_ip = False
+        # Interpenetration trial loop
+        # Try interpenetration for a specific orientation by going through each atom in mobile mof
+        for idx in range(len(mobile_mof)):    # Can iterate over something else???
+
+            if not abort_ip:
+                # If the interpenetration is just starting select rotation angles
+                if idx == 0:
+                    if t % rotation_limit == 0:
+                        first_point = initial_coors[initial_coor_index]
+                        initial_coor_index += 1
+                        # initial_coor_trial_count += 1
+
+                    # Determine random angles for rotation in 3D space
+                    x_angle = 2 * pi * math.floor(rand() * (rot_freedom)) / (rot_freedom)
+                    y_angle = 2 * pi * math.floor(rand() * (rot_freedom)) / (rot_freedom)
+                    z_angle = 2 * pi * math.floor(rand() * (rot_freedom)) / (rot_freedom)
+
+                    # Rotate first atom of the mobile MOF
+                    atom_name = mobile_mof.atom_names[idx]
+                    new_coor = Coor(mobile_mof.atom_coors[idx])
+                    Q = Quaternion([1, new_coor.x, new_coor.y, new_coor.z])  # Might be a better way to do this
+                    Q = Quat.rotation(Q.xyz(), [0, 0, 0], [1, 0, 0], x_angle)
+                    Q = Quat.rotation(Q.xyz(), [0, 0, 0], [0, 1, 0], y_angle)
+                    Q = Quat.rotation(Q.xyz(), [0, 0, 0], [0, 0, 1], z_angle)
+                    # new_coor = Q.coor()
+                    new_coor = Coor(Q.xyz())
+
+                    translation_vector = first_point - new_coor  # Check if operation is correct
+
+                    # Initialize new structure dictionay
+                    structure = {'atom_names': [], 'atom_coors': [],
+                                 'pbc_coors': [], 'energy': [], 'rotation': []}
+                    structure['atom_coors'].append(first_point.xyz())  # Why first point not new_coor?
+                    structure['pbc_coors'].append(new_coor.xyz())
+                    structure['atom_names'].append(atom_name)
+                    structure['rotation'] = [x_angle, y_angle, z_angle]
+
+                # If interpenetration is still going on
+                if idx < len(base_mof) and idx > 0:
+                    atom_name = atom_name = mobile_mof.atom_names[idx]
+                    new_coor = Coor(mobile_mof.atom_coors[idx])
+                    Q = Quaternion([1, new_coor.x, new_coor.y, new_coor.z])  # Might be a better way to do this
+                    Q = Quat.rotation(Q.xyz(), [0, 0, 0], [1, 0, 0], x_angle)
+                    Q = Quat.rotation(Q.xyz(), [0, 0, 0], [0, 1, 0], y_angle)
+                    Q = Quat.rotation(Q.xyz(), [0, 0, 0], [0, 0, 1], z_angle)
+                    # new_coor = Q.coor()
+                    new_coor = Coor(Q.xyz())
+
+                    new_coor += translation_vector
+                    pbc_coor = new_coor.pbc(base_mof.uc_size, base_mof.uc_angle, base_mof.frac_ucv)
+
+                    emap_index = energy_map_index(pbc_coor.xyz(), emap_max, emap_min)
+                    emap_atom_index = energy_map_atom_index(atom_name, atom_list)
+
+                    point_energy = trilinear_interpolate(pbc_coor.xyz(), emap_atom_index, emap, emap_max, emap_min)
+                    structure_total_energy += point_energy
+
+                    if structure_total_energy > structure_energy_limit:
+                        structure_total_energy = 0
+                        abort_ip = True
+                        break  # Fix this part (break interpenetration trial loop)
+                    elif point_energy > atom_energy_limit:
+                        structure_total_energy = 0
+                        abort_ip = True
+                        break  # Fix this part (break interpenetration trial loop)
+                    else:
+                        structure['atom_coors'].append(new_coor.xyz())
+                        structure['pbc_coors'].append(pbc_coor.xyz())
+                        structure['atom_names'].append(atom_name)
+
+                # If interpenetration trial ended with no collision
+                if idx == len(mobile_mof) - 1:
+                    # Record structure information!!!!
+                    structure['energy'] = structure_total_energy
+                    new_structures.append(structure)
+                    structure_count += 1
+                    structure_total_energy = 0
+
+        # Record simulation progress according to division (div)
+        if t % div == 0:
+            percent_complete = round(t / trial_limit * 100)
+
+            # Record summary information
+            summary['percent'].append(percent_complete)
+            summary['structure_count'].append(structure_count)
+            summary['trial_count'].append(t)
+
+    return summary, new_structures
+
+
+def check_extension(base_MOF, mobile_MOF, rotation_info, emap, emap_atom_list, energy_limit, ext_cut_off):
     """
     *** Not Complete ***
     Checks collision between interpenetrating layer and base layer for a determined distance.
@@ -244,12 +368,23 @@ def check_extension(base_MOF, mobile_MOF, emap, emap_atom_list, energy_limit, ex
     packed_coors = Packing.uc_coors(trans_vec, packing_factor, uc_vectors, mobile_MOF.atom_coors)
 
     rotated_packed_coors = rotate_unit_cell(packed_coor, rotation_info)
+    x_angle = rotation_info[0]
+    y_angle = rotation_info[1]
+    z_angle = rotation_info[2]
 
     collision = False
     for coor in rotated_packed_coors:
+
         if not collision:
-            atom_coor = Coor(coor)
-            pbc_coor = atom_coor.pbc(base_MOF.uc_size, base_MOF.uc_angle, base_MOF.frac_ucv)
+
+            new_coor = Coor(coor)
+            Q = Quaternion([1, new_coor.x, new_coor.y, new_coor.z])  # Might be a better way to do this
+            Q = Quat.rotation(Q.xyz(), [0, 0, 0], [1, 0, 0], x_angle)
+            Q = Quat.rotation(Q.xyz(), [0, 0, 0], [0, 1, 0], y_angle)
+            Q = Quat.rotation(Q.xyz(), [0, 0, 0], [0, 0, 1], z_angle)
+            new_coor = Coor(Q.xyz())
+
+            pbc_coor = new_coor.pbc(base_MOF.uc_size, base_MOF.uc_angle, base_MOF.frac_ucv)
 
             emap_index = energy_map_index(pbc_coor, emap_max, emap_min)
             atom_index = energy_map_atom_index(atom_name, emap_atom_list)

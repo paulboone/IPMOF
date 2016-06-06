@@ -4,7 +4,7 @@
 # Date: June 2016
 # Author: Kutay B. Sezginel
 import math
-from interpenetration import Coor
+# from interpenetration import Coor
 
 
 class Quaternion(object):
@@ -105,8 +105,8 @@ class Quaternion(object):
 
         return Quat
 
-    def coor(self):
-        """
-        Converts Quaternion object to Coor object.
-        """
-        return Coor(self.xyz())
+    # def coor(self):
+    #     """
+    #     Converts Quaternion object to Coor object.
+    #     """
+    #     return Coor(self.xyz())

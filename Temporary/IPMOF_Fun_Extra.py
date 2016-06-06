@@ -44,21 +44,6 @@ def calculateEnergyLimits(baseMOFIndex, MOFs, eMapAtomList, eMap):
     return averageEnergyLimits
 
 
-# Export coordinates to xyz file
-def exportXYZ(packedCoor, atomNames, exportDir):
-    xyzFile = open(exportDir, 'w')
-    xyzFile.write(str(len(packedCoor)*len(packedCoor[0])))
-    xyzFile.write(exportDir.split('/')[-1])
-    for UC in packedCoor:
-        for atomIndex in range(len(UC)):
-            line = atomNames[atomIndex] + ' '
-            line += str(UC[atomIndex][0]) + ' '
-            line += str(UC[atomIndex][1]) + ' '
-            line += str(UC[atomIndex][2]) + ' \n'
-            xyzFile.write(line)
-    xyzFile.close()
-
-
 def readAtomRadius(radiusFileDir):
     import xlrd
     import numpy as np
@@ -90,6 +75,23 @@ def readAtomRadius(radiusFileDir):
     return atomList
 
 
+def atomicVolume(MOF, radiusList):
+
+    uniqueAtomRadius = []
+    for atomName, atomRadius in zip(radiusList['name'], radiusList['radius']):
+        for uniqAtom in MOF.uniqueAtomNames:
+            if atomName == uniqAtom:
+                uniqueAtomRadius.append(atomRadius)
+
+    atomVolumes = 0
+    for atomIndex, atom in enumerate(MOF.atomName):
+        for atomName, atomRadius in zip(MOF.uniqueAtomNames, uniqueAtomRadius):
+            if atomName == atom:
+                atomVolumes += 4 / 3 * math.pi * (atomRadius / 100)**3
+
+    return atomVolumes
+
+
 def gridBox(p, grid):
     """
     Calculates surrounding grid points for a given point in energy map
@@ -103,27 +105,3 @@ def gridBox(p, grid):
         ceil.append(math.floor(point / grid[index]) * grid[index] + grid[index])
         index += 1
     return floor, ceil
-
-
-def orthorhombic(MOF):
-    ortho = False
-    if MOF.UCangle[0] == 90 and MOF.UCangle[1] == 90 and MOF.UCangle[2] == 90:
-        ortho = True
-    return ortho
-
-
-def atomicVolume(MOF, radiusList):
-
-    uniqueAtomRadius = []
-    for atomName, atomRadius in zip(radiusList['name'], radiusList['radius']):
-        for uniqAtom in MOF.uniqueAtomNames:
-            if atomName == uniqAtom:
-                uniqueAtomRadius.append(atomRadius)
-
-    atomVolumes = 0
-    for atomIndex, atom in enumerate(MOF.atomName):
-        for atomName, atomRadius in zip(MOF.uniqueAtomNames, uniqueAtomRadius):
-            if atomName == atom:
-                atomVolumes += 4/3 * math.pi * (atomRadius/100)**3
-
-    return atomVolumes

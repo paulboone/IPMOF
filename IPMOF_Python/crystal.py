@@ -245,3 +245,20 @@ def calculate_cut_off(MOF):
     MOF.cut_off = min(width_a / 2, width_b / 2, width_c / 2)
 
     return MOF.cut_off
+
+
+def export_xyz(atom_coors, atom_names, file_name, export_dir):
+    """
+    Export given atom coordinates and names in .xyz format.
+
+    Example usage:
+     >>> export_xyz(MOF.atom_coors, MOF.atom_names. MOF.name, export_dir)
+    """
+    xyz_dir = os.path.join(export_dir, file_name + '.xyz')
+    xyz_file = open(xyz_dir, 'w')
+    xyz_file.write(str(len(atom_coors)) + '\n')
+    xyz_file.write(file_name + '\n')
+
+    for atom, coor in zip(atom_names, atom_coors):
+        xyz_file.write(atom + ' ' + str(coor[0]) + ' ' + str(coor[1]) + ' ' + str(coor[2]) + '\n')
+    xyz_file.close()
