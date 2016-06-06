@@ -229,7 +229,7 @@ def trilinear_interpolate(point, atom_index, emap, emap_max, emap_min):
     return c
 
 
-def check_extension(MOF, emap, ext_cut_off):
+def check_extension(base_MOF, mobile_MOF, emap, emap_atom_list, energy_limit, ext_cut_off):
     """
     *** Not Complete ***
     Checks collision between interpenetrating layer and base layer for a determined distance.
@@ -238,22 +238,29 @@ def check_extension(MOF, emap, ext_cut_off):
     Each coordinate in the interpenetrating layer is checked for high energy values by applying
     perodic boundary conditions to the coordinate according to energy map of the base layer.
     """
-    packing_factor = Packing.factor(MOF.uc_size, ext_cut_off)
-    uc_vectors = Packing.uc_vectors(MOF.uc_size, MOF.uc_angle)
+    packing_factor = Packing.factor(mobile_MOF.uc_size, ext_cut_off)
+    uc_vectors = Packing.uc_vectors(mobile_MOF.uc_size, mobile_MOF.uc_angle)
     trans_vec = Packing.translation_vectors(packing_factor, uc_vectors)
-    MOF.packed_coors = Packing.uc_coors(trans_vec, packing_factor, uc_vectors, MOF.atom_coors)
+    packed_coors = Packing.uc_coors(trans_vec, packing_factor, uc_vectors, mobile_MOF.atom_coors)
 
-    rotated_packed_coors = rotate_unit_cell(MOF)
+    rotated_packed_coors = rotate_unit_cell(packed_coor, rotation_info)
 
+    collision = False
     for coor in rotated_packed_coors:
-        atom_coor = Coor(coor)
-        pbc_coor = pbc_coor.pbc(uc_size, uc_angle)
+        if not collision:
+            atom_coor = Coor(coor)
+            pbc_coor = atom_coor.pbc(base_MOF.uc_size, base_MOF.uc_angle, base_MOF.frac_ucv)
 
-        emap_index = energy_map_index(pbc_coor)
-        atom_index = find_atom_index(emap)
+            emap_index = energy_map_index(pbc_coor, emap_max, emap_min)
+            atom_index = energy_map_atom_index(atom_name, emap_atom_list)
 
-        energy = emap[emap_index][atom_index]
-        if energy < energy_limit:
-            continue
+            energy = emap[emap_index][atom_index]
+            if energy < energy_limit:
+                continue
+            else:
+                collision = True
+                break
         else:
             break
+
+    return collision
