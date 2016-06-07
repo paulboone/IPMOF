@@ -353,7 +353,7 @@ def run_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
     return summary, new_structures
 
 
-def check_extension(base_MOF, mobile_MOF, rotation_info, emap, emap_atom_list, energy_limit, ext_cut_off):
+def check_extension(sim_par, base_MOF, mobile_MOF, emap, emap_atom_list, rotation_info):
     """
     *** Not Complete ***
     Checks collision between interpenetrating layer and base layer for a determined distance.
@@ -362,39 +362,53 @@ def check_extension(base_MOF, mobile_MOF, rotation_info, emap, emap_atom_list, e
     Each coordinate in the interpenetrating layer is checked for high energy values by applying
     perodic boundary conditions to the coordinate according to energy map of the base layer.
     """
+    emap_max = [emap[-1][0], emap[-1][1], emap[-1][2]]
+    emap_min = [emap[0][0], emap[0][1], emap[0][2]]
+
+    energy_limit = sim_par['atom_energy_limit']
+    ext_cut_off = sim_par['ext_cut_off']
+
+    Quat = Quaternion([0, 1, 1, 1])
+
     packing_factor = Packing.factor(mobile_MOF.uc_size, ext_cut_off)
     uc_vectors = Packing.uc_vectors(mobile_MOF.uc_size, mobile_MOF.uc_angle)
     trans_vec = Packing.translation_vectors(packing_factor, uc_vectors)
     packed_coors = Packing.uc_coors(trans_vec, packing_factor, uc_vectors, mobile_MOF.atom_coors)
 
-    #rotated_packed_coors = rotate_unit_cell(packed_coor, rotation_info)
     x_angle = rotation_info[0]
     y_angle = rotation_info[1]
     z_angle = rotation_info[2]
 
     collision = False
-    for coor in rotated_packed_coors:
+    for unit_cell in packed_coors:
 
         if not collision:
 
-            new_coor = Coor(coor)
-            Q = Quaternion([1, new_coor.x, new_coor.y, new_coor.z])  # Might be a better way to do this
-            Q = Quat.rotation(Q.xyz(), [0, 0, 0], [1, 0, 0], x_angle)
-            Q = Quat.rotation(Q.xyz(), [0, 0, 0], [0, 1, 0], y_angle)
-            Q = Quat.rotation(Q.xyz(), [0, 0, 0], [0, 0, 1], z_angle)
-            new_coor = Coor(Q.xyz())
+            for coor_index, coor in enumerate(unit_cell):
 
-            pbc_coor = new_coor.pbc(base_MOF.uc_size, base_MOF.uc_angle, base_MOF.frac_ucv)
+                if not collision:
 
-            emap_index = energy_map_index(pbc_coor, emap_max, emap_min)
-            atom_index = energy_map_atom_index(atom_name, emap_atom_list)
+                    new_coor = Coor(coor)
+                    Q = Quaternion([1, new_coor.x, new_coor.y, new_coor.z])  # Might be a better way to do this
+                    Q = Quat.rotation(Q.xyz(), [0, 0, 0], [1, 0, 0], x_angle)
+                    Q = Quat.rotation(Q.xyz(), [0, 0, 0], [0, 1, 0], y_angle)
+                    Q = Quat.rotation(Q.xyz(), [0, 0, 0], [0, 0, 1], z_angle)
+                    new_coor = Coor(Q.xyz())
 
-            energy = emap[emap_index][atom_index]
-            if energy < energy_limit:
-                continue
-            else:
-                collision = True
-                break
+                    pbc_coor = new_coor.pbc(base_MOF.uc_size, base_MOF.uc_angle, base_MOF.frac_ucv)
+
+                    atom_name = mobile_MOF.atom_names[coor_index]
+                    atom_index = energy_map_atom_index(atom_name, emap_atom_list)
+
+                    point_energy = trilinear_interpolate(pbc_coor.xyz(), atom_index, emap, emap_max, emap_min)
+
+                    if point_energy < energy_limit:
+                        continue
+                    else:
+                        collision = True
+                        break
+                else:
+                    break
         else:
             break
 
