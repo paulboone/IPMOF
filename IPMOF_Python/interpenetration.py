@@ -230,7 +230,7 @@ def trilinear_interpolate(point, atom_index, emap, emap_max, emap_min):
     return c
 
 
-def run_interpenetration(sim_par, emap):
+def run_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
     """
     *** Not complete ***
     Run interpenetration algorithm with given simulation parameters and energy map.
@@ -246,9 +246,9 @@ def run_interpenetration(sim_par, emap):
     # Initialize simulation variables
     Quat = Quaternion([0, 1, 1, 1])
 
-    initial_coors = initial_coordinates(base_mof, emap, atom_list, 3E10)
+    initial_coors = initial_coordinates(base_mof, emap, atom_list, atom_energy_limit)
     trial_limit = len(initial_coors) * rotation_limit
-    rot_freedom = rot_freedom
+    rot_freedom = 360/rotation_freedom
     # omitted_coordinates = len(emap) - len(initial_coors)
 
     div = round(trial_limit / (100 / summary_percent))
@@ -276,9 +276,9 @@ def run_interpenetration(sim_par, emap):
                         # initial_coor_trial_count += 1
 
                     # Determine random angles for rotation in 3D space
-                    x_angle = 2 * pi * math.floor(rand() * (rot_freedom)) / (rot_freedom)
-                    y_angle = 2 * pi * math.floor(rand() * (rot_freedom)) / (rot_freedom)
-                    z_angle = 2 * pi * math.floor(rand() * (rot_freedom)) / (rot_freedom)
+                    x_angle = 2 * math.pi * math.floor(rand() * rot_freedom) / rot_freedom
+                    y_angle = 2 * math.pi * math.floor(rand() * rot_freedom) / rot_freedom
+                    z_angle = 2 * math.pi * math.floor(rand() * rot_freedom) / rot_freedom
 
                     # Rotate first atom of the mobile MOF
                     atom_name = mobile_mof.atom_names[idx]
@@ -367,7 +367,7 @@ def check_extension(base_MOF, mobile_MOF, rotation_info, emap, emap_atom_list, e
     trans_vec = Packing.translation_vectors(packing_factor, uc_vectors)
     packed_coors = Packing.uc_coors(trans_vec, packing_factor, uc_vectors, mobile_MOF.atom_coors)
 
-    rotated_packed_coors = rotate_unit_cell(packed_coor, rotation_info)
+    #rotated_packed_coors = rotate_unit_cell(packed_coor, rotation_info)
     x_angle = rotation_info[0]
     y_angle = rotation_info[1]
     z_angle = rotation_info[2]
