@@ -1,0 +1,5 @@
+excel_file_path: /home/kutay/Documents/Research/FF_Parameters.xlsx
+export_dir: /home/kutay/Documents/Research/MOFs/IPMOF_Python/export
+input_dir: /home/kutay/Documents/git/IPMOF
+mol2_dir: /home/kutay/Documents/Research/MOFs/IPMOF_Python/mol2
+python_lib_dir: /home/kutay/Documents/git/IPMOF/IPMOF_Python

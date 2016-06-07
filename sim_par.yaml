@@ -1,2 +1,7 @@
-{atom_energy_limit: 30.0, rotation_freedom: 30, rotation_limit: 20, structure_energy_limit: 3000.0,
-  summary_percent: 5}
+atom_energy_limit: 30.0
+cut_off: 12
+ext_cut_off: 50
+rotation_freedom: 30
+rotation_limit: 20
+structure_energy_limit: 3000.0
+summary_percent: 5
