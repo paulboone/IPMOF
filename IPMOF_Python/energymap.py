@@ -8,7 +8,7 @@ from math import floor, ceil, inf, sqrt
 from forcefield import lorentz_berthelot_mix, lennard_jones
 
 
-def energy_map(MOF, atom_list, cut_off, grid_size):
+def energy_map(sim_par, MOF, atom_list):
     """
     Calculate energy map for a given MOF class with following properties:
         - edge_points   - uniq_atom_names   - atom_names    - packed_coors
@@ -19,6 +19,8 @@ def energy_map(MOF, atom_list, cut_off, grid_size):
     Resulting energy map is structured as follows:
         emap[0] = [x, y, z, atom1_energy, atom2_energy, atom3_energy, ...]
     """
+    cut_off = sim_par['cut_off']
+    grid_size = sim_par['grid_size']
     # Determine max and min coordinates for the unit cell to construct bounding box grid
     sorted_x = sorted(MOF.edge_points, key=lambda x: x[0], reverse=True)
     sorted_y = sorted(MOF.edge_points, key=lambda y: y[1], reverse=True)

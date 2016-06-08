@@ -2,31 +2,20 @@
 import os
 import yaml
 
-python_lib_dir = r'/home/kutay/Documents/git/IPMOF/IPMOF_Python'
-# python_lib_dir = r'C:\Kutay\IPMOF\IPMOF_Python'
-
-excel_file_path = r'/home/kutay/Documents/Research/FF_Parameters.xlsx'
-# excel_file_path = r'C:\Users\kutay\iPython\IPMOF\FF_Parameters.xlsx'
-
-mol2_dir = r'/home/kutay/Documents/Research/MOFs/IPMOF_Python/mol2'
-# mol2_dir = r'C:\Kutay\MOFs\IPMOF_Python'
-
-input_dir = r'/home/kutay/Documents/git/IPMOF'
-
-# export_dir = r'C:\Kutay\MOFs\IPMOF_Python\export'
-export_dir = r'/home/kutay/Documents/Research/MOFs/IPMOF_Python/export'
-
 sim_par_data = {'structure_energy_limit': 3E3,
                 'atom_energy_limit': 3E1,
                 'rotation_limit': 20,
                 'rotation_freedom': 30,
                 'summary_percent': 5,
                 'cut_off': 12,
-                'ext_cut_off': 50
+                'ext_cut_off': 50,
+                'grid_size': 1,
+                'force_field': 'uff'
                 }
 
+# Enter directories here
 sim_dir_data = {'python_lib_dir': r'/home/kutay/Documents/git/IPMOF/IPMOF_Python',
-                'excel_file_path': r'/home/kutay/Documents/Research/FF_Parameters.xlsx',
+                'excel_file_path': r'/home/kutay/Documents/Research/IPMOF/FF_Parameters.xlsx',
                 'mol2_dir': r'/home/kutay/Documents/Research/MOFs/IPMOF_Python/mol2',
                 'input_dir': r'/home/kutay/Documents/git/IPMOF',
                 'export_dir': r'/home/kutay/Documents/Research/MOFs/IPMOF_Python/export',

@@ -36,6 +36,34 @@ class MOF:
         return len(self.atom_coors)
 
 
+def extend_unit_cell(MOF, cut_off):
+    """
+    Extends unit cell of a MOF object according to a given cut_off value.
+    The structure is extended so that all the points in the center unit cell are
+    at least *cut_off Angstroms away.
+    This enables energy map calculation by providing coordinates for surrounding atoms.
+    Also enables checking for collisions in the extended unit cell of mobile layer
+    and energy map.
+    The *ext_cut_off parameter in the sim_par input file determines the amount of packing.
+    - A high cut off value such as 100 Angstrom can be used to ensure there is no collisions
+    between the interpenetrating layers.
+    """
+    MOF.packing_factor = Packing.factor(MOF.uc_size, cut_off)
+    uc_vectors = Packing.uc_vectors(MOF.uc_size, MOF.uc_angle)
+    trans_vec = Packing.translation_vectors(MOF.packing_factor, uc_vectors)
+    MOF.packed_coors = Packing.uc_coors(trans_vec, MOF.packing_factor, uc_vectors, MOF.atom_coors)
+    MOF.edge_points = Packing.edge_points(uc_vectors)
+
+    extended_structure = {'atom_names': [], 'atom_coors': []}
+    for unit_cell in MOF.packed_coors:
+        for coor_index, coor in enumerate(unit_cell):
+            atom_name = MOF.atom_names[coor_index]
+            extended_structure['atom_names'].append(atom_name)
+            extended_structure['atom_coors'].append(coor)
+
+    return extended_structure
+
+
 def read_mol2(mof_mol2_path):
     """
     Reads mol2 file after opening the file in python and returns unit cell size [a, b, c],
