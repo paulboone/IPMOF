@@ -283,8 +283,7 @@ def save_extension(sim_par, base_MOF, mobile_MOF, emap, emap_atom_list, new_stru
     emap_max = [emap[-1][0], emap[-1][1], emap[-1][2]]
     emap_min = [emap[0][0], emap[0][1], emap[0][2]]
 
-    #ext_cut_off = sim_par['ext_cut_off']
-    ext_cut_off = 20
+    ext_cut_off = sim_par['ext_cut_off']
 
     rotation_info = new_structure['rotation']
     first_point = new_structure['first_point']
@@ -323,3 +322,52 @@ def save_extension(sim_par, base_MOF, mobile_MOF, emap, emap_atom_list, new_stru
             extended_coors.append(new_coor.xyz())
 
     return {'atom_names': extended_names, 'atom_coors': extended_coors, 'packing_factor': packing_factor}
+
+
+def extend_unit_cell(MOF, cut_off):
+    """
+    Extends unit cell of a MOF object according to a given cut_off value.
+    The structure is extended so that all the points in the center unit cell are
+    at least *cut_off Angstroms away.
+    This enables energy map calculation by providing coordinates for surrounding atoms.
+    Also enables checking for collisions in the extended unit cell of mobile layer
+    and energy map.
+    The *ext_cut_off parameter in the sim_par input file determines the amount of packing.
+    - A high cut off value such as 100 Angstrom can be used to ensure there is no collisions
+    between the interpenetrating layers.
+    """
+    MOF.packing_factor = Packing.factor(MOF.uc_size, cut_off)
+    uc_vectors = Packing.uc_vectors(MOF.uc_size, MOF.uc_angle)
+    trans_vec = Packing.translation_vectors(MOF.packing_factor, uc_vectors)
+    MOF.packed_coors = Packing.uc_coors(trans_vec, MOF.packing_factor, uc_vectors, MOF.atom_coors)
+    MOF.edge_points = Packing.edge_points(uc_vectors)
+
+    extended_structure = {'atom_names': [], 'atom_coors': []}
+    for unit_cell in MOF.packed_coors:
+        for coor_index, coor in enumerate(unit_cell):
+            atom_name = MOF.atom_names[coor_index]
+            extended_structure['atom_names'].append(atom_name)
+            extended_structure['atom_coors'].append(coor)
+
+    return extended_structure
+
+
+def join_structures(base_structure, new_structure):
+    """
+    Combines atom names and coordinates of two given structure dictionaries.
+    The structure dictionaries should be in following format:
+     >>> structure = {'atom_names': [*atom names], 'atom_coors':[*atom coors]}
+    """
+    joined_atom_names = []
+    joined_atom_coors = []
+    for atom, coor in zip(new_structure['atom_names'], new_structure['atom_coors']):
+        joined_atom_names.append(atom)
+        joined_atom_coors.append(coor)
+
+    for atom, coor in zip(base_structure['atom_names'], base_structure['atom_coors']):
+        joined_atom_names.append(atom)
+        joined_atom_coors.append(coor)
+
+    joined_structure = {'atom_names': joined_atom_names, 'atom_coors': joined_atom_coors}
+
+    return joined_structure
