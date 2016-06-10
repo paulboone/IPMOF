@@ -10,19 +10,22 @@ class MOF:
     """
     MOF class that holds coordinate, atom name, and unit cell information
     """
-    def initialize(self):
+    def __init__(self, mof_path, file_format='mol2'):
         """
         Initialize MOF name, unit cell volume and parameters, atom names and coordinates, and
         unique atom names and coordinates by reading values from mol2 file.
         """
-        self.uc_size, self.uc_angle, self.atom_names, self.atom_coors = read_mol2(self.mol2_path)
+        if file_format = 'mol2':
+            self.mol2_path = mof_path
+            self.name = os.path.split(self.mol2_path)[-1].split('.')[0]
+            self.uc_size, self.uc_angle,
+            self.atom_names, self.atom_coors = read_mol2(self.mol2_path)
         self.uniq_atom_names, self.uniq_atom_coors = separate_atoms(self.atom_coors, self.atom_names)
         self.ucv, self.frac_ucv = unit_cell_volume(self.uc_size, self.uc_angle)
-        self.name = os.path.split(self.mol2_path)[-1].split('.')[0]
 
-    def initialize_ff(self, ff_type):
+    def force_field(self, ff_type):
         """
-        Initialzes force field parameters according to unique atom names.
+        Initializes force field parameters according to unique atom names.
         """
         ff_param = get_ff_parameters(self.uniq_atom_names, ff_type)
         self.sigma = []

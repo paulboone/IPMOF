@@ -3,8 +3,8 @@ import math
 import yaml
 import sys
 # --------------------------------------------------------------------------------------------------
-input_dir = r'/home/kutay/Documents/git/IPMOF'
-# input_dir = r'C:\Kutay\IPMOF'
+input_dir = os.getcwd()
+
 sim_par_path = os.path.join(input_dir, 'sim_par.yaml')
 sim_dir_path = os.path.join(input_dir, 'sim_dir_linux.yaml')
 
@@ -33,16 +33,14 @@ for base_index, base_mof_selection in enumerate(mof_list):
 
         if mobile_index >= base_index:
             # Read mol2 files and initialize MOF objects
-            base_mof = MOF()
-            base_mof.mol2_path = os.path.join(sim_dir['mol2_dir'], base_mof_selection)
-            base_mof.initialize()
-            base_mof.initialize_ff(force_field)
+            mol2_path = os.path.join(sim_dir['mol2_dir'], mol2_list[base_mof_index])
+            base_mof = MOF(mol2_path)
+            base_mof.force_field(force_field)
             print('Base MOF selected as: ', base_mof.name)
 
-            mobile_mof = MOF()
-            mobile_mof.mol2_path = os.path.join(sim_dir['mol2_dir'], mobile_mof_selection)
-            mobile_mof.initialize()
-            mobile_mof.initialize_ff(force_field)
+            mol2_path = os.path.join(sim_dir['mol2_dir'], mol2_list[mobile_mof_index])
+            mobile_mof = MOF(mol2_path)
+            mobile_mof.force_field(force_field)
             print('Mobile MOF selected as: ', mobile_mof.name)
 
             extended_structure = extend_unit_cell(base_mof, sim_par['cut_off'])
