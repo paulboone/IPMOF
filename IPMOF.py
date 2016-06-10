@@ -1,23 +1,23 @@
 import os
 import math
-import yaml
-import sys
-# --------------------------------------------------------------------------------------------------
-input_dir = os.getcwd()
 
+# Load 3rd party libraries
+import yaml
+
+# Load interpenetration python libraries
+from ipmof.crystal import MOF
+from ipmof.forcefield import read_ff_parameters
+from ipmof.energymap import energy_map, get_mof_list, get_uniq_atom_list
+from ipmof.interpenetration import run_interpenetration, check_extension, save_extension
+# --------------------------------------------------------------------------------------------------
+# Get directories for simulation parameters and directories files
+input_dir = os.getcwd()
 sim_par_path = os.path.join(input_dir, 'sim_par.yaml')
 sim_dir_path = os.path.join(input_dir, 'sim_dir_linux.yaml')
 
 # Read sim par yaml file
 sim_par = yaml.load(open(sim_par_path, 'r'))
 sim_dir = yaml.load(open(sim_dir_path, 'r'))
-
-# Load interpenetration python libraries
-sys.path.append(sim_dir['python_lib_dir'])
-from forcefield import read_ff_parameters
-from crystal import MOF, extend_unit_cell, export_xyz
-from energymap import energy_map, get_mof_list, get_uniq_atom_list
-from interpenetration import run_interpenetration, check_extension, save_extension, join_structures
 
 # Read excel file containing force field information
 force_field = read_ff_parameters(sim_dir['excel_file_path'], sim_par['force_field'])
@@ -67,13 +67,16 @@ for base_index, base_mof_selection in enumerate(mof_list):
                 ext_structure = save_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
 
                 # Extend MOF coordinates and get atom names and coordinates of extended unit cells of MOF object
-                extended_structure = extend_unit_cell(base_mof, sim_par['ext_cut_off'])
+                extended_structure = base_mof.extend_unit_cell(sim_par['ext_cut_off'])
+
+                # Create new MOF objects for base and mobile MOFs
+                ext_base_mof = MOF(extended_structure, file_format='dict')
+                ext_mobile_mof = MOF(ext_structure, file_format='dict')
 
                 # Join base and mobile structure layers
-                joined_structure = join_structures(extended_structure, ext_structure, colorify=True)
+                joined_mof = ext_base_mof.join(ext_mobile_mof)
 
                 # Export to xyz format
-                structure_name = base_mof.name + '_' + mobile_mof.name
-                export_xyz(joined_structure['atom_coors'], joined_structure['atom_names'], structure_name, sim_dir['export_dir'])
+                joined_mof.export(sim_dir['export_dir'])
             else:
                 print('No interpenetration.')

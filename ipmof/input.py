@@ -11,7 +11,14 @@ sim_par_data = {'structure_energy_limit': 3E3,
                 'ext_cut_off': 50,
                 'grid_size': 1,
                 'force_field': 'uff'
+                'export_structures': 1
+                'export_pbc': False
+                'export_colorify': True
                 }
+
+input_dir = os.getcwd()
+python_lib_dir = os.path.join(input_dir, 'ipmof')
+excel_file_path = os.path.join(input_dir, 'doc', 'FF_Parameters.xlsx')
 
 # Enter directories here
 sim_dir_data = {'python_lib_dir': r'/home/kutay/Documents/git/IPMOF/IPMOF_Python',

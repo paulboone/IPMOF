@@ -1,16 +1,15 @@
-# Quaternion class
-# - Multiplication  - Division  - Inverse   - Rotation  - Output List <Q.xyz()>
-#  >>> Q = Quaternion([0, 1, 1, 1])
+# IPMOF interpenetration library
 # Date: June 2016
 # Author: Kutay B. Sezginel
 import math
 from random import random
-from crystal import Packing, MOF
-from geometry import Coor, Quaternion
-from energymap import energy_map_index, energy_map_atom_index
+
+from ipmof.crystal import Packing, MOF
+from ipmof.geometry import Coor, Quaternion
+from ipmof.energymap import energy_map_index, energy_map_atom_index
 
 
-def initial_coordinates(MOF, energy_map, atom_list, energy_limit):
+def initial_coordinates(mof, energy_map, atom_list, energy_limit):
     """
     Determine initial coordinates to start interpenetration simulations from.
     Points are determined acoording to their energy (accepted if energy < energy_limit)
@@ -23,7 +22,7 @@ def initial_coordinates(MOF, energy_map, atom_list, energy_limit):
     pbc_count = 0
     for emap_line in energy_map:
         emap_coor = Coor([emap_line[0], emap_line[1], emap_line[2]])
-        pbc_coor = emap_coor.pbc(MOF.uc_size, MOF.uc_angle, MOF.frac_ucv)
+        pbc_coor = emap_coor.pbc(mof.uc_size, mof.uc_angle, mof.frac_ucv)
         pbc_x = round(pbc_coor.x, 1)
         pbc_y = round(pbc_coor.y, 1)
         pbc_z = round(pbc_coor.z, 1)
@@ -207,7 +206,7 @@ def run_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
     return summary, new_structures
 
 
-def check_extension(sim_par, base_MOF, mobile_MOF, emap, emap_atom_list, new_structure):
+def check_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_structure):
     """
     *** Not Complete ***
     Checks collision between interpenetrating layer and base layer for a determined distance.
@@ -228,10 +227,10 @@ def check_extension(sim_par, base_MOF, mobile_MOF, emap, emap_atom_list, new_str
 
     Quat = Quaternion([0, 1, 1, 1])
 
-    packing_factor = Packing.factor(mobile_MOF.uc_size, ext_cut_off)
-    uc_vectors = Packing.uc_vectors(mobile_MOF.uc_size, mobile_MOF.uc_angle)
+    packing_factor = Packing.factor(mobile_mof.uc_size, ext_cut_off)
+    uc_vectors = Packing.uc_vectors(mobile_mof.uc_size, mobile_mof.uc_angle)
     trans_vec = Packing.translation_vectors(packing_factor, uc_vectors)
-    packed_coors = Packing.uc_coors(trans_vec, packing_factor, uc_vectors, mobile_MOF.atom_coors)
+    packed_coors = Packing.uc_coors(trans_vec, packing_factor, uc_vectors, mobile_mof.atom_coors)
 
     x_angle = rotation_info[0]
     y_angle = rotation_info[1]
@@ -254,9 +253,9 @@ def check_extension(sim_par, base_MOF, mobile_MOF, emap, emap_atom_list, new_str
                     new_coor = Coor(Q.xyz())
 
                     new_coor += translation_vector
-                    pbc_coor = new_coor.pbc(base_MOF.uc_size, base_MOF.uc_angle, base_MOF.frac_ucv)
+                    pbc_coor = new_coor.pbc(base_mof.uc_size, base_mof.uc_angle, base_mof.frac_ucv)
 
-                    atom_name = mobile_MOF.atom_names[coor_index]
+                    atom_name = mobile_mof.atom_names[coor_index]
                     atom_index = energy_map_atom_index(atom_name, emap_atom_list)
 
                     point_energy = trilinear_interpolate(pbc_coor.xyz(), atom_index, emap, emap_max, emap_min)
@@ -274,7 +273,7 @@ def check_extension(sim_par, base_MOF, mobile_MOF, emap, emap_atom_list, new_str
     return collision
 
 
-def save_extension(sim_par, base_MOF, mobile_MOF, emap, emap_atom_list, new_structure):
+def save_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_structure):
     """
     Using the rotation_info and translation_vector from interpenetration to extended_coors
     mobile structure for a given distance (ext_cut_off).
@@ -291,10 +290,10 @@ def save_extension(sim_par, base_MOF, mobile_MOF, emap, emap_atom_list, new_stru
 
     Quat = Quaternion([0, 1, 1, 1])
 
-    packing_factor = Packing.factor(mobile_MOF.uc_size, ext_cut_off)
-    uc_vectors = Packing.uc_vectors(mobile_MOF.uc_size, mobile_MOF.uc_angle)
+    packing_factor = Packing.factor(mobile_mof.uc_size, ext_cut_off)
+    uc_vectors = Packing.uc_vectors(mobile_mof.uc_size, mobile_mof.uc_angle)
     trans_vec = Packing.translation_vectors(packing_factor, uc_vectors)
-    packed_coors = Packing.uc_coors(trans_vec, packing_factor, uc_vectors, mobile_MOF.atom_coors)
+    packed_coors = Packing.uc_coors(trans_vec, packing_factor, uc_vectors, mobile_mof.atom_coors)
 
     x_angle = rotation_info[0]
     y_angle = rotation_info[1]
@@ -316,43 +315,13 @@ def save_extension(sim_par, base_MOF, mobile_MOF, emap, emap_atom_list, new_stru
 
             new_coor += translation_vector
 
-            atom_name = mobile_MOF.atom_names[coor_index]
+            atom_name = mobile_mof.atom_names[coor_index]
 
             extended_names.append(atom_name)
             extended_coors.append(new_coor.xyz())
 
-    return {'atom_names': extended_names, 'atom_coors': extended_coors, 'packing_factor': packing_factor}
+    extended_structure = {'atom_names': extended_names, 'atom_coors': extended_coors}
+    extended_structure['name'] = mobile_mof.name
+    extended_structure['packing_factor'] = packing_factor
 
-
-def join_structures(base_structure, new_structure, colorify=False, atom_color=['C', 'O']):
-    """
-    Combines atom names and coordinates of two given structure dictionaries.
-    The structure dictionaries should be in following format:
-     >>> structure = {'atom_names': [*atom names], 'atom_coors':[*atom coors]}
-    """
-    base_atom_name = atom_color[0]
-    new_atom_name = atom_color[1]
-    joined_atom_names = []
-    joined_atom_coors = []
-
-    if colorify:
-        for coor in new_structure['atom_coors']:
-            joined_atom_names.append(new_atom_name)
-            joined_atom_coors.append(coor)
-
-        for coor in base_structure['atom_coors']:
-            joined_atom_names.append(base_atom_name)
-            joined_atom_coors.append(coor)
-
-    else:
-        for atom, coor in zip(new_structure['atom_names'], new_structure['atom_coors']):
-            joined_atom_names.append(atom)
-            joined_atom_coors.append(coor)
-
-        for atom, coor in zip(base_structure['atom_names'], base_structure['atom_coors']):
-            joined_atom_names.append(atom)
-            joined_atom_coors.append(coor)
-
-    joined_structure = {'atom_names': joined_atom_names, 'atom_coors': joined_atom_coors}
-
-    return joined_structure
+    return extended_structure

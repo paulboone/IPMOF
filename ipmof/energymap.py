@@ -2,13 +2,15 @@
 # Date: June 2016
 # Author: Kutay B. Sezginel
 import os
+from math import floor, ceil, inf, sqrt
+
 import xlrd
 import numpy as np
-from math import floor, ceil, inf, sqrt
-from forcefield import lorentz_berthelot_mix, lennard_jones
+
+from ipmof.forcefield import lorentz_berthelot_mix, lennard_jones
 
 
-def energy_map(sim_par, MOF, atom_list):
+def energy_map(sim_par, mof, atom_list):
     """
     Calculate energy map for a given MOF class with following properties:
         - edge_points   - uniq_atom_names   - atom_names    - packed_coors
@@ -22,9 +24,9 @@ def energy_map(sim_par, MOF, atom_list):
     cut_off = sim_par['cut_off']
     grid_size = sim_par['grid_size']
     # Determine max and min coordinates for the unit cell to construct bounding box grid
-    sorted_x = sorted(MOF.edge_points, key=lambda x: x[0], reverse=True)
-    sorted_y = sorted(MOF.edge_points, key=lambda y: y[1], reverse=True)
-    sorted_z = sorted(MOF.edge_points, key=lambda z: z[2], reverse=True)
+    sorted_x = sorted(mof.edge_points, key=lambda x: x[0], reverse=True)
+    sorted_y = sorted(mof.edge_points, key=lambda y: y[1], reverse=True)
+    sorted_z = sorted(mof.edge_points, key=lambda z: z[2], reverse=True)
     emap_max = [ceil(sorted_x[0][0]), ceil(sorted_y[0][1]), ceil(sorted_z[0][2])]
     emap_min = [floor(sorted_x[-1][0]), floor(sorted_y[-1][1]), floor(sorted_z[-1][2])]
 
@@ -37,7 +39,7 @@ def energy_map(sim_par, MOF, atom_list):
     # Initialize energy map according to grid size and coordinates plus number of unique atoms
     energy_map = np.zeros([len(x_grid) * len(y_grid) * len(z_grid), num_atoms + 3])
 
-    sig, eps = lorentz_berthelot_mix(MOF.sigma, atom_list['sigma'], MOF.epsilon, atom_list['epsilon'])
+    sig, eps = lorentz_berthelot_mix(mof.sigma, atom_list['sigma'], mof.epsilon, atom_list['epsilon'])
 
     map_index = 0
     v = np.zeros([num_atoms])
@@ -47,10 +49,10 @@ def energy_map(sim_par, MOF, atom_list):
             for z in z_grid:
                 energy_map[map_index][0:3] = [x, y, z]
                 v_total = np.zeros([num_atoms])
-                for unit_cell in MOF.packed_coors:
+                for unit_cell in mof.packed_coors:
                     mof_index = 0
                     for atom_coor in unit_cell:
-                        atom_index_1 = MOF.uniq_atom_names.index(MOF.atom_names[mof_index])
+                        atom_index_1 = mof.uniq_atom_names.index(mof.atom_names[mof_index])
                         mof_index += 1
                         dist = coor_dist(atom_coor, [x, y, z])
                         if dist > cut_off:
