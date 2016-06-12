@@ -4,18 +4,19 @@ import os
 import yaml
 
 # Simulation Parameters Data:
-sim_par_data = {'structure_energy_limit': 3E3,
-                'atom_energy_limit': 3E1,
-                'rotation_limit': 20,
+sim_par_data = {'structure_energy_limit': 3E10,
+                'atom_energy_limit': 3E8,
+                'rotation_limit': 30,
                 'rotation_freedom': 30,
                 'summary_percent': 5,
                 'cut_off': 12,
                 'ext_cut_off': 50,
                 'grid_size': 1,
-                'force_field': 'uff'
-                'export_structures': 1
-                'export_pbc': False
+                'force_field': 'uff',
+                'export_structures': 1,
+                'export_pbc': False,
                 'export_colorify': True
+                'export_format': 'xyz'
                 }
 
 # Working Directories:
@@ -24,7 +25,10 @@ python_lib_dir = os.path.join(main_dir, 'ipmof')
 force_field_path = os.path.join(main_dir, 'doc', 'FF_Parameters.xlsx')
 core_path = os.path.join(main_dir, 'doc', 'CoRE.xlsx')
 mol2_dir = r'/home/kutay/Documents/Research/MOFs/IPMOF_Python/mol2'
+# mol2_dir = r'C:\Kutay\MOFs\IPMOF_Python'
 export_dir = os.path.join(main_dir, 'results')
+if not os.path.isdir(export_dir):
+    os.mkdir(export_dir)
 
 # Simulation Directories Data:
 sim_dir_data = {'main_dir': main_dir,
@@ -56,3 +60,11 @@ def export_sim_dir(inp_dir=main_dir):
     sim_dir_file = open(sim_dir_path, 'w')
     yaml.dump(sim_dir_data, sim_dir_file, default_flow_style=False)
     sim_dir_file.close()
+
+# Get directories for simulation parameters and directories files
+# sim_par_path = os.path.join(main_dir, 'sim_par.yaml')
+# sim_dir_path = os.path.join(main_dir, 'sim_dir_linux.yaml')
+
+# Read sim par yaml file
+# sim_par = yaml.load(open(sim_par_path, 'r'))
+# sim_dir = yaml.load(open(sim_dir_path, 'r'))

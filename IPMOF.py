@@ -10,17 +10,11 @@ from ipmof.forcefield import read_ff_parameters
 from ipmof.energymap import energy_map, get_mof_list, get_uniq_atom_list
 from ipmof.interpenetration import run_interpenetration, check_extension, save_extension
 # --------------------------------------------------------------------------------------------------
-# Get directories for simulation parameters and directories files
-input_dir = os.getcwd()
-sim_par_path = os.path.join(input_dir, 'sim_par.yaml')
-sim_dir_path = os.path.join(input_dir, 'sim_dir_linux.yaml')
-
-# Read sim par yaml file
-sim_par = yaml.load(open(sim_par_path, 'r'))
-sim_dir = yaml.load(open(sim_dir_path, 'r'))
+from ipmof.parameters import sim_dir_data as sim_dir
+from ipmof.parameters import sim_par_data as sim_par
 
 # Read excel file containing force field information
-force_field = read_ff_parameters(sim_dir['excel_file_path'], sim_par['force_field'])
+force_field = read_ff_parameters(sim_dir['force_field_path'], sim_par['force_field'])
 # --------------------------------------------------------------------------------------------------
 # Create list of MOFs
 mol2_list = get_mof_list(sim_dir['mol2_dir'], '.mol2')
@@ -74,9 +68,9 @@ for base_index, base_mof_selection in enumerate(mof_list):
                 ext_mobile_mof = MOF(ext_structure, file_format='dict')
 
                 # Join base and mobile structure layers
-                joined_mof = ext_base_mof.join(ext_mobile_mof)
+                joined_mof = ext_base_mof.join(ext_mobile_mof, colorify=sim_par['export_colorify'])
 
                 # Export to xyz format
-                joined_mof.export(sim_dir['export_dir'])
+                joined_mof.export(sim_dir['export_dir'], file_format=sim_par['export_format'])
             else:
                 print('No interpenetration.')
