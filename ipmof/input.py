@@ -1,7 +1,9 @@
 # Create simulation input files for IPMOF simulations
 import os
+
 import yaml
 
+# Simulation Parameters Data:
 sim_par_data = {'structure_energy_limit': 3E3,
                 'atom_energy_limit': 3E1,
                 'rotation_limit': 20,
@@ -16,20 +18,25 @@ sim_par_data = {'structure_energy_limit': 3E3,
                 'export_colorify': True
                 }
 
-input_dir = os.getcwd()
-python_lib_dir = os.path.join(input_dir, 'ipmof')
-excel_file_path = os.path.join(input_dir, 'doc', 'FF_Parameters.xlsx')
+# Working Directories:
+main_dir = os.getcwd()
+python_lib_dir = os.path.join(main_dir, 'ipmof')
+force_field_path = os.path.join(main_dir, 'doc', 'FF_Parameters.xlsx')
+core_path = os.path.join(main_dir, 'doc', 'CoRE.xlsx')
+mol2_dir = r'/home/kutay/Documents/Research/MOFs/IPMOF_Python/mol2'
+export_dir = os.path.join(main_dir, 'results')
 
-# Enter directories here
-sim_dir_data = {'python_lib_dir': r'/home/kutay/Documents/git/IPMOF/IPMOF_Python',
-                'excel_file_path': r'/home/kutay/Documents/Research/IPMOF/FF_Parameters.xlsx',
-                'mol2_dir': r'/home/kutay/Documents/Research/MOFs/IPMOF_Python/mol2',
-                'input_dir': r'/home/kutay/Documents/git/IPMOF',
-                'export_dir': r'/home/kutay/Documents/Research/MOFs/IPMOF_Python/export',
+# Simulation Directories Data:
+sim_dir_data = {'main_dir': main_dir,
+                'python_lib_dir': python_lib_dir,
+                'force_field_path': force_field_path,
+                'core_path': core_path,
+                'mol2_dir': mol2_dir,
+                'export_dir': export_dir,
                 }
 
 
-def export_sim_par(inp_dir=input_dir):
+def export_sim_par(inp_dir=main_dir):
     """
     Export simulation parameters input file to given directory.
     If no directory is given the file will be exported to default location defined in this library.
@@ -40,7 +47,7 @@ def export_sim_par(inp_dir=input_dir):
     sim_par_file.close()
 
 
-def export_sim_dir(inp_dir=input_dir):
+def export_sim_dir(inp_dir=main_dir):
     """
     Export simulation directories to given directory.
     If no directory is given the file will be exported to default location defined in this library.
