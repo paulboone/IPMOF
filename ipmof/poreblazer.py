@@ -18,7 +18,7 @@ class PB:
         """
         self.source_dir = source_dir
 
-    def input(structure_name, uc_size, uc_angle, export_dir):
+    def input(self, structure_name, uc_size, uc_angle, export_dir):
         """
         Creates input.dat file according to unit cell information of given structure.
         """
@@ -44,7 +44,7 @@ class PB:
             inp_dir = os.path.join(source_dir, inp_file)
             shutil.copy(inp_dir, export_dir)
 
-    def JobSH(job_dir, job_name, queue, wall_time):
+    def JobSH(self, job_dir, job_name, queue, wall_time):
         """
         Creates job submission file to run PoreBlazer simulations on Frank.
         """
@@ -75,7 +75,7 @@ class PB:
             jobsh_file.write(line + '\n')
         jobsh_file.close()
 
-    def read_results(pb_results_dir):
+    def read_results(self, pb_results_dir):
         """
         Reads results.txt file from PoreBlazer simulation output.
         Collects surface area (m2/g), density(g/cm3), and geometric pore volume (cm3/g).
@@ -101,7 +101,7 @@ class PB:
 
         return pb_res
 
-    def read_psd(psd_results_dir):
+    def read_psd(self, psd_results_dir):
         """
         Reads psd.txt file from PoreBlazer simulation output.
         Collects pore size and frequency data from file and calculates dominant pore diameter.
@@ -133,7 +133,7 @@ class PB:
 
         return psd
 
-    def plot_psd(psd):
+    def plot_psd(self, psd):
         """
         Plots pore size distribution results read from output of PoreBlazer simulations.
         """
