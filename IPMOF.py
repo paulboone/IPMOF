@@ -9,6 +9,7 @@ from ipmof.crystal import MOF
 from ipmof.forcefield import read_ff_parameters
 from ipmof.energymap import energy_map, get_mof_list, get_uniq_atom_list
 from ipmof.interpenetration import run_interpenetration, check_extension, save_extension
+from ipmof.core import core_mof_properties, core_mof_sort, core_mof_dir
 # --------------------------------------------------------------------------------------------------
 from ipmof.parameters import sim_dir_data as sim_dir
 from ipmof.parameters import sim_par_data as sim_par
@@ -16,9 +17,11 @@ from ipmof.parameters import sim_par_data as sim_par
 # Read excel file containing force field information
 force_field = read_ff_parameters(sim_dir['force_field_path'], sim_par['force_field'])
 # --------------------------------------------------------------------------------------------------
-# Create list of MOFs
-mol2_list = get_mof_list(sim_dir['mol2_dir'], '.mol2')
-print(mol2_list)
+# Create MOf list from CoRE database
+mof_properties = core_mof_properties(sim_dir['core_path'])
+
+sorted_mofs = core_mof_sort(mof_properties, sort='void_fraction', limit=0.85)
+mol2_list = core_mof_dir(sorted_mofs, sim_dir['mol2_dir'])
 
 mof_list = [mol2_list[4]]
 

@@ -15,7 +15,7 @@ sim_par_data = {'structure_energy_limit': 3E10,
                 'force_field': 'uff',
                 'export_structures': 1,
                 'export_pbc': False,
-                'export_colorify': True
+                'export_colorify': True,
                 'export_format': 'xyz'
                 }
 
@@ -24,7 +24,8 @@ main_dir = os.getcwd()
 python_lib_dir = os.path.join(main_dir, 'ipmof')
 force_field_path = os.path.join(main_dir, 'doc', 'FF_Parameters.xlsx')
 core_path = os.path.join(main_dir, 'doc', 'CoRE.xlsx')
-mol2_dir = r'/home/kutay/Documents/Research/MOFs/IPMOF_Python/mol2'
+# mol2_dir = r'/home/kutay/Documents/Research/MOFs/IPMOF_Python/mol2'
+mol2_dir = r'/home/kutay/Documents/Research/MOFs/REFmol2'
 # mol2_dir = r'C:\Kutay\MOFs\IPMOF_Python'
 export_dir = os.path.join(main_dir, 'results')
 if not os.path.isdir(export_dir):
