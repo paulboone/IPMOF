@@ -4,19 +4,19 @@ import os
 import yaml
 
 # Simulation Parameters Data:
-sim_par_data = {'structure_energy_limit': 3E10,
-                'atom_energy_limit': 3E8,
-                'rotation_limit': 30,
-                'rotation_freedom': 30,
-                'summary_percent': 5,
-                'cut_off': 12,
-                'ext_cut_off': 50,
-                'grid_size': 1,
-                'force_field': 'uff',
-                'export_structures': 1,
-                'export_pbc': False,
-                'export_colorify': True,
-                'export_format': 'xyz'
+sim_par_data = {'structure_energy_limit': 3E10, # Maximum allowed potential energy for structure
+                'atom_energy_limit': 3E8,       # Maximum allowed potential energy for atom
+                'rotation_limit': 30,           # Total number of rotations for each point
+                'rotation_freedom': 30,         # Increments of rotation (degrees)
+                'summary_percent': 5,           # Percentage increment to acquire summary data
+                'cut_off': 12,                  # Cut-off radius for interpenetration (Angstrom)
+                'ext_cut_off': 50,              # Cut-off radius for checking extension (Angstrom)
+                'grid_size': 1,                 # Grid size for potential energy map (Angstrom)
+                'force_field': 'uff',           # Force field selection for LJ ('uff' or 'dre')
+                'export_structures': 1,         # Number of min. energy structures to export
+                'export_pbc': False,            # Export coordinates after applying PBC
+                'export_colorify': True,        # Export structures with each I.P. layer colored
+                'export_format': 'xyz'          # Export structure file format
                 }
 
 # Working Directories:

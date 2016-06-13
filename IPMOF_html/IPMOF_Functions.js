@@ -4,7 +4,7 @@ var blue = 0x0055ff;
 var red = 0xcc0000;
 var green = 0x009933;
 var purple = 0x990099;
-var lineWidth = 10;
+var lineWidth = 2;
 
 var addAtom = function(coor, atomRadius, atomColor){
 	var atomGeo = new THREE.SphereGeometry(atomRadius, 8, 8);

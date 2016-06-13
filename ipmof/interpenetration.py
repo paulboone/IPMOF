@@ -276,13 +276,13 @@ def check_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_str
 def save_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_structure):
     """
     Using the rotation_info and translation_vector from interpenetration to extended_coors
-    mobile structure for a given distance (ext_cut_off).
+    mobile structure for a given distance (cut_off).
     Returns atom names, coordinates and packing factor.
     """
     emap_max = [emap[-1][0], emap[-1][1], emap[-1][2]]
     emap_min = [emap[0][0], emap[0][1], emap[0][2]]
 
-    ext_cut_off = sim_par['ext_cut_off']
+    export_cut_off = sim_par['cut_off']
 
     rotation_info = new_structure['rotation']
     first_point = new_structure['first_point']
@@ -290,7 +290,7 @@ def save_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_stru
 
     Quat = Quaternion([0, 1, 1, 1])
 
-    packing_factor = Packing.factor(mobile_mof.uc_size, ext_cut_off)
+    packing_factor = Packing.factor(mobile_mof.uc_size, export_cut_off)
     uc_vectors = Packing.uc_vectors(mobile_mof.uc_size, mobile_mof.uc_angle)
     trans_vec = Packing.translation_vectors(packing_factor, uc_vectors)
     packed_coors = Packing.uc_coors(trans_vec, packing_factor, uc_vectors, mobile_mof.atom_coors)
