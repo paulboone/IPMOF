@@ -8,6 +8,7 @@ import xlrd
 import numpy as np
 
 from ipmof.forcefield import lorentz_berthelot_mix, lennard_jones
+from ipmof.crystal import MOF
 
 
 def energy_map(sim_par, mof, atom_list):
@@ -116,7 +117,7 @@ def coor_dist(coor1, coor2):
     return sqrt((coor1[0] - coor2[0])**2 + (coor1[1] - coor2[1])**2 + (coor1[2] - coor2[2])**2)
 
 
-def get_mof_list(file_dir, file_format):
+def get_mof_file_list(file_dir, file_format):
     """
     Generates a list of MOF file names in a given directory and MOF file format
     """
@@ -125,6 +126,19 @@ def get_mof_list(file_dir, file_format):
     for file_name in file_list:
         if file_format in file_name:
             mof_list.append(file_name)
+
+    return mof_list
+
+
+def get_mof_list(mof_path_list, force_field):
+    """
+    Generates a list of MOF objects using a given list of MOF file directories
+    """
+    mof_list = []
+    for mof in mof_path_list:
+        mof_obj = MOF(mof)
+        mof_obj.force_field(force_field)
+        mof_list.append(mof_obj)
 
     return mof_list
 

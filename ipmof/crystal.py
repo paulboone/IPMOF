@@ -26,6 +26,12 @@ class MOF:
             self.atom_names = mof_file['atom_names']
             self.name = mof_file['name']
 
+    def __repr__(self):
+        return "<MOF object: %s>" % (self.name)
+
+    def __str__(self):
+        return self.name
+
     def __len__(self):
         return len(self.atom_coors)
 
@@ -88,7 +94,7 @@ class MOF:
         self.uniq_atom_coors = uniq_atom_coors
 
     def calculate_cut_off(self):
-        """"
+        """
         Calculate cut-off radius as Rc = L/2 from a given MOF object.
         """
         width_a = self.ucv / (self.uc_size[1] * self.uc_size[2] / math.sin(math.radians(self.uc_angle[0])))
