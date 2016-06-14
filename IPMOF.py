@@ -23,7 +23,7 @@ mof_properties = core_mof_properties(sim_dir['core_path'])
 sorted_mofs = core_mof_sort(mof_properties, sort='void_fraction', limit=0.85)
 mol2_list = core_mof_dir(sorted_mofs, sim_dir['mol2_dir'])
 
-mof_list = [mol2_list[4]]
+mof_list = mol2_list
 
 for base_index, base_mof_selection in enumerate(mof_list):
     for mobile_index, mobile_mof_selection in enumerate(mof_list):
@@ -43,6 +43,7 @@ for base_index, base_mof_selection in enumerate(mof_list):
             extended_structure = extend_unit_cell(base_mof, sim_par['cut_off'])
 
             atom_list = get_uniq_atom_list([mobile_mof])
+            atom_list = get_uniq_atom_list(mol2_list)
             print('Calculating emap for', base_mof.name, 'with atoms:', atom_list['atom'])
 
             # Calculate energy map

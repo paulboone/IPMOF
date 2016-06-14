@@ -4,8 +4,8 @@ import os
 import yaml
 
 # Simulation Parameters Data:
-sim_par_data = {'structure_energy_limit': 3E10,  # Maximum allowed potential energy for structure
-                'atom_energy_limit': 3E8,        # Maximum allowed potential energy for atom
+sim_par_data = {'structure_energy_limit': 3E8,  # Maximum allowed potential energy for structure
+                'atom_energy_limit': 3E6,        # Maximum allowed potential energy for atom
                 'rotation_limit': 30,            # Total number of rotations for each point
                 'rotation_freedom': 30,          # Increments of rotation (degrees)
                 'summary_percent': 5,            # Percentage increment to acquire summary data
@@ -25,8 +25,8 @@ python_lib_dir = os.path.join(main_dir, 'ipmof')
 force_field_path = os.path.join(main_dir, 'doc', 'FF_Parameters.xlsx')
 core_path = os.path.join(main_dir, 'doc', 'CoRE.xlsx')
 # mol2_dir = r'/home/kutay/Documents/Research/MOFs/IPMOF_Python/mol2'
-mol2_dir = r'/home/kutay/Documents/Research/MOFs/REFmol2'
-# mol2_dir = r'C:\Kutay\MOFs\IPMOF_Python'
+# mol2_dir = r'/home/kutay/Documents/Research/MOFs/REFmol2'
+mol2_dir = r'C:\Kutay\MOFs\REFmol2'
 export_dir = os.path.join(main_dir, 'results')
 if not os.path.isdir(export_dir):
     os.mkdir(export_dir)
