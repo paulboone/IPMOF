@@ -57,8 +57,8 @@ for base_mof_index, base_mof in enumerate(mof_list):
 
             if len(new_structures) > 0:
                 print('+ \t Interpenetration found.\nStructure count:', len(new_structures))
-
-                for export_index in range(sim_par['export_structures']):
+                export_count = min(len(new_structures), sim_par['export_structures'])
+                for export_index in range(export_count):
                     # Get minimum energy structure by sorting total structure energies
                     min_energy_structure = sorted(new_structures, key=lambda k: k['energy'])[export_index]
 
@@ -76,7 +76,7 @@ for base_mof_index, base_mof in enumerate(mof_list):
                     if sim_par['export_pbc']:
                         ext_structure['atom_coors'] = min_energy_structure['pbc_coors']
                     else:
-                        ext_stucture['atom_coors'] = min_energy_structure['atom_coors']
+                        ext_structure['atom_coors'] = min_energy_structure['atom_coors']
 
                     # Extend MOF coordinates and get atom names and coordinates of extended unit cells of MOF object
                     # extended_structure = base_mof.extend_unit_cell(sim_par['cut_off'])

@@ -225,7 +225,8 @@ class Packing:
     """
     Packing class containing functions used for packing unit cells
     """
-    def factor(uc_size, cut_off):
+    @classmethod
+    def factor(cls, uc_size, cut_off):
         """
         Calculate packing factor for given unit cell size and cut off radius
         """
@@ -234,7 +235,8 @@ class Packing:
             packing_factor.append(math.ceil(cut_off / uc_length) * 2 + 1)
         return packing_factor
 
-    def uc_vectors(uc_size, uc_angle):
+    @classmethod
+    def uc_vectors(cls, uc_size, uc_angle):
         """
         Calculate unit cell vectors for given unit cell size and angles
         """
@@ -254,7 +256,8 @@ class Packing:
         uc_vectors = [x_v, y_v, z_v]
         return uc_vectors
 
-    def translation_vectors(packing_factor, uc_vectors):
+    @classmethod
+    def translation_vectors(cls, packing_factor, uc_vectors):
         """
         Calculate translation vectors for given packing factor and uc vectors
         """
@@ -276,7 +279,8 @@ class Packing:
 
         return translation_vectors
 
-    def uc_coors(translation_vectors, packing_factors, uc_vectors, atom_coors):
+    @classmethod
+    def uc_coors(cls, translation_vectors, packing_factors, uc_vectors, atom_coors):
         """
         Calculate packed coordinates for given:
         - translation vectors  - packing factor     - unit cell vectors    - atom coordinates
@@ -305,7 +309,8 @@ class Packing:
 
         return packed_coors
 
-    def edge_points(uc_vectors):
+    @classmethod
+    def edge_points(cls, uc_vectors):
         """
         Calculate coordinates of unit cell edges in order of:
         (0, 0, 0) - (a, 0, 0) - (b, 0, 0) - (c, 0, 0)
