@@ -16,7 +16,9 @@ sim_par_data = {'structure_energy_limit': 3E8,  # Maximum allowed potential ener
                 'export_structures': 1,          # Number of min. energy structures to export
                 'export_pbc': False,             # Export coordinates after applying PBC
                 'export_colorify': True,         # Export structures with each I.P. layer colored
-                'export_format': 'xyz'           # Export structure file format
+                'export_original': True,         # Export structures with original atom names
+                'export_format': 'xyz',          # Export structure file format
+                'core_database': True
                 }
 
 # Working Directories:
@@ -68,3 +70,19 @@ def export_sim_dir(inp_dir=main_dir):
 # Read sim par yaml file
 # sim_par = yaml.load(open(sim_par_path, 'r'))
 # sim_dir = yaml.load(open(sim_dir_path, 'r'))
+
+def export_init_txt(mof_list, sim_par=sim_par_data, sim_dir=sim_dir_data):
+    init_text = 'Initialized simulation parameters and MOF files.\n'
+    init_text += '------- SIMULATION PARAMETERS -------\n'
+    for par in sim_par:
+        init_text += par + ': ' + str(sim_par[par]) + '\n'
+    init_text += '-------------------------------------\n'
+
+    init_text += 'Starting interpenetration with a total of ' + str(len(mof_list)) + ' MOFs:\n'
+    for m_i, m in enumerate(mof_list):
+        init_text += str(m_i+1) + '\t' + str(m) + '\n'
+
+    init_file_dir = os.path.join(sim_dir['export_dir'], 'init.txt')
+    init_file = open(init_file_dir, 'w')
+    init_file.write(init_text)
+    init_file.close()

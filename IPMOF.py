@@ -13,28 +13,33 @@ from ipmof.core import core_mof_properties, core_mof_sort, core_mof_dir
 # --------------------------------------------------------------------------------------------------
 from ipmof.parameters import sim_dir_data as sim_dir
 from ipmof.parameters import sim_par_data as sim_par
+from ipmof.parameters import export_init_txt
 
 # Read excel file containing force field information
 force_field = read_ff_parameters(sim_dir['force_field_path'], sim_par['force_field'])
 # --------------------------------------------------------------------------------------------------
-# Create MOf list from CoRE database
-mof_properties = core_mof_properties(sim_dir['core_path'])
+if sim_par['core_database']:
+    # Create MOf list from CoRE database
+    mof_properties = core_mof_properties(sim_dir['core_path'])
+    sorted_mofs = core_mof_sort(mof_properties, sort='void_fraction', limit=0.85)
+    mol2_list = core_mof_dir(sorted_mofs, sim_dir['mol2_dir'])
+    mof_list = get_mof_list(mol2_list, force_field)
+else:
+    # Create MOF list by reading mol2 files from a directory
+    mof_list = get_mof_file_list(sim_dir['mol2_dir'], 'mol2', force_field)
 
-sorted_mofs = core_mof_sort(mof_properties, sort='void_fraction', limit=0.85)
-mol2_list = core_mof_dir(sorted_mofs, sim_dir['mol2_dir'])
-
-mof_list = get_mof_list(mol2_list, force_field)
-print(mof_list)
+# Export initialization file containing MOF names and simulation parameters
+export_init_txt(mof_list)
 
 for base_mof_index, base_mof in enumerate(mof_list):
 
     print('Base MOF selected as: ', base_mof.name)
     extended_structure = base_mof.extend_unit_cell(sim_par['cut_off'])
 
-    print('Calculating emap for', base_mof.name, 'with atoms:', atom_list['atom'])
-
     # Calculate atom list for remaining MOFs
     atom_list = get_uniq_atom_list(mof_list[base_mof_index:])
+
+    print('Calculating emap for', base_mof.name, 'with atoms:', atom_list['atom'])
 
     # Calculate energy map
     emap = energy_map(sim_par, base_mof, atom_list)
@@ -43,7 +48,7 @@ for base_mof_index, base_mof in enumerate(mof_list):
 
         if mobile_mof_index >= base_mof_index:
 
-            print('Mobile MOF selected as: ', mobile_mof.name)
+            print('*****', base_mof.name, '-\t-', mobile_mof.name, '*****')
 
             extended_structure = base_mof.extend_unit_cell(sim_par['cut_off'])
 
@@ -51,31 +56,45 @@ for base_mof_index, base_mof in enumerate(mof_list):
             summary, new_structures = run_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list)
 
             if len(new_structures) > 0:
-                print('Interpenetration found. Structure count:', len(new_structures))
-                print('MOF1:', base_mof.name, 'MOF2:', mobile_mof.name)
-                # Get minimum energy structure by sorting total structure energies
-                min_energy_structure = sorted(new_structures, key=lambda k: k['energy'])[0]
+                print('+ \t Interpenetration found.\nStructure count:', len(new_structures))
 
-                # Add for loop here for min_energy_structures
+                for export_index in range(sim_par['export_structures']):
+                    # Get minimum energy structure by sorting total structure energies
+                    min_energy_structure = sorted(new_structures, key=lambda k: k['energy'])[export_index]
 
-                # Check for collision in the extended unitcell of new structure and energy map
-                collision = check_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
-                print('Collision:', collision)
+                    # Add for loop here for min_energy_structures
 
-                # Get structure information for the interpenetrating structure
-                ext_structure = save_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
+                    # Check for collision in the extended unitcell of new structure and energy map
+                    collision = check_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
+                    print('Collision:', collision)
 
-                # Extend MOF coordinates and get atom names and coordinates of extended unit cells of MOF object
-                extended_structure = base_mof.extend_unit_cell(sim_par['cut_off'])
+                    # Get structure information for the interpenetrating structure
+                    # ext_structure = save_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
 
-                # Create new MOF objects for base and mobile MOFs
-                ext_base_mof = MOF(extended_structure, file_format='dict')
-                ext_mobile_mof = MOF(ext_structure, file_format='dict')
+                    ext_structure = {'atom_names': min_energy_structure['atom_names'], 'name': mobile_mof.name}
 
-                # Join base and mobile structure layers
-                joined_mof = ext_base_mof.join(ext_mobile_mof, colorify=sim_par['export_colorify'])
+                    if sim_par['export_pbc']:
+                        ext_structure['atom_coors'] = min_energy_structure['pbc_coors']
+                    else:
+                        ext_stucture['atom_coors'] = min_energy_structure['atom_coors']
 
-                # Export to xyz format
-                joined_mof.export(sim_dir['export_dir'], file_format=sim_par['export_format'])
+                    # Extend MOF coordinates and get atom names and coordinates of extended unit cells of MOF object
+                    # extended_structure = base_mof.extend_unit_cell(sim_par['cut_off'])
+
+                    # Create new MOF object for base and mobile MOFs
+                    # ext_base_mof = MOF(extended_structure, file_format='dict')
+                    ext_mobile_mof = MOF(ext_structure, file_format='dict')
+
+                    if sim_par['export_colorify']:
+                        # Join base and mobile structure layers
+                        joined_mof_color = base_mof.join(ext_mobile_mof, colorify=True)
+                        joined_mof_color.name += str(export_index) + 'C'
+                        joined_mof_color.export(sim_dir['export_dir'], file_format=sim_par['export_format'])
+
+                    if sim_par['export_original']:
+                        joined_mof = base_mof.join(ext_mobile_mof, colorify=False)
+                        # Export to xyz format
+                        joined_mof.name += str(export_index)
+                        joined_mof.export(sim_dir['export_dir'], file_format=sim_par['export_format'])
             else:
-                print('No interpenetration.')
+                print('- \t No interpenetration.')

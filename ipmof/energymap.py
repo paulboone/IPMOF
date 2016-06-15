@@ -117,15 +117,18 @@ def coor_dist(coor1, coor2):
     return sqrt((coor1[0] - coor2[0])**2 + (coor1[1] - coor2[1])**2 + (coor1[2] - coor2[2])**2)
 
 
-def get_mof_file_list(file_dir, file_format):
+def get_mof_file_list(folder_dir, file_format, force_field):
     """
     Generates a list of MOF file names in a given directory and MOF file format
     """
-    file_list = os.listdir(file_dir)
+    file_list = os.listdir(folder_dir)
     mof_list = []
     for file_name in file_list:
         if file_format in file_name:
-            mof_list.append(file_name)
+            mof_dir = os.path.join(folder_dir, file_name)
+            mof_obj = MOF(mof_dir)
+            mof_obj.force_field(force_field)
+            mof_list.append(mof_obj)
 
     return mof_list
 
