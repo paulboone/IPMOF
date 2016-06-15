@@ -7,7 +7,7 @@ import yaml
 # Load interpenetration python libraries
 from ipmof.crystal import MOF
 from ipmof.forcefield import read_ff_parameters
-from ipmof.energymap import energy_map, get_mof_list, get_uniq_atom_list
+from ipmof.energymap import energy_map, get_mof_list, get_mof_file_list, get_uniq_atom_list
 from ipmof.interpenetration import run_interpenetration, check_extension, save_extension
 from ipmof.core import core_mof_properties, core_mof_sort, core_mof_dir
 # --------------------------------------------------------------------------------------------------
