@@ -18,7 +18,7 @@ sim_par_data = {'structure_energy_limit': 3E8,  # Maximum allowed potential ener
                 'export_colorify': True,         # Export structures with each I.P. layer colored
                 'export_original': True,         # Export structures with original atom names
                 'export_format': 'xyz',          # Export structure file format
-                'core_database': True
+                'core_database': True            # Use CoRE database information or not
                 }
 
 # Working Directories:
@@ -26,8 +26,7 @@ main_dir = os.getcwd()
 python_lib_dir = os.path.join(main_dir, 'ipmof')
 force_field_path = os.path.join(main_dir, 'doc', 'FF_Parameters.xlsx')
 core_path = os.path.join(main_dir, 'doc', 'CoRE.xlsx')
-mol2_dir = r'/home/kutay/Documents/Research/MOFs/REFmol2'
-# mol2_dir = r'C:\Kutay\MOFs\REFmol2'
+mol2_dir = os.path.join(main_dir, 'mof')
 export_dir = os.path.join(main_dir, 'results')
 if not os.path.isdir(export_dir):
     os.mkdir(export_dir)
@@ -71,8 +70,9 @@ def export_sim_dir(inp_dir=main_dir):
 # sim_par = yaml.load(open(sim_par_path, 'r'))
 # sim_dir = yaml.load(open(sim_dir_path, 'r'))
 
+
 def export_init_txt(mof_list, sim_par=sim_par_data, sim_dir=sim_dir_data):
-    init_text = 'Initialized simulation parameters and MOF files.\n'
+    init_text = '--------------- IPMOF ---------------\n'
     init_text += '------- SIMULATION PARAMETERS -------\n'
     for par in sim_par:
         init_text += par + ': ' + str(sim_par[par]) + '\n'
@@ -80,7 +80,8 @@ def export_init_txt(mof_list, sim_par=sim_par_data, sim_dir=sim_dir_data):
 
     init_text += 'Starting interpenetration with a total of ' + str(len(mof_list)) + ' MOFs:\n'
     for m_i, m in enumerate(mof_list):
-        init_text += str(m_i+1) + '\t' + str(m) + '\n'
+        init_text += str(m_i + 1) + '\t' + str(m) + '\n'
+    init_text += '-------------------------------------\n'
 
     init_file_dir = os.path.join(sim_dir['export_dir'], 'init.txt')
     init_file = open(init_file_dir, 'w')
