@@ -13,12 +13,15 @@ sim_par_data = {'structure_energy_limit': 3E8,  # Maximum allowed potential ener
                 'ext_cut_off': 50,               # Cut-off radius for checking extension (Angstrom)
                 'grid_size': 1,                  # Grid size for potential energy map (Angstrom)
                 'force_field': 'uff',            # Force field selection for LJ ('uff' or 'dre')
+                'core_database': True,           # Use CoRE database information or not
                 'export_structures': 1,          # Number of min. energy structures to export
-                'export_pbc': False,             # Export coordinates after applying PBC
-                'export_colorify': True,         # Export structures with each I.P. layer colored
-                'export_original': True,         # Export structures with original atom names
                 'export_format': 'xyz',          # Export structure file format
-                'core_database': True            # Use CoRE database information or not
+                'export_pbc': False,             # Export coordinates after applying PBC
+                'export_single': True,           # Export structures with original atom names
+                'export_single_color': True,     # Export structures with each I.P. layer colored
+                'export_packed': True,           # Export structures with packed unit cell
+                'export_packed_color': True,     # Export structures with packed unit cell and color
+                'export_summary': True           # Export summary information for interpenetration
                 }
 
 # Working Directories:
@@ -72,6 +75,10 @@ def export_sim_dir(inp_dir=main_dir):
 
 
 def export_init_txt(mof_list, sim_par=sim_par_data, sim_dir=sim_dir_data):
+    """
+    Export init.txt file to results folder.
+    Contains information about simulation parameters and selected structures.
+    """
     init_text = '--------------- IPMOF ---------------\n'
     init_text += '------- SIMULATION PARAMETERS -------\n'
     for par in sim_par:
@@ -87,3 +94,23 @@ def export_init_txt(mof_list, sim_par=sim_par_data, sim_dir=sim_dir_data):
     init_file = open(init_file_dir, 'w')
     init_file.write(init_text)
     init_file.close()
+
+
+def export_summary_txt(export_dir, summary, base_mof, mobile_mof):
+    """
+    Export summary.txt file to specific interpenetration folder in results folder.
+    Contains information about interpenetration simulation run.
+    """
+    summary_text = '--------------- IPMOF SUMMARY ---------------\n'
+    summary_text += 'Base -> ' + base_mof.name + ' Mobile -> ' + mobile_mof.name + '\n'
+    summary_text += '---------------------------------------------\n'
+    summary_text += 'Percent \t Structure \t Trial \n'
+    for summary_index, percent in enumerate(summary['percent']):
+        summary_text += str(percent) + ' \t ' + str(summary['structure_count'][summary_index])
+        summary_text += ' \t ' + str(summary['trial_count'][summary_index]) + ' \n'
+    summary_text += '---------------------------------------------\n'
+
+    summary_file_dir = os.path.join(export_dir, 'summary.txt')
+    summary_file = open(summary_file_dir, 'w')
+    summary_file.write(summary_text)
+    summary_file.close()
