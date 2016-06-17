@@ -33,13 +33,15 @@ export_init_txt(mof_list)
 
 for base_mof_index, base_mof in enumerate(mof_list):
 
-    print('Base MOF selected as: ', base_mof.name)
+    print('-----------------------------------------------------------------------------------')
+    print(base_mof_index, 'Base ->', base_mof.name)
+    print('-----------------------------------------------------------------------------------')
     extended_structure = base_mof.extend_unit_cell(sim_par['cut_off'])
 
     # Calculate atom list for remaining MOFs
     atom_list = get_uniq_atom_list(mof_list[base_mof_index:])
 
-    print('Calculating emap for', base_mof.name, 'with atoms:', atom_list['atom'])
+    # print('Calculating emap for', base_mof.name, 'with atoms:', atom_list['atom'])
 
     # Calculate energy map
     emap = energy_map(sim_par, base_mof, atom_list)
@@ -48,15 +50,14 @@ for base_mof_index, base_mof in enumerate(mof_list):
 
         if mobile_mof_index >= base_mof_index:
 
-            print('*****', base_mof.name, '-\t-', mobile_mof.name, '*****')
-
             extended_structure = base_mof.extend_unit_cell(sim_par['cut_off'])
 
             # Run interpenetration
             summary, new_structures = run_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list)
 
             if len(new_structures) > 0:
-                print('+ \t Interpenetration found.\nStructure count:', len(new_structures))
+                print(mobile_mof_index, base_mof.name, '--', mobile_mof.name, '-> (+) Structure:', len(new_structures))
+
                 export_count = min(len(new_structures), sim_par['export_structures'])
                 for export_index in range(export_count):
                     # Get minimum energy structure by sorting total structure energies
@@ -66,7 +67,14 @@ for base_mof_index, base_mof in enumerate(mof_list):
 
                     # Check for collision in the extended unitcell of new structure and energy map
                     collision = check_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
-                    print('Collision:', collision)
+
+                    structure_info = '+ Structure ' + str(export_index) + ' -> Collision: '
+                    structure_info = str(collision) + ' | Energy: '
+                    structure_info += str(round(min_energy_structure['energy'], 4))
+                    structure_info += '\n              -> Rotation: '
+                    structure_info += str(min_energy_structure['rotation']) + ' First Point: '
+                    structure_info += str(min_energy_structure['first_point']) + '\n'
+                    print(structure_info)
 
                     # Get structure information for the interpenetrating structure
                     # ext_structure = save_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
@@ -97,4 +105,4 @@ for base_mof_index, base_mof in enumerate(mof_list):
                         joined_mof.name += str(export_index)
                         joined_mof.export(sim_dir['export_dir'], file_format=sim_par['export_format'])
             else:
-                print('- \t No interpenetration.')
+                print(mobile_mof_index, base_mof.name, '--', mobile_mof.name, '-> (-)')
