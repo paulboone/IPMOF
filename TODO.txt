@@ -5,6 +5,10 @@ IPMOF To Do List:
 - If base mof > mobile mof mobile mof should be extended at least to the size of base mof
   - Lets say for two cubic MOFs base_a/mobile_a = 1.2 -> Extend mobile to 2x2x2
 
+- For CoRE database keep a single directory containing CoRE MOFs.
+When a selection is performed from the database copy all the MOFs to the local 'mof' folder
+and read the files from there. In this way there is no need for a directory change.
+
 2) Near Future
 
 - Add file format options for reading/writing MOF files.

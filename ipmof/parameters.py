@@ -79,8 +79,8 @@ def export_init_txt(mof_list, sim_par=sim_par_data, sim_dir=sim_dir_data):
     Export init.txt file to results folder.
     Contains information about simulation parameters and selected structures.
     """
-    init_text = '--------------- IPMOF ---------------\n'
-    init_text += '------- SIMULATION PARAMETERS -------\n'
+    init_text = '--------------------- IPMOF ---------------------\n'
+    init_text += '------------- SIMULATION PARAMETERS -------------\n'
     for par in sim_par:
         init_text += par + ': ' + str(sim_par[par]) + '\n'
     init_text += '-------------------------------------\n'
@@ -88,7 +88,7 @@ def export_init_txt(mof_list, sim_par=sim_par_data, sim_dir=sim_dir_data):
     init_text += 'Starting interpenetration with a total of ' + str(len(mof_list)) + ' MOFs:\n'
     for m_i, m in enumerate(mof_list):
         init_text += str(m_i + 1) + '\t' + str(m) + '\n'
-    init_text += '-------------------------------------\n'
+    init_text += '-------------------------------------------------\n'
 
     init_file_dir = os.path.join(sim_dir['export_dir'], 'init.txt')
     init_file = open(init_file_dir, 'w')
