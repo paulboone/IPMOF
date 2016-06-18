@@ -81,8 +81,11 @@ def export_init_txt(mof_list, sim_par=sim_par_data, sim_dir=sim_dir_data):
     """
     init_text = '--------------------- IPMOF ---------------------\n'
     init_text += '------------- SIMULATION PARAMETERS -------------\n'
+    max_len = len('structure_energy_limit') + 3
     for par in sim_par:
-        init_text += par + ': ' + str(sim_par[par]) + '\n'
+        len_par_name = len(str(par))
+        empty_space = ' ' * (max_len - len_par_name)
+        init_text += par + ':' + empty_space + str(sim_par[par]) + '\n'
     init_text += '-------------------------------------------------\n'
 
     init_text += 'Starting interpenetration with a total of ' + str(len(mof_list)) + ' MOFs:\n'
