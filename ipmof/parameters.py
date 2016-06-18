@@ -106,8 +106,8 @@ def export_summary_txt(export_dir, summary, base_mof, mobile_mof):
     summary_text += '---------------------------------------------\n'
     summary_text += 'Percent \t Structure \t Trial \n'
     for summary_index, percent in enumerate(summary['percent']):
-        summary_text += str(percent) + ' \t ' + str(summary['structure_count'][summary_index])
-        summary_text += ' \t ' + str(summary['trial_count'][summary_index]) + ' \n'
+        summary_text += str(percent) + ' \t\t ' + str(summary['structure_count'][summary_index])
+        summary_text += ' \t\t ' + str(summary['trial_count'][summary_index]) + ' \n'
     summary_text += '---------------------------------------------\n'
 
     summary_file_dir = os.path.join(export_dir, 'summary.txt')
