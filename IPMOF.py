@@ -93,18 +93,18 @@ for base_mof_index, base_mof in enumerate(mof_list):
                     new_mobile_mof = MOF(new_structure, file_format='dict')
 
                     # Export structures ------------------------------------------------------------
-                    if sim_par['export_colorify']:
+                    if sim_par['export_single']:
+                        new_mobile_mof = MOF(new_structure, file_format='dict')
+                        joined_mof = base_mof.join(new_mobile_mof, colorify=False)
+                        joined_mof.name += str(export_index)
+                        joined_mof.export(export_dir, file_format=sim_par['export_format'])
+
+                    if sim_par['export_single_color']:
                         # Join base and mobile structure layers
                         new_mobile_mof = MOF(new_structure, file_format='dict')
                         joined_mof_color = base_mof.join(new_mobile_mof, colorify=True)
                         joined_mof_color.name += str(export_index) + 'C'
                         joined_mof_color.export(export_dir, file_format=sim_par['export_format'])
-
-                    if sim_par['export_original']:
-                        new_mobile_mof = MOF(new_structure, file_format='dict')
-                        joined_mof = base_mof.join(new_mobile_mof, colorify=False)
-                        joined_mof.name += str(export_index)
-                        joined_mof.export(export_dir, file_format=sim_par['export_format'])
 
                     if sim_par['export_packed']:
                         # Pack new structure by using rotation and first point information
