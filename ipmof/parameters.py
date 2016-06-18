@@ -13,7 +13,7 @@ sim_par_data = {'structure_energy_limit': 3E8,  # Maximum allowed potential ener
                 'ext_cut_off': 50,               # Cut-off radius for checking extension (Angstrom)
                 'grid_size': 1,                  # Grid size for potential energy map (Angstrom)
                 'force_field': 'uff',            # Force field selection for LJ ('uff' or 'dre')
-                'core_database': True,           # Use CoRE database information or not
+                'core_database': False,           # Use CoRE database information or not
                 'export_structures': 1,          # Number of min. energy structures to export
                 'export_format': 'xyz',          # Export structure file format
                 'export_pbc': False,             # Export coordinates after applying PBC
@@ -83,7 +83,7 @@ def export_init_txt(mof_list, sim_par=sim_par_data, sim_dir=sim_dir_data):
     init_text += '------------- SIMULATION PARAMETERS -------------\n'
     for par in sim_par:
         init_text += par + ': ' + str(sim_par[par]) + '\n'
-    init_text += '-------------------------------------\n'
+    init_text += '-------------------------------------------------\n'
 
     init_text += 'Starting interpenetration with a total of ' + str(len(mof_list)) + ' MOFs:\n'
     for m_i, m in enumerate(mof_list):
