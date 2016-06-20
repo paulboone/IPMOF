@@ -16,7 +16,7 @@ sim_par_data = {'structure_energy_limit': 3E8,  # Maximum allowed potential ener
                 'core_database': False,           # Use CoRE database information or not
                 'export_structures': 1,          # Number of min. energy structures to export
                 'export_format': 'xyz',          # Export structure file format
-                'export_pbc': False,             # Export coordinates after applying PBC
+                'export_pbc': True,             # Export coordinates after applying PBC
                 'export_single': True,           # Export structures with original atom names
                 'export_single_color': True,     # Export structures with each I.P. layer colored
                 'export_packed': True,           # Export structures with packed unit cell

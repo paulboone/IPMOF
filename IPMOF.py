@@ -65,7 +65,7 @@ for base_mof_index, base_mof in enumerate(mof_list):
 
             # Export Min Energy Structures ---------------------------------------------------------
             if len(new_structures) > 0:
-                print(mobile_mof_index, base_mof.name, '--', mobile_mof.name, '-> (+) Structure:', len(new_structures))
+                print(base_mof.name, '--', mobile_mof.name, '-> (+) Structure:', len(new_structures))
 
                 export_count = min(len(new_structures), sim_par['export_structures'])
                 for export_index in range(export_count):
@@ -82,10 +82,10 @@ for base_mof_index, base_mof in enumerate(mof_list):
                     fp_x = str(round(min_energy_structure['first_point'][0], 3))
                     fp_y = str(round(min_energy_structure['first_point'][1], 3))
                     fp_z = str(round(min_energy_structure['first_point'][2], 3))
-                    structure_info = 'Collision: ' + str(collision) + ' | Energy: '
-                    structure_info += str(round(min_energy_structure['energy'], 4))
-                    structure_info += '\nRotation x: ' + rot_x + ' y: ' + rot_y + ' z: ' + rot_z
-                    structure_info += ' | First Point x: ' + fp_x + ' y: ' + fp_y + ' z: ' + fp_z + '\n'
+                    structure_info = 'Energy: ' + str(round(min_energy_structure['energy'], 2))
+                    structure_info += ' | Collision: ' + str(collision) + '\n'
+                    structure_info += 'Rotation x: ' + rot_x + ' y: ' + rot_y + ' z: ' + rot_z
+                    structure_info += ' | First Point x: ' + fp_x + ' y: ' + fp_y + ' z: ' + fp_z
                     print(structure_info)
 
                     # Record new structure ---------------------------------------------------------
