@@ -82,9 +82,9 @@ for base_mof_index, base_mof in enumerate(mof_list):
                     fp_x = str(round(min_energy_structure['first_point'][0], 3))
                     fp_y = str(round(min_energy_structure['first_point'][1], 3))
                     fp_z = str(round(min_energy_structure['first_point'][2], 3))
-                    structure_info = 'Energy: ' + str(round(min_energy_structure['energy'], 2))
+                    structure_info = '\tEnergy: ' + str(round(min_energy_structure['energy'], 2))
                     structure_info += ' | Collision: ' + str(collision) + '\n'
-                    structure_info += 'Rotation x: ' + rot_x + ' y: ' + rot_y + ' z: ' + rot_z
+                    structure_info += '\tRotation x: ' + rot_x + ' y: ' + rot_y + ' z: ' + rot_z
                     structure_info += ' | First Point x: ' + fp_x + ' y: ' + fp_y + ' z: ' + fp_z
                     print(structure_info)
 
