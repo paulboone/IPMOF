@@ -105,7 +105,7 @@ def export_summary_txt(export_dir, summary, base_mof, mobile_mof):
     Contains information about interpenetration simulation run.
     """
     summary_text = '--------------- IPMOF SUMMARY ---------------\n'
-    summary_text += 'Base -> ' + base_mof.name + ' Mobile -> ' + mobile_mof.name + '\n'
+    summary_text += 'Base -> ' + base_mof.name + '\nMobile -> ' + mobile_mof.name + '\n'
     summary_text += '---------------------------------------------\n'
     summary_text += 'Percent \t Structure \t Trial \n'
     for summary_index, percent in enumerate(summary['percent']):

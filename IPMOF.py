@@ -76,12 +76,17 @@ for base_mof_index, base_mof in enumerate(mof_list):
                     collision = check_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
 
                     # Print structure information --------------------------------------------------
-                    structure_info = '+ Structure ' + str(export_index) + ' -> Collision: '
-                    structure_info = str(collision) + ' | Energy: '
+                    rot_x = str(round(math.degrees(min_energy_structure['rotation'][0])))
+                    rot_y = str(round(math.degrees(min_energy_structure['rotation'][1])))
+                    rot_z = str(round(math.degrees(min_energy_structure['rotation'][2])))
+                    fp_x = str(round(min_energy_structure['first_point'][0], 3))
+                    fp_y = str(round(min_energy_structure['first_point'][1], 3))
+                    fp_z = str(round(min_energy_structure['first_point'][2], 3))
+                    structure_info = '+ Exporting ' + str(export_index) + ' | Collision: '
+                    structure_info += str(collision) + ' | Energy: '
                     structure_info += str(round(min_energy_structure['energy'], 4))
-                    structure_info += '\n              -> Rotation: '
-                    structure_info += str(min_energy_structure['rotation']) + ' First Point: '
-                    structure_info += str(min_energy_structure['first_point']) + '\n'
+                    structure_info += '\nRotation x: ' + rot_x + ' y: ' + rot_y + ' z: ' + rot_z
+                    structure_info += ' | First Point x: ' + fp_x + ' y: ' + fp_y + ' z: ' + fp_z + '\n'
                     print(structure_info)
 
                     # Record new structure ---------------------------------------------------------
