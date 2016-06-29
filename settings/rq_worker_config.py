@@ -1,4 +1,4 @@
-REDIS_URL = 'redis://localhost:6379/0'
+REDIS_URL = 'redis://10.201.0.11:6379/2'
 
 # You can also specify the Redis DB to use
 # REDIS_HOST = 'redis.example.com'
@@ -7,7 +7,7 @@ REDIS_URL = 'redis://localhost:6379/0'
 # REDIS_PASSWORD = 'very secret'
 
 # Queues to listen on
-QUEUES = ['your_queue_name']
+QUEUES = ['ipmof']
 
 # If you're using Sentry to collect your runtime exceptions, you can use this
 # to configure RQ for it in a single step
