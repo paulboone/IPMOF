@@ -2,6 +2,9 @@ IPMOF To Do List:
 -------------------------------------
 1) High Priority
 
+- Implement job server.
+  - Main algorithm will create the energy maps and submit different jobs for each interpenetration.
+
 - If base mof > mobile mof mobile mof should be extended at least to the size of base mof
   - Lets say for two cubic MOFs base_a/mobile_a = 1.2 -> Extend mobile to 2x2x2
 
@@ -11,15 +14,18 @@ and read the files from there. In this way there is no need for a directory chan
 
 2) Near Future
 
-- Add file format options for reading/writing MOF files.
+- Add file format options for reading/writing MOF files. (ase, openbabel - pybel)
+
+- Change naming of output structures.
+  - S1_S2_1.xyz    => Single unit cell
+  - S1_S2_1C.xyz   => Single unit cell colored
+  - S1_S2_1P.xyz   => Packed unit cell
+  - S1_S2_1PC.xyz  => Packed unit cell colored
 
 - Decide how to handle sim_par and sim_dir. Multiple sim_par files for one job?
 
 - Add separate directory selection for base and mobile mofs.
 Use current combination directory as the default selection.
-
-- Implement job server.
-  - Main algorithm will create the energy maps and submit different jobs for each interpenetration.
 
 - Update CoRE database
 
