@@ -16,10 +16,13 @@ The default format for structure files is '.mol2'.
 In order to test IPMOF there is one MOF file (MOF-5) in the 'mof' directory.
 
 To run simulations in your terminal window just type:
-```
-python IPMOF.py or
-python IPMOF.py > results.txt
-```
+
+`python IPMOF.py` 
+
+or
+
+`python IPMOF.py > results.txt`
+
 if you want to export output into a file.
 
 This will simply run interpenetration simulation for MOF-5.
