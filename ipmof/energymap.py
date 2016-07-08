@@ -10,9 +10,10 @@ import yaml
 
 from ipmof.forcefield import lorentz_berthelot_mix, lennard_jones
 from ipmof.crystal import MOF
+from ipmof.parameters import sim_dir_data as sim_dir    # Import simulation directories
 
 
-def energy_map(sim_par, mof, atom_list, export=[False, os.getcwd()]):
+def energy_map(sim_par, mof, atom_list, export=[True, sim_dir]):
     """
     Calculate energy map for given simulations parameters, MOF class, atom list and export options.
     Simulation parameters used:

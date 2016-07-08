@@ -29,14 +29,12 @@ else:
     mof_list = get_mof_file_list(sim_dir['mol2_dir'], 'mol2', force_field)
 
 # Export initialization file containing MOF names and simulation parameters
-export_init_txt(mof_list)
+print('Starting energy map calculation with grid size:', sim_par['grid_size'],
+      'and cut off radius:', sim_par['cut_off'])
+print('Energy map(s) will be exported in', sim_par['energy_map_type'], 'format')
 # --------------------------------------------------------------------------------------------------
 # Main Loop (Energy Map) ---------------------------------------------------------------------------
 for base_mof_index, base_mof in enumerate(mof_list):
-
-    print('-----------------------------------------------------------------------------------')
-    print(base_mof_index, 'Base ->', base_mof.name)
-    print('-----------------------------------------------------------------------------------')
 
     # Calculate atom list for remaining MOFs
     atom_list = get_uniq_atom_list(mof_list[base_mof_index:])
@@ -44,5 +42,10 @@ for base_mof_index, base_mof in enumerate(mof_list):
     # Extend base MOF for energy map calculation
     extended_structure = base_mof.extend_unit_cell(sim_par['cut_off'])
 
+    print('-----------------------------------------------------------------------------------')
+    print(base_mof_index, 'Calculating energy map for ->', base_mof.name)
+    print('Atom list ->', atom_list['atom'])
+    print('-----------------------------------------------------------------------------------')
+
     # Calculate energy map -------------------------------------------------------------------------
-    emap = energy_map(sim_par, base_mof, atom_list, export=[True, sim_dir])
+    emap = energy_map(sim_par, base_mof, atom_list)
