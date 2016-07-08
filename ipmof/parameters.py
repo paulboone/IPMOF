@@ -14,6 +14,7 @@ sim_par_data = {'structure_energy_limit': 3E8,   # Maximum allowed potential ene
                 'grid_size': 1,                  # Grid size for potential energy map (Angstrom)
                 'force_field': 'uff',            # Force field selection for LJ ('uff' or 'dre')
                 'core_database': False,          # Use CoRE database information or not
+                'energy_map_type': 'numpy',      # Export energy map as npy of yaml file ('numpy' or 'yaml')
                 'export_structures': 1,          # Number of min. energy structures to export
                 'export_format': 'xyz',          # Export structure file format
                 'export_pbc': True,              # Export coordinates after applying PBC

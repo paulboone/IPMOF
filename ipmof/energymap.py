@@ -6,19 +6,25 @@ from math import floor, ceil, inf, sqrt
 
 import xlrd
 import numpy as np
+import yaml
 
 from ipmof.forcefield import lorentz_berthelot_mix, lennard_jones
 from ipmof.crystal import MOF
 
 
-def energy_map(sim_par, mof, atom_list):
+def energy_map(sim_par, mof, atom_list, export=[False, os.getcwd()]):
     """
-    Calculate energy map for a given MOF class with following properties:
+    Calculate energy map for given simulations parameters, MOF class, atom list and export options.
+    Simulation parameters used:
+        - cut_off       - grid_size
+    MOF class should have following properties:
         - edge_points   - uniq_atom_names   - atom_names    - packed_coors
         - sigma         - epsilon
-    MOF -> base (map) | atomFFparameters -> sigma and epsilon values for given atoms
-    cut_off -> cut-off value for LJ potential | grid_size -> grid size array for each dimension
-    Packed coordinates for MOF must be defined before running the function.
+        * Packed coordinates for MOF must be defined before running the function.
+    Atom list dictionary with sigma and epsilon keys:
+        -> atom_list = {'sigma': [], 'epsilon':[]}
+    Export info:
+        -> export=[True, sim_dir]
     Resulting energy map is structured as follows:
         emap[0] = [x, y, z, atom1_energy, atom2_energy, atom3_energy, ...]
     """
@@ -69,6 +75,10 @@ def energy_map(sim_par, mof, atom_list):
                 energy_map[map_index][3:(num_atoms + 3)] = v_total
                 map_index += 1
 
+    if export[0]:
+        sim_dir = export[1]
+        export_energy_map(energy_map, sim_par, sim_dir, mof.name)
+
     return energy_map
 
 
@@ -108,6 +118,23 @@ def energy_map_atom_index(atom_name, emap_atom_list):
             emap_atom_index = atom_index
 
     return int(emap_atom_index + 3)
+
+
+def export_energy_map(emap, sim_par, sim_dir, mof_name):
+    """
+    Exports energy map array into a npy or yaml file.
+    """
+    if sim_par['energy_map_type'] == 'yaml':
+        emap_file_path = os.path.join(sim_dir['export_dir'], mof_name + '_emap.yaml')
+        emap_file = open(emap_file_path, 'w')
+        yaml.dump(emap.tolist(), emap_file)
+        emap_file.close()
+        print('Energy map exported as', emap_file_path)
+
+    if sim_par['energy_map_type'] == 'numpy':
+        emap_file_path = os.path.join(sim_dir['export_dir'], mof_name + '_emap')
+        np.save(emap_file_path, emap)
+        print('Energy map exported as', emap_file_path)
 
 
 def coor_dist(coor1, coor2):

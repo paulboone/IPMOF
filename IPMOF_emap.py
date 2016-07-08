@@ -45,19 +45,4 @@ for base_mof_index, base_mof in enumerate(mof_list):
     extended_structure = base_mof.extend_unit_cell(sim_par['cut_off'])
 
     # Calculate energy map -------------------------------------------------------------------------
-    emap = energy_map(sim_par, base_mof, atom_list)
-
-    emap_file_path = os.path.join(os.getcwd(), 'emap.yaml')
-    emap_file = open(emap_file_path, 'w')
-
-    for emap_line in emap:
-        new_line = ''
-        new_list = []
-        for emap_value in emap_line:
-            new_value = round(emap_value, 3)
-            new_line += str(emap_value) + '\t'
-            new_list.append(new_value)
-        print(new_line[:-1])
-        yaml.dump(new_list, emap_file)
-
-    emap_file.close()
+    emap = energy_map(sim_par, base_mof, atom_list, export=[True, sim_dir])
