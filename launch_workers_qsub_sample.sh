@@ -1,13 +1,8 @@
 #!/bin/bash
-#
-# Example shell script for running job that runs off the Wilmerlab subjobserver.
-# $Revision: 1.0 $
-# $Date:  2016-03-21 $
-# $Author: paulboone $
 
 #PBS -j oe
 #PBS -N ipmof
-#PBS -q test
+#PBS -q ishared
 #PBS -l nodes=1:ppn=1
 #PBS -l walltime=00:30:00
 #PBS -l mem=1GB
@@ -20,8 +15,8 @@
 echo JOB_ID: $PBS_JOBID JOB_NAME: $PBS_JOBNAME HOSTNAME: $PBS_O_HOST
 echo start_time: `date`
 
-## LOAD PYTHON VENV:
-. /ihome/cwilmer/kbs37/venv/ipmof/bin/activate
+## Load python virtual environment
+. /user_path/venv/ipmof/bin/activate
 
 cd $PBS_O_WORKDIR
 sjs_launch_workers.sh $PBS_NUM_PPN $stay_alive

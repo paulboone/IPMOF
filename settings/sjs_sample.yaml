@@ -3,7 +3,7 @@
 # string for testing. (You still need a local redis server installed and running for this to work!)
 
 redis:
-  host: '10.201.0.11'
+  host: 'localhost'
   port: 6379
   db: 2
 queue: 'ipmof'
