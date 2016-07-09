@@ -38,7 +38,7 @@ else:
     mof_list = get_mof_file_list(sim_dir['mol2_dir'], 'mol2', force_field)
 
 # Calculate atom list for remaining MOFs
-atom_list = get_uniq_atom_list(mof_list[base_mof_index:])
+atom_list = get_uniq_atom_list(mof_list)
 
 # Export initialization file containing MOF names and simulation parameters
 print('Starting energy map calculation with grid size:', sim_par['grid_size'],
