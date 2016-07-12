@@ -38,13 +38,13 @@ print('Atom list ->', atom_list['atom'])
 print('Energy map(s) will be exported in', sim_par['energy_map_type'], 'format')
 # --------------------------------------------------------------------------------------------------
 # Main Loop (Energy Map) ---------------------------------------------------------------------------
-for base_mof_index, base_mof in enumerate(mof_list):
+for mof_index, mof in enumerate(mof_list):
 
     # Extend base MOF for energy map calculation
-    extended_structure = base_mof.extend_unit_cell(sim_par['cut_off'])
+    extended_structure = mof.extend_unit_cell(sim_par['cut_off'])
 
     print('-----------------------------------------------------------------------------------')
-    print(base_mof_index, 'Calculating energy map for ->', base_mof.name)
+    print(mof_index, 'Calculating energy map for ->', mof.name)
 
     # Calculate energy map -------------------------------------------------------------------------
-    emap = energy_map(sim_par, base_mof, atom_list)
+    emap = energy_map(sim_par, mof, atom_list)

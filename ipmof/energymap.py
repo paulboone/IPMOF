@@ -60,6 +60,7 @@ def energy_map(sim_par, mof, atom_list, export=[True, sim_dir]):
                 for unit_cell in mof.packed_coors:
                     mof_index = 0
                     for atom_coor in unit_cell:
+                        # Determine the index of atom in MOF to calculate the energy value
                         atom_index_1 = mof.uniq_atom_names.index(mof.atom_names[mof_index])
                         mof_index += 1
                         dist = coor_dist(atom_coor, [x, y, z])
@@ -78,7 +79,7 @@ def energy_map(sim_par, mof, atom_list, export=[True, sim_dir]):
 
     if export[0]:
         sim_dir = export[1]
-        export_energy_map(energy_map, sim_par, sim_dir, mof.name)
+        export_energy_map(energy_map, atom_list, sim_par, sim_dir, mof.name)
 
     return energy_map
 
@@ -121,21 +122,42 @@ def energy_map_atom_index(atom_name, emap_atom_list):
     return int(emap_atom_index + 3)
 
 
-def export_energy_map(emap, sim_par, sim_dir, mof_name):
+def export_energy_map(emap, atom_list, sim_par, sim_dir, mof_name):
     """
     Exports energy map array into a npy or yaml file.
     """
     if sim_par['energy_map_type'] == 'yaml':
         emap_file_path = os.path.join(sim_dir['export_dir'], mof_name + '_emap.yaml')
         emap_file = open(emap_file_path, 'w')
-        yaml.dump(emap.tolist(), emap_file)
+        emap_dict = {'energy_map': emap.tolist(), 'atom_list': atom_list}
+        yaml.dump(emap_dict, emap_file)
         emap_file.close()
         print('Energy map exported as', emap_file_path)
 
     if sim_par['energy_map_type'] == 'numpy':
         emap_file_path = os.path.join(sim_dir['export_dir'], mof_name + '_emap')
-        np.save(emap_file_path, emap)
+        emap_numpy = np.array([atom_list['atom'], atom_list['sigma'], atom_list['epsilon'], emap])
+        np.save(emap_file_path, emap_numpy)
         print('Energy map exported as', emap_file_path)
+
+
+def import_energy_map(sim_par, sim_dir, mof_name):
+    """
+    Reads energy map (yaml or numpy) from a given directory and returns both atom list and energy map.
+    """
+    if sim_par['energy_map_type'] == 'yaml':
+        emap_file_path = os.path.join(sim_dir['energy_map_dir'], mof_name + '_emap.yaml')
+        emap = yaml.load(open(emap_file_path, 'r'))
+        atom_list = emap['atom_list']
+        energy_map = emap['energy_map']
+        return atom_list, energy_map
+
+    if sim_par['energy_map_type'] == 'numpy':
+        emap_file_path = os.path.join(sim_dir['energy_map_dir'], mof_name + '_emap.npy')
+        emap = np.load(emap_file_path)
+        atom_list = {'atom': emap[0], 'sigma': emap[1], 'epsilon': emap[2]}
+        energy_map = emap[3]
+        return atom_list, energy_map
 
 
 def coor_dist(coor1, coor2):
