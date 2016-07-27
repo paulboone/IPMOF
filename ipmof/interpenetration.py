@@ -7,6 +7,7 @@ from random import random
 from ipmof.crystal import Packing, MOF
 from ipmof.geometry import Coor, Quaternion
 from ipmof.energymap import energy_map_index, energy_map_atom_index
+from ipmof.parameters import export_summary_txt
 
 
 def initial_coordinates(mof, energy_map, atom_list, energy_limit):
@@ -80,7 +81,6 @@ def trilinear_interpolate(point, atom_index, emap, emap_max, emap_min):
 
 def run_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
     """
-    *** Not complete ***
     Run interpenetration algorithm with given simulation parameters and energy map.
     Returns simulation summary and structural information on the discovered structures.
     """
@@ -148,8 +148,8 @@ def run_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                                  'pbc_coors': [], 'energy': [], 'rotation': []}
                     structure['first_point'] = first_point.xyz()
                     structure['translation_vector'] = translation_vector.xyz()
-                    structure['atom_coors'].append(new_coor.xyz())  # Why first point not new_coor?
-                    structure['pbc_coors'].append(new_coor.xyz())
+                    structure['atom_coors'].append(first_point.xyz())  # Why first point not new_coor?
+                    structure['pbc_coors'].append(first_point.xyz())
                     structure['atom_names'].append(atom_name)
                     structure['rotation'] = [x_angle, y_angle, z_angle]
 
@@ -325,3 +325,81 @@ def save_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_stru
     extended_structure['packing_factor'] = packing_factor
 
     return extended_structure
+
+
+def enqueue_interpenetration(base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir):
+    summary, new_structures = run_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list)
+
+    # Create export directory and export summary -------------------------------------------
+    export_dir = os.path.join(sim_dir['export_dir'], base_mof.name + '_' + mobile_mof.name)
+    if not os.path.isdir(export_dir):
+        os.mkdir(export_dir)
+    if sim_par['export_summary']:
+        export_summary_txt(export_dir, summary, base_mof, mobile_mof)
+
+    # Export Min Energy Structures ---------------------------------------------------------
+    if len(new_structures) > 0:
+        print(base_mof.name, '--', mobile_mof.name, '-> (+) Structure:', len(new_structures))
+
+        export_count = min(len(new_structures), sim_par['export_structures'])
+        for export_index in range(export_count):
+            # Get minimum energy structure by sorting total structure energies
+            min_energy_structure = sorted(new_structures, key=lambda k: k['energy'])[export_index]
+
+            # Check for collision in the extended unitcell of new structure and energy map
+            collision = check_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
+
+            # Print structure information --------------------------------------------------
+            rot_x = str(round(math.degrees(min_energy_structure['rotation'][0])))
+            rot_y = str(round(math.degrees(min_energy_structure['rotation'][1])))
+            rot_z = str(round(math.degrees(min_energy_structure['rotation'][2])))
+            fp_x = str(round(min_energy_structure['first_point'][0], 3))
+            fp_y = str(round(min_energy_structure['first_point'][1], 3))
+            fp_z = str(round(min_energy_structure['first_point'][2], 3))
+            structure_info = '\tEnergy: ' + str(round(min_energy_structure['energy'], 2))
+            structure_info += ' | Collision: ' + str(collision) + '\n'
+            structure_info += '\tRotation x: ' + rot_x + ' y: ' + rot_y + ' z: ' + rot_z
+            structure_info += ' | First Point x: ' + fp_x + ' y: ' + fp_y + ' z: ' + fp_z
+            print(structure_info)
+
+            # Record new structure ---------------------------------------------------------
+            new_structure = {'atom_names': min_energy_structure['atom_names'], 'name': mobile_mof.name}
+            if sim_par['export_pbc']:
+                new_structure['atom_coors'] = min_energy_structure['pbc_coors']
+            else:
+                new_structure['atom_coors'] = min_energy_structure['atom_coors']
+            new_mobile_mof = MOF(new_structure, file_format='dict')
+
+            # Export structures ------------------------------------------------------------
+            if sim_par['export_single']:
+                new_mobile_mof = MOF(new_structure, file_format='dict')
+                joined_mof = base_mof.join(new_mobile_mof, colorify=False)
+                joined_mof.name += str(export_index)
+                joined_mof.export(export_dir, file_format=sim_par['export_format'])
+
+            if sim_par['export_single_color']:
+                # Join base and mobile structure layers
+                new_mobile_mof = MOF(new_structure, file_format='dict')
+                joined_mof_color = base_mof.join(new_mobile_mof, colorify=True)
+                joined_mof_color.name += str(export_index) + 'C'
+                joined_mof_color.export(export_dir, file_format=sim_par['export_format'])
+
+            if sim_par['export_packed']:
+                # Pack new structure by using rotation and first point information
+                extended_structure = base_mof.extend_unit_cell(sim_par['cut_off'])
+                packed_structure = save_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
+                packed_mobile_mof = MOF(packed_structure, file_format='dict')
+                packed_base_mof = MOF(extended_structure, file_format='dict')
+                joined_packed_mof = packed_base_mof.join(packed_mobile_mof, colorify=False)
+                joined_packed_mof.export(export_dir, file_format=sim_par['export_format'])
+
+            if sim_par['export_packed_color']:
+                # Pack new structure by using rotation and first point information
+                extended_structure = base_mof.extend_unit_cell(sim_par['cut_off'])
+                packed_structure = save_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
+                packed_mobile_mof = MOF(packed_structure, file_format='dict')
+                packed_base_mof = MOF(extended_structure, file_format='dict')
+                joined_packed_mof = packed_base_mof.join(packed_mobile_mof, colorify=True)
+                joined_packed_mof.export(export_dir, file_format=sim_par['export_format'])
+    else:
+        print(base_mof.name, '--', mobile_mof.name, '-> (-)')
