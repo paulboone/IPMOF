@@ -58,4 +58,4 @@ for mobile_mof_index, mobile_mof in enumerate(mof_list):
     print('Running interpenetration for ', mobile_mof.name, '...')
 
     # Submit jobs here
-    job_queue.enqueue(enqueue_interpenetration, base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir)
+    job_queue.enqueue(run_interpenetration, base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir)

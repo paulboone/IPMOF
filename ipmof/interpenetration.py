@@ -80,7 +80,7 @@ def trilinear_interpolate(point, atom_index, emap, emap_max, emap_min):
     return c
 
 
-def run_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
+def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
     """
     Run interpenetration algorithm with given simulation parameters and energy map.
     Returns simulation summary and structural information on the discovered structures.
@@ -328,10 +328,10 @@ def save_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_stru
     return extended_structure
 
 
-def enqueue_interpenetration(base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir):
+def run_interpenetration(base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir):
     """
     Interpenetration algorithm for job server.
-    1) Runs Interpenetration
+    1) Checks Interpenetration
     2) Gets minimum energy structures
         - Performs collision check by extending interpenetrating structure
         - Saves requested structure files
