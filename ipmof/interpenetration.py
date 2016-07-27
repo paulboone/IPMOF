@@ -1,6 +1,7 @@
 # IPMOF interpenetration library
 # Date: June 2016
 # Author: Kutay B. Sezginel
+import os
 import math
 from random import random
 
@@ -328,6 +329,13 @@ def save_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_stru
 
 
 def enqueue_interpenetration(base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir):
+    """
+    Interpenetration algorithm for job server.
+    1) Runs Interpenetration
+    2) Gets minimum energy structures
+        - Performs collision check by extending interpenetrating structure
+        - Saves requested structure files
+    """
     summary, new_structures = run_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list)
 
     # Create export directory and export summary -------------------------------------------
