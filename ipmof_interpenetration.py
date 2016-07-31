@@ -1,28 +1,20 @@
 import os
 import math
+import sys
 
 # Load 3rd party libraries
 import yaml
 import numpy as np
 
-# Load job server libraries
-from rq import Queue
-from redis import Redis
-import sjs
-
 # Load interpenetration python libraries
 from ipmof.crystal import MOF
 from ipmof.forcefield import read_ff_parameters
 from ipmof.energymap import import_energy_map, get_mof_list, get_mof_file_list
-from ipmof.interpenetration import enqueue_interpenetration
+from ipmof.interpenetration import run_interpenetration
 from ipmof.core import core_mof_properties, core_mof_sort, core_mof_dir
 from ipmof.parameters import export_init_txt
 from ipmof.parameters import sim_dir_data as sim_dir    # Import simulation directories
 from ipmof.parameters import sim_par_data as sim_par    # Import simulation parameters
-# --------------------------------------------------------------------------------------------------
-# Load job queue
-sjs.load(os.path.join("settings", "sjs.yaml"))
-job_queue = sjs.get_job_queue()
 # --------------------------------------------------------------------------------------------------
 # Read excel file containing force field information
 force_field = read_ff_parameters(sim_dir['force_field_path'], sim_par['force_field'])
@@ -58,4 +50,17 @@ for mobile_mof_index, mobile_mof in enumerate(mof_list):
     print('Running interpenetration for ', mobile_mof.name, '...')
 
     # Submit jobs here
-    job_queue.enqueue(run_interpenetration, base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir)
+    if sys.argv[-1] == 'q':
+        # Load job server libraries
+        from rq import Queue
+        from redis import Redis
+        import sjs
+
+        # Load job queue
+        sjs.load(os.path.join("settings", "sjs.yaml"))
+        job_queue = sjs.get_job_queue()
+
+        # Submit job
+        job_queue.enqueue(run_interpenetration, base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir)
+    else:
+        run_interpenetration(base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir)

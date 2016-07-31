@@ -1,13 +1,9 @@
 import os
 import math
+import sys
 
 # Load 3rd party libraries
 import yaml
-
-# Load job server libraries
-from rq import Queue
-from redis import Redis
-import sjs
 
 # Load interpenetration python libraries
 from ipmof.crystal import MOF
@@ -18,10 +14,6 @@ from ipmof.core import core_mof_properties, core_mof_sort, core_mof_dir
 from ipmof.parameters import export_init_txt, export_summary_txt
 from ipmof.parameters import sim_dir_data as sim_dir    # Import simulation directories
 from ipmof.parameters import sim_par_data as sim_par    # Import simulation parameters
-# --------------------------------------------------------------------------------------------------
-# Load job queue
-sjs.load(os.path.join("settings", "sjs.yaml"))
-job_queue = sjs.get_job_queue()
 # --------------------------------------------------------------------------------------------------
 # Read excel file containing force field information
 force_field = read_ff_parameters(sim_dir['force_field_path'], sim_par['force_field'])
@@ -55,5 +47,18 @@ for mof_index, mof in enumerate(mof_list):
     print('-----------------------------------------------------------------------------------')
     print(mof_index, 'Calculating energy map for ->', mof.name)
 
-    # Calculate energy map -------------------------------------------------------------------------
-    job_queue.enqueue(energy_map, sim_par, mof, atom_list)
+    # Submit jobs here
+    if sys.argv[-1] == 'q':
+        # Load job server libraries
+        from rq import Queue
+        from redis import Redis
+        import sjs
+
+        # Load job queue
+        sjs.load(os.path.join("settings", "sjs.yaml"))
+        job_queue = sjs.get_job_queue()
+
+        # Calculate energy map ---------------------------------------------------------------------
+        job_queue.enqueue(energy_map, sim_par, mof, atom_list)
+    else:
+        emap = energy_map(sim_par, mof, atom_list)

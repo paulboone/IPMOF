@@ -336,7 +336,7 @@ def run_interpenetration(base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir
         - Performs collision check by extending interpenetrating structure
         - Saves requested structure files
     """
-    summary, new_structures = run_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list)
+    summary, new_structures = check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list)
 
     # Create export directory and export summary -------------------------------------------
     export_dir = os.path.join(sim_dir['export_dir'], base_mof.name + '_' + mobile_mof.name)
