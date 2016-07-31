@@ -1,17 +1,10 @@
 import os
-import math
 import sys
 
-# Load 3rd party libraries
-import yaml
-
-# Load interpenetration python libraries
-from ipmof.crystal import MOF
+# Load IPMOF python libraries
 from ipmof.forcefield import read_ff_parameters
 from ipmof.energymap import energy_map, get_mof_list, get_mof_file_list, get_uniq_atom_list
-from ipmof.interpenetration import run_interpenetration, check_extension, save_extension
 from ipmof.core import core_mof_properties, core_mof_sort, core_mof_dir
-from ipmof.parameters import export_init_txt, export_summary_txt
 from ipmof.parameters import sim_dir_data as sim_dir    # Import simulation directories
 from ipmof.parameters import sim_par_data as sim_par    # Import simulation parameters
 # --------------------------------------------------------------------------------------------------

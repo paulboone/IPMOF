@@ -1,12 +1,7 @@
 import os
-import math
 import sys
 
-# Load 3rd party libraries
-import yaml
-import numpy as np
-
-# Load interpenetration python libraries
+# Load IPMOF python libraries
 from ipmof.crystal import MOF
 from ipmof.forcefield import read_ff_parameters
 from ipmof.energymap import import_energy_map, get_mof_list, get_mof_file_list
