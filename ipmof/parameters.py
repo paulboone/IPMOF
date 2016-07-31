@@ -96,8 +96,10 @@ def export_init_txt(mof_list, sim_par=sim_par_data, sim_dir=sim_dir_data):
         init_text += str(m_i + 1) + '\t' + str(m) + '\n'
     init_text += '-------------------------------------------------\n'
 
-    init_file_dir = os.path.join(sim_dir['export_dir'], 'init.txt')
-    init_file = open(init_file_dir, 'w')
+    init_file_path = os.path.join(sim_dir['export_dir'], 'init.txt')
+    if os.path.exists(init_file_path):
+        os.remove(init_file_path)
+    init_file = open(init_file_path, 'w')
     init_file.write(init_text)
     init_file.close()
 
@@ -116,7 +118,9 @@ def export_summary_txt(export_dir, summary, base_mof, mobile_mof):
         summary_text += ' \t\t ' + str(summary['trial_count'][summary_index]) + ' \n'
     summary_text += '---------------------------------------------\n'
 
-    summary_file_dir = os.path.join(export_dir, 'summary.txt')
-    summary_file = open(summary_file_dir, 'w')
+    summary_file_path = os.path.join(export_dir, 'summary.txt')
+    if os.path.exists(summary_file_path):
+        os.remove(summary_file_path)
+    summary_file = open(summary_file_path, 'w')
     summary_file.write(summary_text)
     summary_file.close()

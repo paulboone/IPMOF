@@ -131,6 +131,8 @@ def export_energy_map(emap, atom_list, sim_par, sim_dir, mof_name):
 
     if sim_par['energy_map_type'] == 'yaml':
         emap_file_path = os.path.join(emap_export_dir, mof_name + '_emap.yaml')
+        if os.path.exists(emap_file_path):
+            os.remove(emap_file_path)
         emap_file = open(emap_file_path, 'w')
         emap_dict = {'energy_map': emap.tolist(), 'atom_list': atom_list}
         yaml.dump(emap_dict, emap_file)
@@ -139,6 +141,8 @@ def export_energy_map(emap, atom_list, sim_par, sim_dir, mof_name):
 
     if sim_par['energy_map_type'] == 'numpy':
         emap_file_path = os.path.join(emap_export_dir, mof_name + '_emap')
+        if os.path.exists(emap_file_path):
+            os.remove(emap_file_path)
         emap_numpy = np.array([atom_list['atom'], atom_list['sigma'], atom_list['epsilon'], emap])
         np.save(emap_file_path, emap_numpy)
         print('Energy map exported as', emap_file_path)
