@@ -4,6 +4,7 @@
 import os
 import math
 from random import random
+import shutil
 
 from ipmof.crystal import Packing, MOF
 from ipmof.geometry import Coor, Quaternion
@@ -340,8 +341,9 @@ def run_interpenetration(base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir
 
     # Create export directory and export summary -------------------------------------------
     export_dir = os.path.join(sim_dir['export_dir'], base_mof.name + '_' + mobile_mof.name)
-    if not os.path.isdir(export_dir):
-        os.mkdir(export_dir)
+    if os.path.exists(export_dir):
+        shutil.rmtree(export_dir)
+    os.mkdir(export_dir)
     if sim_par['export_summary']:
         export_summary_txt(export_dir, summary, base_mof, mobile_mof)
 
@@ -382,14 +384,14 @@ def run_interpenetration(base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir
             if sim_par['export_single']:
                 new_mobile_mof = MOF(new_structure, file_format='dict')
                 joined_mof = base_mof.join(new_mobile_mof, colorify=False)
-                joined_mof.name += str(export_index)
+                joined_mof.name += '_' + str(export_index + 1)
                 joined_mof.export(export_dir, file_format=sim_par['export_format'])
 
             if sim_par['export_single_color']:
                 # Join base and mobile structure layers
                 new_mobile_mof = MOF(new_structure, file_format='dict')
                 joined_mof_color = base_mof.join(new_mobile_mof, colorify=True)
-                joined_mof_color.name += str(export_index) + 'C'
+                joined_mof_color.name += '_' + str(export_index + 1) + 'C'
                 joined_mof_color.export(export_dir, file_format=sim_par['export_format'])
 
             if sim_par['export_packed']:
@@ -399,6 +401,7 @@ def run_interpenetration(base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir
                 packed_mobile_mof = MOF(packed_structure, file_format='dict')
                 packed_base_mof = MOF(extended_structure, file_format='dict')
                 joined_packed_mof = packed_base_mof.join(packed_mobile_mof, colorify=False)
+                joined_packed_mof.name += '_' + str(export_index + 1) + 'P'
                 joined_packed_mof.export(export_dir, file_format=sim_par['export_format'])
 
             if sim_par['export_packed_color']:
@@ -408,6 +411,7 @@ def run_interpenetration(base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir
                 packed_mobile_mof = MOF(packed_structure, file_format='dict')
                 packed_base_mof = MOF(extended_structure, file_format='dict')
                 joined_packed_mof = packed_base_mof.join(packed_mobile_mof, colorify=True)
+                joined_packed_mof.name += '_' + str(export_index + 1) + 'PC'
                 joined_packed_mof.export(export_dir, file_format=sim_par['export_format'])
     else:
         print(base_mof.name, '--', mobile_mof.name, '-> (-)')

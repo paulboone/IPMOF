@@ -211,8 +211,10 @@ class MOF:
          >>> mof.export(export_dir, file_format='xyz')
         """
         if file_format == 'xyz':
-            xyz_dir = os.path.join(export_dir, self.name + '.xyz')
-            xyz_file = open(xyz_dir, 'w')
+            xyz_path = os.path.join(export_dir, self.name + '.xyz')
+            if os.path.exists(xyz_path):
+                os.remove(xyz_path)
+            xyz_file = open(xyz_path, 'w')
             xyz_file.write(str(len(self.atom_coors)) + '\n')
             xyz_file.write(self.name + '\n')
 
