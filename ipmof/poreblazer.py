@@ -23,17 +23,14 @@ class PB:
         Creates input.dat file according to unit cell information of given structure.
         """
         pb_input_dir = os.path.join(export_dir, 'input.dat')
-        pb_input_file = open(pb_input_dir, 'w')
+        with open(pb_input_dir, 'w') as pb_input_file:
+            pb_input_file.write(structure_name + '\n')
 
-        pb_input_file.write(structure_name + '\n')
+            uc_size_line = str(uc_size[0]) + ' ' + str(uc_size[1]) + ' ' + str(uc_size[2]) + '\n'
+            pb_input_file.write(uc_size_line)
 
-        uc_size_line = str(uc_size[0]) + ' ' + str(uc_size[1]) + ' ' + str(uc_size[2]) + '\n'
-        pb_input_file.write(uc_size_line)
-
-        uc_angle_line = str(uc_angle[0]) + ' ' + str(uc_angle[1]) + ' ' + str(uc_angle[2]) + '\n'
-        pb_input_file.write(uc_angle_line)
-
-        pb_input_file.close()
+            uc_angle_line = str(uc_angle[0]) + ' ' + str(uc_angle[1]) + ' ' + str(uc_angle[2]) + '\n'
+            pb_input_file.write(uc_angle_line)
 
     def initialize(self, export_dir):
         """
@@ -70,10 +67,9 @@ class PB:
         jobsh.append(' ')
         jobsh.append('exit')
         jobsh_dir = os.path.join(job_dir, 'job.sh')
-        jobsh_file = open(jobsh_dir, 'w')
-        for line in jobsh:
-            jobsh_file.write(line + '\n')
-        jobsh_file.close()
+        with open(jobsh_dir, 'w') as jobsh_file:
+            for line in jobsh:
+                jobsh_file.write(line + '\n')
 
     def read_results(self, pb_results_dir):
         """
@@ -85,8 +81,8 @@ class PB:
          ... pb_res = {'sa': *surface_area, 'pv': *pore_volume, 'ro': *crystal_density}
         """
         pb_results_dir = os.path.join(pb_results_dir, 'results.txt')
-        pb_results_file = open(pb_results_dir, 'r')
-        pb_results_lines = pb_results_file.readlines()
+        with open(pb_results_dir, 'r') as pb_results_file:
+            pb_results_lines = pb_results_file.readlines()
         for line in pb_results_lines:
             if 'surface area per mass' in line:
                 sa = float(line.split()[-1])
@@ -114,9 +110,8 @@ class PB:
                         'dpd': *dominant pore diameter}
         """
         psd_dir = os.path.join(psd_results_dir, 'psd.txt')
-        psd_file = open(psd_dir, 'r')
-        psd_lines = psd_file.readlines()
-        psd_file.close()
+        with open(psd_dir, 'r') as psd_file:
+            psd_lines = psd_file.readlines()
 
         pore_size = []
         frequency = []

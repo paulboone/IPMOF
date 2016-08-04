@@ -178,13 +178,12 @@ class MOF:
             xyz_path = os.path.join(export_dir, self.name + '.xyz')
             if os.path.exists(xyz_path):
                 os.remove(xyz_path)
-            xyz_file = open(xyz_path, 'w')
-            xyz_file.write(str(len(self.atom_coors)) + '\n')
-            xyz_file.write(self.name + '\n')
 
-            for atom, coor in zip(self.atom_names, self.atom_coors):
-                xyz_file.write(atom + ' ' + str(coor[0]) + ' ' + str(coor[1]) + ' ' + str(coor[2]) + '\n')
-            xyz_file.close()
+            with open(xyz_path, 'w') as xyz_file:
+                xyz_file.write(str(len(self.atom_coors)) + '\n')
+                xyz_file.write(self.name + '\n')
+                for atom, coor in zip(self.atom_names, self.atom_coors):
+                    xyz_file.write(atom + ' ' + str(coor[0]) + ' ' + str(coor[1]) + ' ' + str(coor[2]) + '\n')
 
 
 class Packing:

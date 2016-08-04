@@ -54,9 +54,8 @@ def export_sim_par(inp_dir=main_dir):
     If no directory is given the file will be exported to default location defined in this library.
     """
     sim_par_path = os.path.join(input_dir, 'sim_par.yaml')
-    sim_par_file = open(sim_par_path, 'w')
-    yaml.dump(sim_par_data, sim_par_file, default_flow_style=False)
-    sim_par_file.close()
+    with open(sim_par_path, 'w') as sim_par_file:
+        yaml.dump(sim_par_data, sim_par_file, default_flow_style=False)
 
 
 def export_sim_dir(inp_dir=main_dir):
@@ -65,9 +64,8 @@ def export_sim_dir(inp_dir=main_dir):
     If no directory is given the file will be exported to default location defined in this library.
     """
     sim_dir_path = os.path.join(input_dir, 'sim_dir_linux.yaml')
-    sim_dir_file = open(sim_dir_path, 'w')
-    yaml.dump(sim_dir_data, sim_dir_file, default_flow_style=False)
-    sim_dir_file.close()
+    with open(sim_dir_path, 'w') as sim_dir_file:
+        yaml.dump(sim_dir_data, sim_dir_file, default_flow_style=False)
 
 # Get directories for simulation parameters and directories files
 # sim_par_path = os.path.join(main_dir, 'sim_par.yaml')
@@ -100,9 +98,9 @@ def export_init_txt(mof_list, sim_par=sim_par_data, sim_dir=sim_dir_data):
     init_file_path = os.path.join(sim_dir['export_dir'], 'init.txt')
     if os.path.exists(init_file_path):
         os.remove(init_file_path)
-    init_file = open(init_file_path, 'w')
-    init_file.write(init_text)
-    init_file.close()
+
+    with open(init_file_path, 'w') as init_file:
+        init_file.write(init_text)
 
 
 def export_summary_txt(export_dir, summary, base_mof, mobile_mof):
@@ -122,6 +120,5 @@ def export_summary_txt(export_dir, summary, base_mof, mobile_mof):
     summary_file_path = os.path.join(export_dir, 'summary.txt')
     if os.path.exists(summary_file_path):
         os.remove(summary_file_path)
-    summary_file = open(summary_file_path, 'w')
-    summary_file.write(summary_text)
-    summary_file.close()
+    with open(summary_file_path, 'w') as summary_file:
+        summary_file.write(summary_text)
