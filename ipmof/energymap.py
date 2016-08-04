@@ -190,8 +190,8 @@ def get_mof_list(mof_path_list, force_field):
     Generates a list of MOF objects using a given list of MOF file directories
     """
     mof_list = []
-    for mof in mof_path_list:
-        mof_obj = MOF(mof)
+    for mof_path in mof_path_list:
+        mof_obj = MOF(mof_path)
         mof_obj.force_field(force_field)
         mof_list.append(mof_obj)
 
