@@ -4,27 +4,38 @@
 import math
 import os
 from ipmof.forcefield import get_ff_parameters
+import ipmof.io as io
 
 
 class MOF:
     """
     MOF class that holds coordinate, atom name, and unit cell information
     """
-    def __init__(self, mof_file, file_format='mol2'):
+    def __init__(self, file_path, file_format='cif', reader='ase'):
         """
         Initialize MOF name, unit cell volume and parameters, atom names and coordinates, and
-        unique atom names and coordinates by reading values from mol2 file.
+        unique atom names and coordinates.
+        reader -> ('babel' / 'ase')
+        file_format -> ('cif' / 'dict' / 'mol2' / ...)
         """
-        if file_format == 'mol2':
-            self.mol2_path = mof_file
-            self.name = os.path.split(self.mol2_path)[-1].split('.')[0]
-            self.read_mol2()
+        if file_format == 'dict':
+            molecule = file_path
+            self.atom_coors = molecule['atom_coors']
+            self.atom_names = molecule['atom_names']
+            self.name = molecule['name']
+        else:
+            self.path = file_path
+            self.name, fileformat = os.path.basename(file_path).split('.')
+            # Import reader library from ipmof.io and read structure file into a dictionary
+            reader_lib = __import__('ipmof.io.' + reader, fromlist=[''])
+            molecule = reader_lib.read(file_path, input_format=file_format)
+
+            self.atom_coors = molecule['atom_coors']
+            self.atom_names = molecule['atom_names']
+            self.uc_size = molecule['uc_size']
+            self.uc_angle = molecule['uc_angle']
             self.separate_atoms()
             self.unit_cell_volume()
-        elif file_format == 'dict':
-            self.atom_coors = mof_file['atom_coors']
-            self.atom_names = mof_file['atom_names']
-            self.name = mof_file['name']
 
     def __repr__(self):
         return "<MOF object: %s>" % (self.name)
@@ -155,53 +166,6 @@ class MOF:
         joined_mof = MOF(joined_structure, file_format='dict')
 
         return joined_mof
-
-    def read_mol2(self):
-        """
-        Reads mol2 file after opening the file in python and returns unit cell size [a, b, c],
-        unit cell angles [alpha, beta, gamma], atom names and atom coordinates [x, y, z]
-        """
-        mol2_file = open(self.mol2_path, 'r')
-        mol2_lines = mol2_file.readlines()
-        mol2_file.close()
-
-        line_count = 0
-        read_coor = False
-
-        for line in mol2_lines:
-            if '@<TRIPOS>ATOM' in line:
-                read_coor = True
-                atom_names = []
-                atom_coors = []
-            if '@<TRIPOS>BOND' in line:
-                read_coor = False
-            if read_coor and '@<TRIPOS>ATOM' not in line:
-                name = line.split()[1]
-                for char_index, char in enumerate(name):
-                    if char.isdigit():
-                        name = name[:char_index]
-                    elif char == '(':
-                        name = name[:char_index]
-                atom_names.append(name)
-                atom_x = float(line.split()[2])
-                atom_y = float(line.split()[3])
-                atom_z = float(line.split()[4])
-                atom_coors.append([atom_x, atom_y, atom_z])
-            if '@<TRIPOS>CRYSIN' in line:
-                line_count += 1
-            if line_count == 1 and '@<TRIPOS>CRYSIN' not in line:
-                a = float(line.split()[0])
-                b = float(line.split()[1])
-                c = float(line.split()[2])
-                alpha = float(line.split()[3])
-                beta = float(line.split()[4])
-                gamma = float(line.split()[5])
-                line_count += 1
-
-        self.uc_size = [a, b, c]
-        self.uc_angle = [alpha, beta, gamma]
-        self.atom_coors = atom_coors
-        self.atom_names = atom_names
 
     def export(self, export_dir, file_format='xyz'):
         """

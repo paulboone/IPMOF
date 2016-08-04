@@ -14,7 +14,7 @@ sim_par_data = {'structure_energy_limit': 3E8,   # Maximum allowed potential ene
                 'grid_size': 1,                  # Grid size for potential energy map (Angstrom)
                 'force_field': 'uff',            # Force field selection for LJ ('uff' or 'dre')
                 'core_database': False,          # Use CoRE database information or not
-                'energy_map_atom_list': 'full',  # Atom types of energy map ('full' or 'uniq')
+                'energy_map_atom_list': 'uniq',  # Atom types of energy map ('full' or 'uniq')
                 'energy_map_type': 'numpy',      # Energy map file format ('numpy' or 'yaml')
                 'export_structures': 1,          # Number of min. energy structures to export
                 'export_format': 'xyz',          # Export structure file format
@@ -31,7 +31,7 @@ main_dir = os.getcwd()
 python_lib_dir = os.path.join(main_dir, 'ipmof')
 force_field_path = os.path.join(main_dir, 'doc', 'FF_Parameters.xlsx')
 core_path = os.path.join(main_dir, 'doc', 'CoRE.xlsx')
-mol2_dir = os.path.join(main_dir, 'mof')
+mof_dir = os.path.join(main_dir, 'mof')
 energy_map_dir = os.path.join(main_dir, 'energymap')
 export_dir = os.path.join(main_dir, 'results')
 if not os.path.isdir(export_dir):
@@ -42,7 +42,7 @@ sim_dir_data = {'main_dir': main_dir,
                 'python_lib_dir': python_lib_dir,
                 'force_field_path': force_field_path,
                 'core_path': core_path,
-                'mol2_dir': mol2_dir,
+                'mof_dir': mof_dir,
                 'energy_map_dir': energy_map_dir,
                 'export_dir': export_dir,
                 }
