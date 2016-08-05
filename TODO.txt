@@ -1,32 +1,38 @@
 IPMOF To Do List:
--------------------------------------
+----------------------------------------------------------------------------------------------------
 1) High Priority
+----------------------------------------------------------------------------------------------------
+- Single atom type energy map
+ - Require changes in main interpenetration algorithm
 
-- General atom list?
-
-- Change print commands in enqueue_interpenetration function.
+- Update mof list generation
 
 - If base mof > mobile mof mobile mof should be extended at least to the size of base mof
   - Lets say for two cubic MOFs base_a/mobile_a = 1.2 -> Extend mobile to 2x2x2
 
-- Add file format options for reading/writing MOF files. (ase, openbabel - pybel)
+- Add babel / ase export functions.
 
-- For CoRE database keep a single directory containing CoRE MOFs.
+- For CoRE database keep a single directory containing CoRE MOFs. (frank)
 
+- Change print commands in run_interpenetration function.
+
+- Print percentage of initial coordinates eliminated
+- Print progress maybe?
+----------------------------------------------------------------------------------------------------
+2) Near Future
+----------------------------------------------------------------------------------------------------
 - Export interpenetration log (can be used with blender or three.js)
 
-2) Near Future
+- Energy map atom type add 'qnd' (quick and dirty) or 'ad-hoc'
+  - Consider true force-field values for common atoms and for rest use default values
 
-- Change naming of output structures.
-  - S1_S2_1.xyz    => Single unit cell
-  - S1_S2_1C.xyz   => Single unit cell colored
-  - S1_S2_1P.xyz   => Packed unit cell
-  - S1_S2_1PC.xyz  => Packed unit cell colored
+- Use logger instead of print commands
 
 - mol2_read() -> Read atom names from 6th column instead of 2nd
-
+----------------------------------------------------------------------------------------------------
 3) One Day
-
+----------------------------------------------------------------------------------------------------
 - HTML export
 
 - Common unit cell parameters for hetero interpenetration
+----------------------------------------------------------------------------------------------------
