@@ -1,11 +1,18 @@
-# Plots atom coordinates for packed unit cells
+# IPMOF Visualization Functions
+# Date: June 2016
+# Author: Kutay B. Sezginel
+import math
+import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import proj3d
+
+
 def plot_packed_cell(packed_uc_coors, edge_points, azim, elev):
-    import numpy as np
-    from mpl_toolkits.mplot3d import Axes3D
-    import matplotlib.pyplot as plt
-
-    from mpl_toolkits.mplot3d import proj3d
-
+    """
+    Plots atom coordinates for packed unit cells.
+     >>> plot_packed_cell(mof.packed_coors, mof.edge_points, 0, 0)
+    """
     def orthogonal_proj(zfront, zback):
         a = (zfront + zback) / (zfront - zback)
         b = -2 * (zfront * zback) / (zfront - zback)
@@ -39,6 +46,8 @@ def plot_packed_cell(packed_uc_coors, edge_points, azim, elev):
 def plot_unit_cell(atom_coors, edge_points, azim, elev):
     """
     Plots atom coordinates of a single unit cell with unit cell lines
+     >>> plot_unit_cell(mof.atom_coors, mof.edge_points, 0, 0)
+
     view on a => z vs y (azim = 0 , elev = 180)
     view on c +> y vs x (axim = 90, elev = -90)
     """
@@ -78,10 +87,10 @@ def plot_unit_cell(atom_coors, edge_points, azim, elev):
     plt.show()
 
 
-# Plots atom coordinates for packed unit cells
 def plot_xyz(xyz_coor, azim, elev):
     """
     Plots atom coordinates of a single unit cell
+     >>> plot_xyz(mof.atom_coors, 0, 0)
     """
     import numpy as np
     from mpl_toolkits.mplot3d import Axes3D
@@ -114,48 +123,50 @@ def plot_xyz(xyz_coor, azim, elev):
     plt.show()
 
 
-def plotEnergyMap(eMap, azim, elev):
-    import numpy as np
-    from mpl_toolkits.mplot3d import Axes3D
-    import matplotlib.pyplot as plt
-
-    from mpl_toolkits.mplot3d import proj3d
-
+def plot_energy_map(emap, azim, elev):
+    """
+    Plots 3D color coded energy map.
+     >>> plot_energy_map(emap, 0, 0)
+    """
     def orthogonal_proj(zfront, zback):
-        a = (zfront+zback)/(zfront-zback)
-        b = -2*(zfront*zback)/(zfront-zback)
+        a = (zfront + zback) / (zfront - zback)
+        b = -2 * (zfront * zback) / (zfront - zback)
         return np.array([[1, 0, 0, 0],
                         [0, 1, 0, 0],
                         [0, 0, a, b],
                         [0, 0, 0, zback]])
+
     proj3d.persp_transformation = orthogonal_proj
 
     xCoor = []
     yCoor = []
     zCoor = []
     energy = []
-    for i in range(len(eMap)):
-        xCoor.append(eMap[i][0])
-        yCoor.append(eMap[i][1])
-        zCoor.append(eMap[i][2])
-        energy.append(eMap[i][3])
+    for i in range(len(emap)):
+        xCoor.append(emap[i][0])
+        yCoor.append(emap[i][1])
+        zCoor.append(emap[i][2])
+        energy.append(emap[i][3])
     scale = 1E20
     colors = []
     rgb = np.zeros([len(energy), 3])
+    max_energy = max(energy)
+    min_energy = min(energy)
+    range_energy = abs(max_energy) + abs(min_energy)
     for i in range(len(energy)):
-        if energy[i] > max(energy)*0.5/scale:
+        if energy[i] > max(energy) * 0.5 / scale:
             energy[i] = 1
-        elif energy[i] > max(energy)*0.25/scale:
+        elif energy[i] > max(energy) * 0.25 / scale:
             energy[i] = 0.9
-        elif energy[i] > max(energy)*0.1/scale:
+        elif energy[i] > max(energy) * 0.1 / scale:
             energy[i] = 0.8
-        elif energy[i] > max(energy)*0.075/scale:
+        elif energy[i] > max(energy) * 0.075 / scale:
             energy[i] = 0.7
-        elif energy[i] > max(energy)*0.05/scale:
+        elif energy[i] > max(energy) * 0.05 / scale:
             energy[i] = 0.6
-        elif energy[i] > max(energy)*0.025/scale:
+        elif energy[i] > max(energy) * 0.025 / scale:
             energy[i] = 0.5
-        elif energy[i] > max(energy)*0.01/scale:
+        elif energy[i] > max(energy) * 0.01 / scale:
             energy[i] = 0.4
         else:
             energy[i] = 0.3
