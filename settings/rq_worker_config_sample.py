@@ -1,4 +1,4 @@
-REDIS_URL = 'redis://10.201.0.11:6379/2'
+REDIS_URL = 'redis://localhost:6379/2'
 
 # You can also specify the Redis DB to use
 # REDIS_HOST = 'redis.example.com'

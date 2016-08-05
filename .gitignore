@@ -1,3 +1,5 @@
 .ipynb_checkpoints
 __pycache__
 results
+settings/rq_worker_config.py
+settings/sjs.yaml
