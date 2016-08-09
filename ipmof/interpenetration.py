@@ -19,7 +19,10 @@ def initial_coordinates(mof, energy_map, atom_list, energy_limit):
     and their position (accepted if applying pbc does not change its coordinates)
     """
     reference_atom = 'C'
-    ref_atom_index = atom_list['atom'].index(reference_atom) + 3
+    if reference_atom in atom_list['atom']:
+        ref_atom_index = int(atom_list['atom'].index(reference_atom) + 3)
+    else:
+        ref_atom_index = 3
     initial_coors = []
     energy_count = 0
     pbc_count = 0
