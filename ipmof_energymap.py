@@ -3,7 +3,7 @@ import sys
 
 # Load IPMOF python libraries
 from ipmof.forcefield import read_ff_parameters
-from ipmof.energymap import energy_map, get_mof_list, get_mof_file_list, get_uniq_atom_list
+from ipmof.energymap import energy_map, get_mof_list, get_mof_file_list, energy_map_atom_list
 from ipmof.core import core_mof_properties, core_mof_sort, core_mof_dir
 from ipmof.parameters import sim_dir_data as sim_dir    # Import simulation directories
 from ipmof.parameters import sim_par_data as sim_par    # Import simulation parameters
@@ -22,11 +22,8 @@ else:
     # Create MOF list by reading structure files from a directory
     mof_list = get_mof_file_list(sim_dir['mof_dir'], 'cif', force_field)
 
-# Calculate atom list for remaining MOFs
-if sim_par['energy_map_atom_list'] == 'uniq':
-    atom_list = get_uniq_atom_list(mof_list)
-elif sim_par['energy_map_atom_list'] == 'full':
-    atom_list = force_field
+# Calculate atom list according to 'energy_map_atom_list' simulation parameter
+atom_list = energy_map_atom_list(sim_par, force_field, mof_list)
 
 # Export initialization file containing MOF names and simulation parameters
 print('Starting energy map calculation with grid size:', sim_par['grid_size'],
