@@ -101,9 +101,10 @@ def energy_map_index(coor, emap_max, emap_min):
     return int(emap_index)
 
 
-def energy_map_atom_index(atom_name, emap_atom_list):
+def energy_map_atom_index(atom_name, atom_list):
     """
     Returns index of a given atom in the energy map.
+    If the atom is not found in the atom list first energy value index (3) is returned.
 
     given an energy map in the form:
         emap[i] = [x, y, z, C_atom_energy, H_atom_energy, O_atom_energy, Zn_atom_energy]
@@ -114,11 +115,7 @@ def energy_map_atom_index(atom_name, emap_atom_list):
 
     so emap[i][5] would give the energy value for O atom
     """
-    for atom_index, atom in enumerate(emap_atom_list['atom']):
-        if atom == atom_name:
-            emap_atom_index = atom_index
-
-    return int(emap_atom_index + 3)
+    return int(atom_list['atom'].index(atom_name) + 3) if atom_name in atom_list['atom'] else 3
 
 
 def export_energy_map(emap, atom_list, sim_par, emap_export_dir, mof_name):
