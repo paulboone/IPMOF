@@ -3,7 +3,7 @@ import sys
 
 # Load IPMOF python libraries
 from ipmof.forcefield import read_ff_parameters
-from ipmof.energymap import energy_map, get_mof_list, get_mof_file_list, energy_map_atom_list
+from ipmof.energymap import energy_map, get_mof_list, energy_map_atom_list
 from ipmof.core import core_mof_properties, core_mof_sort, core_mof_dir
 from ipmof.parameters import sim_dir_data as sim_dir    # Import simulation directories
 from ipmof.parameters import sim_par_data as sim_par    # Import simulation parameters
@@ -20,7 +20,9 @@ if sim_par['core_database']:
     mof_list = get_mof_list(mof_path_list, force_field)
 else:
     # Create MOF list by reading structure files from a directory
-    mof_list = get_mof_file_list(sim_dir['mof_dir'], 'cif', force_field)
+    mof_path_list = os.listdir(sim_dir['mof_dir'])
+    mof_path_list = [os.path.join(sim_dir['mof_dir'], path) for path in mof_path_list]
+    mof_list = get_mof_list(mof_path_list, force_field)
 
 # Calculate atom list according to 'energy_map_atom_list' simulation parameter
 atom_list = energy_map_atom_list(sim_par, force_field, mof_list)
