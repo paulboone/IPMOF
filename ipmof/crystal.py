@@ -25,7 +25,8 @@ class MOF:
             self.name = molecule['name']
         else:
             self.path = file_path
-            self.name, fileformat = os.path.basename(file_path).split('.')
+            self.name, file_format = os.path.splitext(os.path.basename(file_path))
+            file_format = file_format[1:]
             # Import reader library from ipmof.io and read structure file into a dictionary
             reader_lib = __import__('ipmof.io.' + reader, fromlist=[''])
             molecule = reader_lib.read(file_path, input_format=file_format)
