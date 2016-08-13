@@ -18,9 +18,9 @@ force_field = read_ff_parameters(sim_dir['force_field_path'], sim_par['force_fie
 if sim_par['core_database']:
     # Create MOf list from CoRE database
     mof_properties = core_mof_properties(sim_dir['core_path'])
-    sorted_mofs = core_mof_sort(mof_properties, sort='void_fraction', limit=0.85)
-    mol2_list = core_mof_dir(sorted_mofs, sim_dir['mof_dir'])
-    mof_list = get_mof_list(mol2_list, force_field)
+    sorted_mofs = core_mof_sort(mof_properties, sort='void_fraction', limit=0.9)
+    mof_path_list = core_mof_dir(sorted_mofs, sim_dir['core_mof_dir'])
+    mof_list = get_mof_list(mof_path_list, force_field)
 else:
     # Create MOF list by reading mol2 files from a directory
     mof_path_list = os.listdir(sim_dir['mof_dir'])
