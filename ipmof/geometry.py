@@ -16,12 +16,9 @@ class Coor(object):
     Coor class for holding 3D space coordinates.
     """
     def __init__(self, input):
-        if isinstance(input, list):
-            self.x = input[0]
-            self.y = input[1]
-            self.z = input[2]
-        else:
-            raise TypeError('Input type not supported. Use list [x, y, z]')
+        self.x = input[0]
+        self.y = input[1]
+        self.z = input[2]
 
     def __repr__(self):
         return "<Coordinate object x:%s y:%s z:%s>" % (self.x, self.y, self.z)
@@ -168,13 +165,10 @@ class Quaternion(object):
     Quaternion class for quaternion operations and 3D rotations.
     """
     def __init__(self, input):
-        if isinstance(input, list):
-            self.w = input[0]
-            self.x = input[1]
-            self.y = input[2]
-            self.z = input[3]
-        else:
-            raise TypeError('Input type not supported. Use list [w, x, y, z]')
+        self.w = input[0]
+        self.x = input[1]
+        self.y = input[2]
+        self.z = input[3]
 
     def __repr__(self):
         return "<Quaternion object w:%s x:%s y:%s z:%s>" % (self.w, self.x, self.y, self.z)

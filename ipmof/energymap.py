@@ -13,7 +13,7 @@ from ipmof.crystal import MOF
 from ipmof.parameters import sim_dir_data as sim_dir    # Import simulation directories
 
 
-def energy_map(sim_par, mof, atom_list, export=[True, sim_dir]):
+def energy_map(sim_par, mof, atom_list, export=True, export_dir=sim_dir['energy_map_dir']):
     """
     Calculate energy map for given simulations parameters, MOF class, atom list and export options.
     Simulation parameters used:
@@ -77,9 +77,8 @@ def energy_map(sim_par, mof, atom_list, export=[True, sim_dir]):
                 energy_map[map_index][3:(num_atoms + 3)] = v_total
                 map_index += 1
 
-    if export[0]:
-        sim_dir = export[1]
-        export_energy_map(energy_map, atom_list, sim_par, sim_dir, mof.name)
+    if export:
+        export_energy_map(energy_map, atom_list, sim_par, export_dir, mof.name)
 
     return energy_map
 
@@ -122,23 +121,23 @@ def energy_map_atom_index(atom_name, emap_atom_list):
     return int(emap_atom_index + 3)
 
 
-def export_energy_map(emap, atom_list, sim_par, sim_dir, mof_name):
+def export_energy_map(emap, atom_list, sim_par, emap_export_dir, mof_name):
     """
     Exports energy map array into a npy or yaml file.
     """
-    # emap_export_dir = sim_dir['export_dir']
-    emap_export_dir = sim_dir['energy_map_dir']
-
     if sim_par['energy_map_type'] == 'yaml':
         emap_file_path = os.path.join(emap_export_dir, mof_name + '_emap.yaml')
-        emap_file = open(emap_file_path, 'w')
+        if os.path.exists(emap_file_path):
+            os.remove(emap_file_path)
         emap_dict = {'energy_map': emap.tolist(), 'atom_list': atom_list}
-        yaml.dump(emap_dict, emap_file)
-        emap_file.close()
+        with open(emap_file_path, 'w') as emap_file:
+            yaml.dump(emap_dict, emap_file)
         print('Energy map exported as', emap_file_path)
 
     if sim_par['energy_map_type'] == 'numpy':
         emap_file_path = os.path.join(emap_export_dir, mof_name + '_emap')
+        if os.path.exists(emap_file_path):
+            os.remove(emap_file_path)
         emap_numpy = np.array([atom_list['atom'], atom_list['sigma'], atom_list['epsilon'], emap])
         np.save(emap_file_path, emap_numpy)
         print('Energy map exported as', emap_file_path)
@@ -191,8 +190,8 @@ def get_mof_list(mof_path_list, force_field):
     Generates a list of MOF objects using a given list of MOF file directories
     """
     mof_list = []
-    for mof in mof_path_list:
-        mof_obj = MOF(mof)
+    for mof_path in mof_path_list:
+        mof_obj = MOF(mof_path)
         mof_obj.force_field(force_field)
         mof_list.append(mof_obj)
 
