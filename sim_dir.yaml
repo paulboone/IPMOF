@@ -1,0 +1,8 @@
+core_mof_dir: CoRE MOFs database directory
+core_path: /home/kutay/Documents/git/IPMOF/doc/CoRE.xlsx
+energy_map_dir: /home/kutay/Documents/git/IPMOF/energymap
+export_dir: /home/kutay/Documents/git/IPMOF/results
+force_field_path: /home/kutay/Documents/git/IPMOF/doc/FF_Parameters.xlsx
+main_dir: /home/kutay/Documents/git/IPMOF
+mof_dir: /home/kutay/Documents/git/IPMOF/mof
+python_lib_dir: /home/kutay/Documents/git/IPMOF/ipmof

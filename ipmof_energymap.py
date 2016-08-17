@@ -5,8 +5,10 @@ import sys
 from ipmof.forcefield import read_ff_parameters
 from ipmof.energymap import energy_map, get_mof_list, energy_map_atom_list
 from ipmof.core import core_mof_properties, core_mof_sort, core_mof_dir
-from ipmof.parameters import sim_dir_data as sim_dir    # Import simulation directories
-from ipmof.parameters import sim_par_data as sim_par    # Import simulation parameters
+from ipmof.parameters import read_parameters
+
+# Read simulation parameters and directories
+sim_par, sim_dir = read_parameters()
 
 # Read excel file containing force field information
 force_field = read_ff_parameters(sim_dir['force_field_path'], sim_par['force_field'])
