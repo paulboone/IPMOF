@@ -31,6 +31,11 @@ emap_name = os.listdir(sim_dir['energy_map_dir'])[0]
 base_mof_dir = os.path.join(sim_dir['mof_dir'], emap_name.split('_emap')[0] + '.cif')
 base_mof = MOF(base_mof_dir)
 base_mof.force_field(force_field)
+
+# Remove base_mof from list if self_interpenetration parameter is False
+if not sim_par['self_interpenetration']:
+    mof_list.remove(base_mof)
+
 # Export initialization file containing MOF names and simulation parameters
 export_init_txt(mof_list)
 

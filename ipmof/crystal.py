@@ -47,6 +47,12 @@ class MOF:
     def __len__(self):
         return len(self.atom_coors)
 
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__) and self.name == other.name)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def force_field(self, ff_type):
         """
         Initializes force field parameters according to unique atom names.

@@ -16,6 +16,7 @@ sim_par_data = {'structure_energy_limit': 3E2,   # Maximum allowed potential ene
                 'core_database': False,          # Use CoRE database information or not
                 'energy_map_atom_list': 'qnd',   # Atom list for energy map ('full', 'uniq', 'dummy', 'qnd')
                 'energy_map_type': 'numpy',      # Energy map file format ('numpy' or 'yaml')
+                'self_interpenetration': True,   # Test for homo-interpenetration or not
                 'export_structures': 5,          # Number of min. energy structures to export
                 'export_format': 'xyz',          # Export structure file format
                 'export_pbc': True,              # Export coordinates after applying PBC
