@@ -41,9 +41,8 @@ if not sim_par['self_interpenetration']:
 export_init_txt(mof_list)
 
 # Main Loop (Interpenetration)
-print('-' * 80)
-print('Energy map ->', base_mof.name)
-print('-' * 80)
+print('-' * 80 + '\n' + 'Energy map ->', base_mof.name + '\n' + '-' * 80)
+
 # Load energy map
 atom_list, emap = import_energy_map(sim_par, sim_dir, base_mof.name)
 
