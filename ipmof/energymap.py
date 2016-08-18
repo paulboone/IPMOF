@@ -79,8 +79,8 @@ def energy_map(sim_par, mof, atom_list, export=True, export_dir=sim_dir['energy_
 
     if export:
         export_energy_map(energy_map, atom_list, sim_par, export_dir, mof.name)
-
-    return energy_map
+    else:
+        return energy_map
 
 
 def energy_map_index(coor, emap_max, emap_min):
