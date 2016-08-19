@@ -103,3 +103,16 @@ def export_interpenetration_results(sim_par, structure_info, summary, export_dir
         yaml.dump(sim_par_dict, yaml_file, default_flow_style=False, indent=4)
         yaml.dump(structure_dict, yaml_file, explicit_start=True, indent=4)
         yaml.dump(summary_dict, yaml_file, explicit_start=True, indent=4)
+
+
+def read_interpenetration_results(results_path):
+    """
+    Reads interpenetration results from '~/results/S1_S2/results.yaml' file.
+    Returns simulation_parameters, structure_info, and summary.
+     >>> sim_par, structure_info, summary = read_interpenetration_results(results_path)
+    """
+    sim_par, structure_info, summary = yaml.load_all(open(results_path, 'r'))
+    sim_par = sim_par['simulation_parameters']
+    structure_info = structure_info['structure_info']
+    summary = summary['summary']
+    return sim_par, structure_info, summary
