@@ -89,67 +89,17 @@ def export_sim_dir(inp_dir=main_dir):
     with open(sim_dir_path, 'w') as sim_dir_file:
         yaml.dump(sim_dir_data, sim_dir_file, default_flow_style=False)
 
-# Get directories for simulation parameters and directories files
-# sim_par_path = os.path.join(main_dir, 'sim_par.yaml')
-# sim_dir_path = os.path.join(main_dir, 'sim_dir_linux.yaml')
 
-# Read sim par yaml file
-# sim_par = yaml.load(open(sim_par_path, 'r'))
-# sim_dir = yaml.load(open(sim_dir_path, 'r'))
-
-
-def export_init_txt(mof_list, sim_par=sim_par_data, sim_dir=sim_dir_data):
+def export_interpenetration_results(sim_par, structure_info, summary, export_dir):
     """
-    Export init.txt file to results folder.
-    Contains information about simulation parameters and selected structures.
+    Export interpenetration results in yaml format.
     """
-    init_text = '--------------------- IPMOF ---------------------\n'
-    init_text += '------------- SIMULATION PARAMETERS -------------\n'
-    max_len = len('structure_energy_limit') + 3
-    for par in sim_par:
-        len_par_name = len(str(par))
-        empty_space = ' ' * (max_len - len_par_name)
-        init_text += par + ':' + empty_space + str(sim_par[par]) + '\n'
-    init_text += '-------------------------------------------------\n'
+    sim_par_dict = {'simulation_parameters': sim_par_data}
+    structure_dict = {'structure_info': structure_info}
+    summary_dict = {'summary': summary}
 
-    init_text += 'Starting interpenetration with a total of ' + str(len(mof_list)) + ' MOFs:\n'
-    for m_i, m in enumerate(mof_list):
-        init_text += str(m_i + 1) + '\t' + str(m) + '\n'
-    init_text += '-------------------------------------------------\n'
-
-    init_file_path = os.path.join(sim_dir['export_dir'], 'init.txt')
-    if os.path.exists(init_file_path):
-        os.remove(init_file_path)
-
-    with open(init_file_path, 'w') as init_file:
-        init_file.write(init_text)
-
-
-def export_summary_txt(export_dir, summary, base_mof, mobile_mof):
-    """
-    Export summary.txt file to specific interpenetration folder in results folder.
-    Contains information about interpenetration simulation run.
-    """
-    summary_text = '--------------- IPMOF SUMMARY ---------------\n'
-    summary_text += 'Base -> ' + base_mof.name + '\nMobile -> ' + mobile_mof.name + '\n'
-    summary_text += '---------------------------------------------\n'
-    summary_text += 'Percent \t Structure \t Trial \n'
-    for summary_index, percent in enumerate(summary['percent']):
-        summary_text += str(percent) + ' \t\t ' + str(summary['structure_count'][summary_index])
-        summary_text += ' \t\t ' + str(summary['trial_count'][summary_index]) + ' \n'
-    summary_text += '---------------------------------------------\n'
-
-    summary_file_path = os.path.join(export_dir, 'summary.txt')
-    if os.path.exists(summary_file_path):
-        os.remove(summary_file_path)
-    with open(summary_file_path, 'w') as summary_file:
-        summary_file.write(summary_text)
-
-
-def export_structure_info(export_dir, structure_info):
-    """
-    Export structure information such as collision, rotation.
-    """
-    structure_info_path = os.path.join(export_dir, 'structure_info.txt')
-    with open(structure_info_path, 'w') as structure_info_file:
-        structure_info_file.write(structure_info)
+    results_path = os.path.join(export_dir, 'results.yaml')
+    with open(results_path, 'w') as yaml_file:
+        yaml.dump(sim_par_dict, yaml_file, default_flow_style=False, indent=4)
+        yaml.dump(structure_dict, yaml_file, explicit_start=True, indent=4)
+        yaml.dump(summary_dict, yaml_file, explicit_start=True, indent=4)

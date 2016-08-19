@@ -7,7 +7,7 @@ from ipmof.forcefield import read_ff_parameters
 from ipmof.energymap import import_energy_map, get_mof_list
 from ipmof.interpenetration import run_interpenetration
 from ipmof.core import core_mof_properties, core_mof_sort, core_mof_dir
-from ipmof.parameters import read_parameters, export_init_txt
+from ipmof.parameters import read_parameters
 
 # Read simulation parameters and directories
 sim_par, sim_dir = read_parameters()
@@ -36,9 +36,6 @@ base_mof.force_field(force_field)
 # Remove base_mof from list if self_interpenetration parameter is False
 if not sim_par['self_interpenetration']:
     mof_list.remove(base_mof)
-
-# Export initialization file containing MOF names and simulation parameters
-export_init_txt(mof_list)
 
 # Main Loop (Interpenetration)
 print('-' * 80 + '\n' + 'Energy map ->', base_mof.name + '\n' + '-' * 80)
