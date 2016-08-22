@@ -179,6 +179,51 @@ def get_mof_list(mof_path_list, force_field):
     return mof_list
 
 
+def uniq_atom_list(mof_list):
+    """
+    Gets atom name, epsilon, and sigma values for non-repeating (unique) atoms in a list of
+    MOF classes.
+    """
+    all_atom_list = {'atom': [], 'sigma': [], 'epsilon': []}
+    for mof in mof_list:
+        for atom, sig, eps in zip(mof.uniq_atom_names, mof.sigma, mof.epsilon):
+            all_atom_list['atom'].append(atom)
+            all_atom_list['sigma'].append(sig)
+            all_atom_list['epsilon'].append(eps)
+
+    uniq_atom_list = {'atom': [], 'sigma': [], 'epsilon': []}
+    # Creates a list of unique entries in all_atom_list atom names
+    uniq_atom_list['atom'] = list(set(all_atom_list['atom']))
+    # Initializes epsilon and sigma arrays according to the length of unique atom names
+    uniq_atom_list['epsilon'] = [0] * len(uniq_atom_list['atom'])
+    uniq_atom_list['sigma'] = [0] * len(uniq_atom_list['atom'])
+
+    # Finds epsilon and sigma values for unique atoms by comparing the atom names in both lists
+    # Epsilon and sigma values are overwritten multiple times for repeating atoms
+    for atom, sig, eps in zip(all_atom_list['atom'], all_atom_list['sigma'], all_atom_list['epsilon']):
+        if atom in uniq_atom_list['atom']:
+            uniq_index = uniq_atom_list['atom'].index(atom)
+            uniq_atom_list['epsilon'][uniq_index] = eps
+            uniq_atom_list['sigma'][uniq_index] = sig
+
+    return uniq_atom_list
+
+
+def qnd_atom_list(force_field, dummy_name, dummy_sigma, dummy_epsilon):
+    """
+    Atom list consisting of most frequent 10 atoms in CoRE MOF database and 'Mg' atom.
+    FF parameters for rest of the atoms are set to dummy parameters.
+    """
+    qnd_atoms = ['C', 'H', 'O', 'N', 'Cu', 'Cd', 'Co', 'Mg', 'Mn', 'Ni', 'Zn']
+    qnd_atom_list = {'atom': [dummy_name], 'sigma': [dummy_sigma], 'epsilon': [dummy_epsilon]}
+    for atom, eps, sig in zip(force_field['atom'], force_field['epsilon'], force_field['sigma']):
+        if atom in qnd_atoms:
+            qnd_atom_list['atom'].append(atom)
+            qnd_atom_list['sigma'].append(sig)
+            qnd_atom_list['epsilon'].append(eps)
+    return qnd_atom_list
+
+
 def energy_map_atom_list(sim_par, force_field, mof_list):
     """
     Returns atom list for energy map according to 'energy_map_atom_list' simulation parameter.
@@ -192,46 +237,6 @@ def energy_map_atom_list(sim_par, force_field, mof_list):
     dummy_sigma = 3
     dummy_epsilon = 30
 
-    # Quick and dirty (qnd) atom list
-    def qnd_atom_list(force_field):
-        qnd_atoms = ['C', 'H', 'O', 'N', 'Cu', 'Cd', 'Co', 'Mg', 'Mn', 'Ni', 'Zn']
-        qnd_atom_list = {'atom': [dummy_name], 'sigma': [dummy_sigma], 'epsilon': [dummy_epsilon]}
-        for atom, eps, sig in zip(force_field['atom'], force_field['epsilon'], force_field['sigma']):
-            if atom in qnd_atoms:
-                qnd_atom_list['atom'].append(atom)
-                qnd_atom_list['sigma'].append(sig)
-                qnd_atom_list['epsilon'].append(eps)
-        return qnd_atom_list
-
-    def uniq_atom_list(mof_list):
-        """
-        Gets atom name, epsilon, and sigma values for non-repeating (unique) atoms in a list of
-        MOF classes.
-        """
-        all_atom_list = {'atom': [], 'sigma': [], 'epsilon': []}
-        for mof in mof_list:
-            for atom, sig, eps in zip(mof.uniq_atom_names, mof.sigma, mof.epsilon):
-                all_atom_list['atom'].append(atom)
-                all_atom_list['sigma'].append(sig)
-                all_atom_list['epsilon'].append(eps)
-
-        uniq_atom_list = {'atom': [], 'sigma': [], 'epsilon': []}
-        # Creates a list of unique entries in all_atom_list atom names
-        uniq_atom_list['atom'] = list(set(all_atom_list['atom']))
-        # Initializes epsilon and sigma arrays according to the length of unique atom names
-        uniq_atom_list['epsilon'] = [0] * len(uniq_atom_list['atom'])
-        uniq_atom_list['sigma'] = [0] * len(uniq_atom_list['atom'])
-
-        # Finds epsilon and sigma values for unique atoms by comparing the atom names in both lists
-        # Epsilon and sigma values are overwritten multiple times for repeating atoms
-        for atom, sig, eps in zip(all_atom_list['atom'], all_atom_list['sigma'], all_atom_list['epsilon']):
-            if atom in uniq_atom_list['atom']:
-                uniq_index = uniq_atom_list['atom'].index(atom)
-                uniq_atom_list['epsilon'][uniq_index] = eps
-                uniq_atom_list['sigma'][uniq_index] = sig
-
-        return uniq_atom_list
-
     # Get atom list according to energy map atom list type
     if sim_par['energy_map_atom_list'] == 'uniq':
         atom_list = uniq_atom_list(mof_list)
@@ -240,6 +245,6 @@ def energy_map_atom_list(sim_par, force_field, mof_list):
     elif sim_par['energy_map_atom_list'] == 'dummy':
         atom_list = {'atom': [dummy_name], 'sigma': [dummy_sigma], 'epsilon': [dummy_epsilon]}
     elif sim_par['energy_map_atom_list'] == 'qnd':
-        atom_list = qnd_atom_list(force_field)
+        atom_list = qnd_atom_list(force_field, dummy_name, dummy_sigma, dummy_epsilon)
 
     return atom_list
