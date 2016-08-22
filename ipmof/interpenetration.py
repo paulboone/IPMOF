@@ -242,6 +242,7 @@ def check_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_str
     z_angle = rotation_info[2]
 
     collision = False
+    collision_info = {'exist': collision, 'coor': None, 'pbc_coor': None}
     for unit_cell in packed_coors:
 
         if not collision:
@@ -269,13 +270,14 @@ def check_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_str
                         continue
                     else:
                         collision = True
+                        collision_info = {'exist': collision, 'coor': new_coor.xyz(), 'pbc_coor': pbc_coor.xyz()}
                         break
                 else:
                     break
         else:
             break
 
-    return collision
+    return collision_info
 
 
 def save_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_structure):
