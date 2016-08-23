@@ -101,9 +101,10 @@ def energy_map_index(coor, emap_max, emap_min):
     return int(emap_index)
 
 
-def energy_map_atom_index(atom_name, emap_atom_list):
+def energy_map_atom_index(atom_name, atom_list):
     """
     Returns index of a given atom in the energy map.
+    If the atom is not found in the atom list first energy value index (3) is returned.
 
     given an energy map in the form:
         emap[i] = [x, y, z, C_atom_energy, H_atom_energy, O_atom_energy, Zn_atom_energy]
@@ -114,11 +115,7 @@ def energy_map_atom_index(atom_name, emap_atom_list):
 
     so emap[i][5] would give the energy value for O atom
     """
-    for atom_index, atom in enumerate(emap_atom_list['atom']):
-        if atom == atom_name:
-            emap_atom_index = atom_index
-
-    return int(emap_atom_index + 3)
+    return int(atom_list['atom'].index(atom_name) + 3) if atom_name in atom_list['atom'] else 3
 
 
 def export_energy_map(emap, atom_list, sim_par, emap_export_dir, mof_name):
@@ -169,22 +166,6 @@ def coor_dist(coor1, coor2):
     return sqrt((coor1[0] - coor2[0])**2 + (coor1[1] - coor2[1])**2 + (coor1[2] - coor2[2])**2)
 
 
-def get_mof_file_list(folder_dir, file_format, force_field):
-    """
-    Generates a list of MOF file names in a given directory and MOF file format
-    """
-    file_list = os.listdir(folder_dir)
-    mof_list = []
-    for file_name in file_list:
-        if file_format in file_name:
-            mof_dir = os.path.join(folder_dir, file_name)
-            mof_obj = MOF(mof_dir)
-            mof_obj.force_field(force_field)
-            mof_list.append(mof_obj)
-
-    return mof_list
-
-
 def get_mof_list(mof_path_list, force_field):
     """
     Generates a list of MOF objects using a given list of MOF file directories
@@ -198,7 +179,7 @@ def get_mof_list(mof_path_list, force_field):
     return mof_list
 
 
-def get_uniq_atom_list(mof_list):
+def uniq_atom_list(mof_list):
     """
     Gets atom name, epsilon, and sigma values for non-repeating (unique) atoms in a list of
     MOF classes.
@@ -226,3 +207,44 @@ def get_uniq_atom_list(mof_list):
             uniq_atom_list['sigma'][uniq_index] = sig
 
     return uniq_atom_list
+
+
+def qnd_atom_list(force_field, dummy_name, dummy_sigma, dummy_epsilon):
+    """
+    Atom list consisting of most frequent 10 atoms in CoRE MOF database and 'Mg' atom.
+    FF parameters for rest of the atoms are set to dummy parameters.
+    """
+    qnd_atoms = ['C', 'H', 'O', 'N', 'Cu', 'Cd', 'Co', 'Mg', 'Mn', 'Ni', 'Zn']
+    qnd_atom_list = {'atom': [dummy_name], 'sigma': [dummy_sigma], 'epsilon': [dummy_epsilon]}
+    for atom, eps, sig in zip(force_field['atom'], force_field['epsilon'], force_field['sigma']):
+        if atom in qnd_atoms:
+            qnd_atom_list['atom'].append(atom)
+            qnd_atom_list['sigma'].append(sig)
+            qnd_atom_list['epsilon'].append(eps)
+    return qnd_atom_list
+
+
+def energy_map_atom_list(sim_par, force_field, mof_list):
+    """
+    Returns atom list for energy map according to 'energy_map_atom_list' simulation parameter.
+     - 'full': Full atom list in the force field parameters database. (103 atoms)
+     - 'uniq': Unique atoms for a given list of MOFs
+     - 'dummy': Single dummy atom with force field parameters defined below
+     - 'qnd': Simplified atom list consisting of 1 dummy atom and 10 most common atoms.
+    """
+    # Dummy atom force field parameters
+    dummy_name = 'Du'
+    dummy_sigma = 3
+    dummy_epsilon = 30
+
+    # Get atom list according to energy map atom list type
+    if sim_par['energy_map_atom_list'] == 'uniq':
+        atom_list = uniq_atom_list(mof_list)
+    elif sim_par['energy_map_atom_list'] == 'full':
+        atom_list = force_field
+    elif sim_par['energy_map_atom_list'] == 'dummy':
+        atom_list = {'atom': [dummy_name], 'sigma': [dummy_sigma], 'epsilon': [dummy_epsilon]}
+    elif sim_par['energy_map_atom_list'] == 'qnd':
+        atom_list = qnd_atom_list(force_field, dummy_name, dummy_sigma, dummy_epsilon)
+
+    return atom_list

@@ -2,14 +2,6 @@ IPMOF To Do List:
 ----------------------------------------------------------------------------------------------------
 1) High Priority
 ----------------------------------------------------------------------------------------------------
-- Single atom type energy map
- - Require changes in main interpenetration algorithm
-
-- Update mof list generation
-
-- If base mof > mobile mof mobile mof should be extended at least to the size of base mof
-  - Lets say for two cubic MOFs base_a/mobile_a = 1.2 -> Extend mobile to 2x2x2
-
 - Add babel / ase export functions.
 
 - For CoRE database keep a single directory containing CoRE MOFs. (frank)
@@ -23,12 +15,7 @@ IPMOF To Do List:
 ----------------------------------------------------------------------------------------------------
 - Export interpenetration log (can be used with blender or three.js)
 
-- Energy map atom type add 'qnd' (quick and dirty) or 'ad-hoc'
-  - Consider true force-field values for common atoms and for rest use default values
-
 - Use logger instead of print commands
-
-- mol2_read() -> Read atom names from 6th column instead of 2nd
 ----------------------------------------------------------------------------------------------------
 3) One Day
 ----------------------------------------------------------------------------------------------------

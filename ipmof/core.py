@@ -68,13 +68,13 @@ def core_mof_sort(mof_properties, sort='void_fraction', limit='0.9'):
     return sorted_mofs
 
 
-def core_mof_dir(sorted_mofs, mol2_dir):
+def core_mof_dir(sorted_mofs, core_mof_dir):
     """
     Collects directories for the given MOF list (sorted_mofs).
-    The directories are taken from the database directory (mol2_dir) provided.
+    The directories are taken from the database directory (core_mof_dir) provided.
     Collected directories are returned in list format.
     """
-    all_mofs = os.listdir(mol2_dir)
+    all_mofs = os.listdir(core_mof_dir)
     mof_dirs = []
     missing_mofs = []
 
@@ -83,13 +83,14 @@ def core_mof_dir(sorted_mofs, mol2_dir):
         for mof_file_name in all_mofs:
             mof_name = mof_file_name.split('.')[0].split('_')[0]
             if mof == mof_name:
-                mof_dir = os.path.join(mol2_dir, mof_file_name)
+                mof_dir = os.path.join(core_mof_dir, mof_file_name)
                 mof_dirs.append(mof_dir)
                 mof_found = True
         if not mof_found:
             missing_mofs.append(mof)
+            print(mof)
 
-    print(len(missing_mofs), 'mofs are missing')
+    print(len(missing_mofs), 'mofs are missing |^|')
     print(len(mof_dirs), 'total mofs found')
 
     return mof_dirs

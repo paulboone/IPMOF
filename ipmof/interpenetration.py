@@ -9,7 +9,7 @@ import shutil
 from ipmof.crystal import Packing, MOF
 from ipmof.geometry import Coor, Quaternion
 from ipmof.energymap import energy_map_index, energy_map_atom_index
-from ipmof.parameters import export_summary_txt
+from ipmof.parameters import export_summary_txt, export_structure_info
 
 
 def initial_coordinates(mof, energy_map, atom_list, energy_limit):
@@ -19,7 +19,10 @@ def initial_coordinates(mof, energy_map, atom_list, energy_limit):
     and their position (accepted if applying pbc does not change its coordinates)
     """
     reference_atom = 'C'
-    ref_atom_index = atom_list['atom'].index(reference_atom) + 3
+    if reference_atom in atom_list['atom']:
+        ref_atom_index = int(atom_list['atom'].index(reference_atom) + 3)
+    else:
+        ref_atom_index = 3
     initial_coors = []
     energy_count = 0
     pbc_count = 0
@@ -349,7 +352,7 @@ def run_interpenetration(base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir
 
     # Export Min Energy Structures ---------------------------------------------------------
     if len(new_structures) > 0:
-        print(base_mof.name, '--', mobile_mof.name, '-> (+) Structure:', len(new_structures))
+        structure_info = base_mof.name + ' -- ' + mobile_mof.name + ' -> (+) Structure: ' + str(len(new_structures)) + '\n'
 
         export_count = min(len(new_structures), sim_par['export_structures'])
         for export_index in range(export_count):
@@ -366,11 +369,10 @@ def run_interpenetration(base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir
             fp_x = str(round(min_energy_structure['first_point'][0], 3))
             fp_y = str(round(min_energy_structure['first_point'][1], 3))
             fp_z = str(round(min_energy_structure['first_point'][2], 3))
-            structure_info = '\tEnergy: ' + str(round(min_energy_structure['energy'], 2))
+            structure_info += '\tEnergy: ' + str(round(min_energy_structure['energy'], 2))
             structure_info += ' | Collision: ' + str(collision) + '\n'
             structure_info += '\tRotation x: ' + rot_x + ' y: ' + rot_y + ' z: ' + rot_z
-            structure_info += ' | First Point x: ' + fp_x + ' y: ' + fp_y + ' z: ' + fp_z
-            print(structure_info)
+            structure_info += ' | First Point x: ' + fp_x + ' y: ' + fp_y + ' z: ' + fp_z + '\n'
 
             # Record new structure ---------------------------------------------------------
             new_structure = {'atom_names': min_energy_structure['atom_names'], 'name': mobile_mof.name}
@@ -414,4 +416,6 @@ def run_interpenetration(base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir
                 joined_packed_mof.name += '_' + str(export_index + 1) + 'PC'
                 joined_packed_mof.export(export_dir, file_format=sim_par['export_format'])
     else:
-        print(base_mof.name, '--', mobile_mof.name, '-> (-)')
+        structure_info = base_mof.name + ' -- ' + mobile_mof.name + ' -> (-)'
+
+    export_structure_info(export_dir, structure_info)

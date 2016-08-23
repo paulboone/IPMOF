@@ -4,9 +4,9 @@ import os
 import yaml
 
 # Simulation Parameters Data:
-sim_par_data = {'structure_energy_limit': 3E8,   # Maximum allowed potential energy for structure
-                'atom_energy_limit': 3E6,        # Maximum allowed potential energy for atom
-                'rotation_limit': 20,            # Total number of rotations for each point
+sim_par_data = {'structure_energy_limit': 3E2,   # Maximum allowed potential energy for structure
+                'atom_energy_limit': 3E0,        # Maximum allowed potential energy for atom
+                'rotation_limit': 1,            # Total number of rotations for each point
                 'rotation_freedom': 30,          # Increments of rotation (degrees)
                 'summary_percent': 5,            # Percentage increment to acquire summary data
                 'cut_off': 12,                   # Cut-off radius for interpenetration (Angstrom)
@@ -14,9 +14,9 @@ sim_par_data = {'structure_energy_limit': 3E8,   # Maximum allowed potential ene
                 'grid_size': 1,                  # Grid size for potential energy map (Angstrom)
                 'force_field': 'uff',            # Force field selection for LJ ('uff' or 'dre')
                 'core_database': False,          # Use CoRE database information or not
-                'energy_map_atom_list': 'uniq',  # Atom types of energy map ('full' or 'uniq')
+                'energy_map_atom_list': 'qnd',   # Atom list for energy map ('full', 'uniq', 'dummy', 'qnd')
                 'energy_map_type': 'numpy',      # Energy map file format ('numpy' or 'yaml')
-                'export_structures': 1,          # Number of min. energy structures to export
+                'export_structures': 5,          # Number of min. energy structures to export
                 'export_format': 'xyz',          # Export structure file format
                 'export_pbc': True,              # Export coordinates after applying PBC
                 'export_single': True,           # Export structures with original atom names
@@ -31,6 +31,7 @@ main_dir = os.getcwd()
 python_lib_dir = os.path.join(main_dir, 'ipmof')
 force_field_path = os.path.join(main_dir, 'doc', 'FF_Parameters.xlsx')
 core_path = os.path.join(main_dir, 'doc', 'CoRE.xlsx')
+core_mof_dir = r'CoRE MOFs database direcory'
 mof_dir = os.path.join(main_dir, 'mof')
 energy_map_dir = os.path.join(main_dir, 'energymap')
 export_dir = os.path.join(main_dir, 'results')
@@ -42,6 +43,7 @@ sim_dir_data = {'main_dir': main_dir,
                 'python_lib_dir': python_lib_dir,
                 'force_field_path': force_field_path,
                 'core_path': core_path,
+                'core_mof_dir': core_mof_dir,
                 'mof_dir': mof_dir,
                 'energy_map_dir': energy_map_dir,
                 'export_dir': export_dir,
@@ -122,3 +124,12 @@ def export_summary_txt(export_dir, summary, base_mof, mobile_mof):
         os.remove(summary_file_path)
     with open(summary_file_path, 'w') as summary_file:
         summary_file.write(summary_text)
+
+
+def export_structure_info(export_dir, structure_info):
+    """
+    Export structure information such as collision, rotation.
+    """
+    structure_info_path = os.path.join(export_dir, 'structure_info.txt')
+    with open(structure_info_path, 'w') as structure_info_file:
+        structure_info_file.write(structure_info)

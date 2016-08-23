@@ -4,7 +4,7 @@ import sys
 # Load IPMOF python libraries
 from ipmof.crystal import MOF
 from ipmof.forcefield import read_ff_parameters
-from ipmof.energymap import import_energy_map, get_mof_list, get_mof_file_list
+from ipmof.energymap import import_energy_map, get_mof_list
 from ipmof.interpenetration import run_interpenetration
 from ipmof.core import core_mof_properties, core_mof_sort, core_mof_dir
 from ipmof.parameters import export_init_txt
@@ -18,12 +18,14 @@ force_field = read_ff_parameters(sim_dir['force_field_path'], sim_par['force_fie
 if sim_par['core_database']:
     # Create MOf list from CoRE database
     mof_properties = core_mof_properties(sim_dir['core_path'])
-    sorted_mofs = core_mof_sort(mof_properties, sort='void_fraction', limit=0.85)
-    mol2_list = core_mof_dir(sorted_mofs, sim_dir['mof_dir'])
-    mof_list = get_mof_list(mol2_list, force_field)
+    sorted_mofs = core_mof_sort(mof_properties, sort='void_fraction', limit=0.9)
+    mof_path_list = core_mof_dir(sorted_mofs, sim_dir['core_mof_dir'])
+    mof_list = get_mof_list(mof_path_list, force_field)
 else:
     # Create MOF list by reading mol2 files from a directory
-    mof_list = get_mof_file_list(sim_dir['mof_dir'], 'cif', force_field)
+    mof_path_list = os.listdir(sim_dir['mof_dir'])
+    mof_path_list = [os.path.join(sim_dir['mof_dir'], path) for path in mof_path_list]
+    mof_list = get_mof_list(mof_path_list, force_field)
 
 emap_name = os.listdir(sim_dir['energy_map_dir'])[0]
 base_mof_dir = os.path.join(sim_dir['mof_dir'], emap_name.split('_emap')[0] + '.cif')
