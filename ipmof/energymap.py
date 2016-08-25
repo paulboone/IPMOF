@@ -146,19 +146,17 @@ def export_energy_map(emap, atom_list, sim_par, emap_export_dir, mof_name):
         print('Energy map exported as', emap_file_path)
 
 
-def import_energy_map(sim_par, sim_dir, mof_name):
+def import_energy_map(sim_par, sim_dir, emap_file_path):
     """
     Reads energy map (yaml or numpy) from a given directory and returns both atom list and energy map.
     """
     if sim_par['energy_map_type'] == 'yaml':
-        emap_file_path = os.path.join(sim_dir['energy_map_dir'], mof_name + '_emap.yaml')
         emap = yaml.load(open(emap_file_path, 'r'))
         atom_list = emap['atom_list']
         energy_map = emap['energy_map']
         return atom_list, energy_map
 
     if sim_par['energy_map_type'] == 'numpy':
-        emap_file_path = os.path.join(sim_dir['energy_map_dir'], mof_name + '_emap.npy')
         emap = np.load(emap_file_path)
         atom_list = {'atom': emap[0], 'sigma': emap[1], 'epsilon': emap[2]}
         energy_map = emap[3]
