@@ -27,7 +27,7 @@ else:
     mof_list = get_mof_list(mof_path_list, force_field)
 
 # Calculate atom list according to 'energy_map_atom_list' simulation parameter
-atom_list = energy_map_atom_list(sim_par, force_field, mof_list)
+atom_list = energy_map_atom_list(sim_par, force_field, mof_path_list)
 
 # Export initialization file containing MOF names and simulation parameters
 print('Starting energy map calculation with grid size:', sim_par['grid_size'],

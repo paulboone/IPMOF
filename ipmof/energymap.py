@@ -179,13 +179,15 @@ def get_mof_list(mof_path_list, force_field):
     return mof_list
 
 
-def uniq_atom_list(mof_list):
+def uniq_atom_list(mof_path_list, force_field):
     """
     Gets atom name, epsilon, and sigma values for non-repeating (unique) atoms in a list of
-    MOF classes.
+    MOF file paths.
     """
     all_atom_list = {'atom': [], 'sigma': [], 'epsilon': []}
-    for mof in mof_list:
+    for mof_path in mof_path_list:
+        mof = MOF(mof_path)
+        mof.force_field(force_field)
         for atom, sig, eps in zip(mof.uniq_atom_names, mof.sigma, mof.epsilon):
             all_atom_list['atom'].append(atom)
             all_atom_list['sigma'].append(sig)
@@ -224,7 +226,7 @@ def qnd_atom_list(force_field, dummy_name, dummy_sigma, dummy_epsilon):
     return qnd_atom_list
 
 
-def energy_map_atom_list(sim_par, force_field, mof_list):
+def energy_map_atom_list(sim_par, force_field, mof_path_list):
     """
     Returns atom list for energy map according to 'energy_map_atom_list' simulation parameter.
      - 'full': Full atom list in the force field parameters database. (103 atoms)
@@ -239,7 +241,7 @@ def energy_map_atom_list(sim_par, force_field, mof_list):
 
     # Get atom list according to energy map atom list type
     if sim_par['energy_map_atom_list'] == 'uniq':
-        atom_list = uniq_atom_list(mof_list)
+        atom_list = uniq_atom_list(mof_path_list, force_field)
     elif sim_par['energy_map_atom_list'] == 'full':
         atom_list = force_field
     elif sim_par['energy_map_atom_list'] == 'dummy':
