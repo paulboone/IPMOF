@@ -11,6 +11,7 @@ import yaml
 from ipmof.forcefield import lorentz_berthelot_mix, lennard_jones
 from ipmof.crystal import MOF
 from ipmof.parameters import sim_dir_data as sim_dir    # Import simulation directories
+from ipmof.core import core_mof_properties, core_mof_sort, core_mof_dir
 
 
 def energy_map(sim_par, mof_path, atom_list, force_field, export=True, export_dir=sim_dir['energy_map_dir']):
@@ -171,17 +172,21 @@ def coor_dist(coor1, coor2):
     return sqrt((coor1[0] - coor2[0])**2 + (coor1[1] - coor2[1])**2 + (coor1[2] - coor2[2])**2)
 
 
-def get_mof_list(mof_path_list, force_field):
+def get_mof_list(sim_par, sim_dir):
     """
     Generates a list of MOF objects using a given list of MOF file directories
     """
-    mof_list = []
-    for mof_path in mof_path_list:
-        mof_obj = MOF(mof_path)
-        mof_obj.force_field(force_field)
-        mof_list.append(mof_obj)
+    if sim_par['core_database']:
+        # Create MOf list from CoRE database
+        mof_properties = core_mof_properties(sim_dir['core_path'])
+        sorted_mofs = core_mof_sort(mof_properties, sort='void_fraction', limit=0.85)
+        mof_path_list = core_mof_dir(sorted_mofs, sim_dir['mof_dir'])
+    else:
+        # Create MOF list by reading structure files from a directory
+        mof_path_list = os.listdir(sim_dir['mof_dir'])
+        mof_path_list = [os.path.join(sim_dir['mof_dir'], path) for path in mof_path_list]
 
-    return mof_list
+    return mof_path_list
 
 
 def uniq_atom_list(mof_path_list, force_field):
