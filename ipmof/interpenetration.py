@@ -345,7 +345,7 @@ def run_interpenetration(base_mof_path, mobile_mof_path, emap_path, sim_par, sim
     """
     base_mof = MOF(base_mof_path)
     mobile_mof = MOF(mobile_mof_path)
-    atom_list, emap = import_energy_map(sim_par, sim_dir, emap_path)
+    atom_list, emap = import_energy_map(emap_path)
 
     summary, new_structures = check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list)
 
