@@ -19,8 +19,8 @@ mof_path_list = get_mof_list(sim_par, sim_dir)
 atom_list = energy_map_atom_list(sim_par, force_field, mof_path_list)
 
 # Export initialization file containing MOF names and simulation parameters
-print('Starting energy map calculation with grid size:', sim_par['grid_size'],
-      'and cut off radius:', sim_par['cut_off'])
+print('Starting energy map calculation for', len(mof_path_list), 'MOFs (grid size:',
+      sim_par['grid_size'], '| cut-off radius:', str(sim_par['cut_off']) + ')')
 print('Atom list ->', atom_list['atom'])
 print('Energy map(s) will be exported in', sim_par['energy_map_type'], 'format')
 
@@ -28,7 +28,7 @@ print('Energy map(s) will be exported in', sim_par['energy_map_type'], 'format')
 for mof_index, mof_path in enumerate(mof_path_list):
 
     print('-' * 80)
-    print(mof_index, 'Calculating energy map for ->', os.path.basename(mof_path))
+    print(mof_index + 1, 'Calculating energy map for ->', os.path.basename(mof_path))
     # Submit jobs here
     if sys.argv[-1] == 'q':
         # Load job server libraries
