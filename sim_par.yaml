@@ -1,4 +1,4 @@
-atom_energy_limit: 3.0
+atom_energy_limit: 30000.0
 core_database: false
 cut_off: 12
 energy_map_atom_list: qnd
@@ -15,7 +15,7 @@ ext_cut_off: 50
 force_field: uff
 grid_size: 1
 rotation_freedom: 30
-rotation_limit: 1
+rotation_limit: 20
 self_interpenetration: true
-structure_energy_limit: 300.0
+structure_energy_limit: 3000000.0
 summary_percent: 5

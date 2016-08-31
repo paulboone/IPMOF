@@ -17,7 +17,7 @@ for list_index, emap_path in enumerate(interpenetration_list['emap_path']):
     emap_mof_path = interpenetration_list['emap_mof_path'][list_index]
 
     ip_index = str(list_index + 1)
-    print('-' * 80 + '\n' + ip_index, 'Energy map ->', os.path.basename(emap_mof_path))
+    print('-' * 80 + '\n' + ip_index, 'Energy map ->', os.path.basename(emap_path))
     print(' ' * len(ip_index), 'Interpenetration ->', os.path.basename(ip_mof_path) + '\n' + '-' * 80)
 
     # Run interpenetration
