@@ -32,7 +32,7 @@ def energy_map(sim_par, mof_path, atom_list, force_field, export=True, export_di
     """
     # Initialize MOF and extend structure for energy map calculation
     mof = MOF(mof_path)
-    mof.force_field(force_field)
+    mof.set_force_field(force_field)
     extended_structure = mof.extend_unit_cell(sim_par['cut_off'])
     # Read cut-off and grid size from simulation parameters
     cut_off = sim_par['cut_off']
@@ -197,7 +197,7 @@ def uniq_atom_list(mof_path_list, force_field):
     all_atom_list = {'atom': [], 'sigma': [], 'epsilon': []}
     for mof_path in mof_path_list:
         mof = MOF(mof_path)
-        mof.force_field(force_field)
+        mof.set_force_field(force_field)
         for atom, sig, eps in zip(mof.uniq_atom_names, mof.sigma, mof.epsilon):
             all_atom_list['atom'].append(atom)
             all_atom_list['sigma'].append(sig)
