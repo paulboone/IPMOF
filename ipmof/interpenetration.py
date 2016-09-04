@@ -335,7 +335,7 @@ def save_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_stru
     return extended_structure
 
 
-def run_interpenetration(base_mof_path, mobile_mof_path, emap_path, sim_par, sim_dir):
+def run_interpenetration(interpenetration_path, sim_par, sim_dir):
     """
     Interpenetration algorithm for job server.
     1) Checks Interpenetration
@@ -343,6 +343,7 @@ def run_interpenetration(base_mof_path, mobile_mof_path, emap_path, sim_par, sim
         - Performs collision check by extending interpenetrating structure
         - Saves requested structure files
     """
+    emap_path, base_mof_path, mobile_mof_path = interpenetration_path
     base_mof = MOF(base_mof_path)
     mobile_mof = MOF(mobile_mof_path)
     atom_list, emap = import_energy_map(emap_path)
@@ -432,7 +433,9 @@ def get_interpenetration_list(sim_par, sim_dir):
     mof_path_list = get_mof_list(sim_par, sim_dir)
     emap_path_list = os.listdir(sim_dir['energy_map_dir'])
 
-    interpenetration_list = {'emap_path': [], 'emap_mof_path': [], 'ip_mof_path': []}
+    interpenetration_list = []
+    ip_mof_list = []
+    emap_mof_list = []
 
     for emap_path in emap_path_list:
 
@@ -446,12 +449,12 @@ def get_interpenetration_list(sim_par, sim_dir):
             if emap_mof_path == ip_mof_path and not sim_par['self_interpenetration']:
                 continue
 
-            elif emap_mof_path in interpenetration_list['ip_mof_path'] and ip_mof_path in interpenetration_list['emap_mof_path']:
+            elif emap_mof_path in ip_mof_list and ip_mof_path in emap_mof_list:
                 continue
 
             else:
-                interpenetration_list['ip_mof_path'].append(ip_mof_path)
-                interpenetration_list['emap_mof_path'].append(emap_mof_path)
-                interpenetration_list['emap_path'].append(emap_path)
+                interpenetration_list.append((emap_path, emap_mof_path, ip_mof_path))
+                ip_mof_list.append(ip_mof_path)
+                emap_mof_list.append(emap_mof_path)
 
     return interpenetration_list
