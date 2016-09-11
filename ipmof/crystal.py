@@ -26,7 +26,7 @@ class MOF:
             self.path = file_path
             self.name, file_format = os.path.splitext(os.path.basename(file_path))
             file_format = file_format[1:]
-            molecule = ase.read(file_path, input_format=file_format)
+            self.ase_atoms, molecule = ase.read(file_path, input_format=file_format)
 
             self.atom_coors = molecule['atom_coors']
             self.atom_names = molecule['atom_names']
