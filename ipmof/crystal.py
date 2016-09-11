@@ -4,18 +4,17 @@
 import math
 import os
 from ipmof.forcefield import get_ff_parameters
-import ipmof.io as io
+from ipmof.io import ase
 
 
 class MOF:
     """
     MOF class that holds coordinate, atom name, and unit cell information
     """
-    def __init__(self, file_path, file_format='cif', reader='ase'):
+    def __init__(self, file_path, file_format='cif'):
         """
         Initialize MOF name, unit cell volume and parameters, atom names and coordinates, and
         unique atom names and coordinates.
-        reader -> ('babel' / 'ase')
         file_format -> ('cif' / 'dict' / 'mol2' / ...)
         """
         if file_format == 'dict':
@@ -27,9 +26,7 @@ class MOF:
             self.path = file_path
             self.name, file_format = os.path.splitext(os.path.basename(file_path))
             file_format = file_format[1:]
-            # Import reader library from ipmof.io and read structure file into a dictionary
-            reader_lib = __import__('ipmof.io.' + reader, fromlist=[''])
-            molecule = reader_lib.read(file_path, input_format=file_format)
+            molecule = ase.read(file_path, input_format=file_format)
 
             self.atom_coors = molecule['atom_coors']
             self.atom_names = molecule['atom_names']
