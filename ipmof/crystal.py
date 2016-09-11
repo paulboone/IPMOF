@@ -146,11 +146,14 @@ class MOF:
         new_atom_name = atom_color[1]
         joined_atom_names = []
         joined_atom_coors = []
+        joined_ase_atoms = self.ase_atoms.copy()
 
         if colorify:
+            joined_ase_atoms.set_chemical_symbols([base_atom_name] * len(self.atom_names))
             for coor in new_mof.atom_coors:
                 joined_atom_names.append(new_atom_name)
                 joined_atom_coors.append(coor)
+                joined_ase_atoms.append(ase.ase_atom(symbol=new_atom_name, position=coor))
 
             for coor in self.atom_coors:
                 joined_atom_names.append(base_atom_name)
@@ -160,6 +163,7 @@ class MOF:
             for atom, coor in zip(new_mof.atom_names, new_mof.atom_coors):
                 joined_atom_names.append(atom)
                 joined_atom_coors.append(coor)
+                joined_ase_atoms.append(ase.ase_atom(symbol=atom, position=coor))
 
             for atom, coor in zip(self.atom_names, self.atom_coors):
                 joined_atom_names.append(atom)
@@ -168,6 +172,7 @@ class MOF:
         joined_structure = {'atom_names': joined_atom_names, 'atom_coors': joined_atom_coors}
         joined_structure['name'] = self.name + '_' + new_mof.name
         joined_mof = MOF(joined_structure, file_format='dict')
+        joined_mof.ase_atoms = joined_ase_atoms
 
         return joined_mof
 

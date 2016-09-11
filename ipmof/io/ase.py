@@ -4,6 +4,7 @@
 import os
 from ase.io import read as ase_read
 from ase.geometry import cell_to_cellpar as ase_cellpar
+from ase import Atom as ase_atom
 
 
 def read(file_path, input_format=None):
