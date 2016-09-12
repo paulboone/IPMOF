@@ -194,6 +194,10 @@ class MOF:
                 for atom, coor in zip(self.atom_names, self.atom_coors):
                     xyz_file.write(atom + ' ' + str(coor[0]) + ' ' + str(coor[1]) + ' ' + str(coor[2]) + '\n')
 
+        else:
+            file_path = os.path.join(export_dir, self.name + '.' + file_format)
+            ase.write(file_path, self.ase_atoms, file_format=file_format)
+
 
 class Packing:
     """

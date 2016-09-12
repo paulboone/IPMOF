@@ -3,7 +3,7 @@ core_database: false
 cut_off: 12
 energy_map_atom_list: qnd
 energy_map_type: numpy
-export_format: xyz
+export_format: cif
 export_packed: true
 export_packed_color: true
 export_pbc: true
