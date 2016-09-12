@@ -375,47 +375,8 @@ def run_interpenetration(interpenetration_path, sim_par, sim_dir):
                                    'rotation': [round(math.degrees(a)) for a in min_energy_structure['rotation']],
                                    'initial_coordinate': [float(round(p, 1)) for p in min_energy_structure['first_point']]})
 
-            # Record new structure ---------------------------------------------------------
-            new_structure = {'atom_names': min_energy_structure['atom_names'], 'name': mobile_mof.name}
-            if sim_par['export_pbc']:
-                new_structure['atom_coors'] = min_energy_structure['pbc_coors']
-            else:
-                new_structure['atom_coors'] = min_energy_structure['atom_coors']
-            new_mobile_mof = MOF(new_structure, file_format='dict')
-
-            # Export structures ------------------------------------------------------------
-            if sim_par['export_single']:
-                new_mobile_mof = MOF(new_structure, file_format='dict')
-                joined_mof = base_mof.join(new_mobile_mof, colorify=False)
-                joined_mof.name += '_' + str(export_index + 1)
-                joined_mof.export(export_dir, file_format=sim_par['export_format'])
-
-            if sim_par['export_single_color']:
-                # Join base and mobile structure layers
-                new_mobile_mof = MOF(new_structure, file_format='dict')
-                joined_mof_color = base_mof.join(new_mobile_mof, colorify=True)
-                joined_mof_color.name += '_' + str(export_index + 1) + 'C'
-                joined_mof_color.export(export_dir, file_format=sim_par['export_format'])
-
-            if sim_par['export_packed']:
-                # Pack new structure by using rotation and first point information
-                extended_structure = base_mof.extend_unit_cell(sim_par['cut_off'])
-                packed_structure = save_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
-                packed_mobile_mof = MOF(packed_structure, file_format='dict')
-                packed_base_mof = MOF(extended_structure, file_format='dict')
-                joined_packed_mof = packed_base_mof.join(packed_mobile_mof, colorify=False)
-                joined_packed_mof.name += '_' + str(export_index + 1) + 'P'
-                joined_packed_mof.export(export_dir, file_format=sim_par['export_format'])
-
-            if sim_par['export_packed_color']:
-                # Pack new structure by using rotation and first point information
-                extended_structure = base_mof.extend_unit_cell(sim_par['cut_off'])
-                packed_structure = save_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
-                packed_mobile_mof = MOF(packed_structure, file_format='dict')
-                packed_base_mof = MOF(extended_structure, file_format='dict')
-                joined_packed_mof = packed_base_mof.join(packed_mobile_mof, colorify=True)
-                joined_packed_mof.name += '_' + str(export_index + 1) + 'PC'
-                joined_packed_mof.export(export_dir, file_format=sim_par['export_format'])
+            # Export new structure(s) -------------------------------------------------------
+            export_structures(sim_par, base_mof, mobile_mof, min_energy_structure, emap, atom_list, export_index, export_dir)
 
     export_interpenetration_results(sim_par, structure_info, summary, export_dir)
 
@@ -458,3 +419,48 @@ def get_interpenetration_list(sim_par, sim_dir):
                 emap_mof_list.append(emap_mof_path)
 
     return interpenetration_list
+
+
+def export_structures(sim_par, base_mof, mobile_mof, min_energy_structure, emap, atom_list, export_index, export_dir):
+    """
+    Export requested interpenetration structures.
+    Types of structures can be selected from simulation parameters.
+    """
+    new_structure = {'atom_names': min_energy_structure['atom_names'], 'name': mobile_mof.name}
+    if sim_par['export_pbc']:
+        new_structure['atom_coors'] = min_energy_structure['pbc_coors']
+    else:
+        new_structure['atom_coors'] = min_energy_structure['atom_coors']
+
+    if sim_par['export_single']:
+        new_mobile_mof = MOF(new_structure, file_format='dict')
+        joined_mof = base_mof.join(new_mobile_mof, colorify=False)
+        joined_mof.name += '_' + str(export_index + 1)
+        joined_mof.export(export_dir, file_format=sim_par['export_format'])
+
+    if sim_par['export_single_color']:
+        # Join base and mobile structure layers
+        new_mobile_mof = MOF(new_structure, file_format='dict')
+        joined_mof_color = base_mof.join(new_mobile_mof, colorify=True)
+        joined_mof_color.name += '_' + str(export_index + 1) + 'C'
+        joined_mof_color.export(export_dir, file_format=sim_par['export_format'])
+
+    if sim_par['export_packed']:
+        # Pack new structure by using rotation and first point information
+        extended_structure = base_mof.extend_unit_cell(sim_par['cut_off'])
+        packed_structure = save_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
+        packed_mobile_mof = MOF(packed_structure, file_format='dict')
+        packed_base_mof = MOF(extended_structure, file_format='dict')
+        joined_packed_mof = packed_base_mof.join(packed_mobile_mof, colorify=False)
+        joined_packed_mof.name += '_' + str(export_index + 1) + 'P'
+        joined_packed_mof.export(export_dir, file_format=sim_par['export_format'])
+
+    if sim_par['export_packed_color']:
+        # Pack new structure by using rotation and first point information
+        extended_structure = base_mof.extend_unit_cell(sim_par['cut_off'])
+        packed_structure = save_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
+        packed_mobile_mof = MOF(packed_structure, file_format='dict')
+        packed_base_mof = MOF(extended_structure, file_format='dict')
+        joined_packed_mof = packed_base_mof.join(packed_mobile_mof, colorify=True)
+        joined_packed_mof.name += '_' + str(export_index + 1) + 'PC'
+        joined_packed_mof.export(export_dir, file_format=sim_par['export_format'])
