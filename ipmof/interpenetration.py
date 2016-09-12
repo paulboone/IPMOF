@@ -449,9 +449,10 @@ def export_structures(sim_par, base_mof, mobile_mof, min_energy_structure, emap,
         # Pack new structure by using rotation and first point information
         extended_structure = base_mof.extend_unit_cell(sim_par['cut_off'])
         packed_structure = save_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
-        packed_mobile_mof = MOF(packed_structure, file_format='dict')
-        packed_base_mof = MOF(extended_structure, file_format='dict')
-        joined_packed_mof = packed_base_mof.join(packed_mobile_mof, colorify=False)
+        joined_structure = {'atom_coors': packed_structure['atom_coors'] + extended_structure['atom_coors'],
+                            'atom_names': packed_structure['atom_names'] + extended_structure['atom_names'],
+                            'name': packed_structure['name'] + '_' + extended_structure['name']}
+        joined_packed_mof = MOF(joined_structure, file_format='dict')
         joined_packed_mof.name += '_' + str(export_index + 1) + 'P'
         joined_packed_mof.export(export_dir, file_format=sim_par['export_format'])
 
@@ -459,8 +460,10 @@ def export_structures(sim_par, base_mof, mobile_mof, min_energy_structure, emap,
         # Pack new structure by using rotation and first point information
         extended_structure = base_mof.extend_unit_cell(sim_par['cut_off'])
         packed_structure = save_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
-        packed_mobile_mof = MOF(packed_structure, file_format='dict')
-        packed_base_mof = MOF(extended_structure, file_format='dict')
-        joined_packed_mof = packed_base_mof.join(packed_mobile_mof, colorify=True)
+        joined_structure = {'atom_coors': packed_structure['atom_coors'] + extended_structure['atom_coors'],
+                            'atom_names': ['C'] * len(packed_structure['atom_names']) +
+                                          ['O'] * len(extended_structure['atom_names']),
+                            'name': packed_structure['name'] + '_' + extended_structure['name']}
+        joined_packed_mof = MOF(joined_structure, file_format='dict')
         joined_packed_mof.name += '_' + str(export_index + 1) + 'PC'
         joined_packed_mof.export(export_dir, file_format=sim_par['export_format'])
