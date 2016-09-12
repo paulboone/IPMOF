@@ -4,3 +4,4 @@ results
 settings/sjs.yaml
 !energymap
 logs
+.sjs_running
