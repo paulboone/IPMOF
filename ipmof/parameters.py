@@ -38,8 +38,8 @@ energy_map_dir = os.path.join(main_dir, 'energymap')
 export_dir = os.path.join(main_dir, 'results')
 if not os.path.isdir(export_dir):
     os.mkdir(export_dir)
-sim_par_path = os.path.join(main_dir, 'sim_par.yaml')
-sim_dir_path = os.path.join(main_dir, 'sim_dir.yaml')
+sim_par_path = os.path.join(main_dir, 'settings', 'sim_par.yaml')
+sim_dir_path = os.path.join(main_dir, 'settings', 'sim_dir.yaml')
 
 # Simulation Directories Data:
 sim_dir_data = {'main_dir': main_dir,
@@ -75,7 +75,7 @@ def export_sim_par(inp_dir=main_dir):
     Export simulation parameters input file to given directory.
     If no directory is given the file will be exported to default location defined in this library.
     """
-    sim_par_path = os.path.join(main_dir, 'sim_par.yaml')
+    sim_par_path = os.path.join(main_dir, 'settings', 'sim_par.yaml')
     with open(sim_par_path, 'w') as sim_par_file:
         yaml.dump(sim_par_data, sim_par_file, default_flow_style=False)
 
@@ -85,7 +85,7 @@ def export_sim_dir(inp_dir=main_dir):
     Export simulation directories to given directory.
     If no directory is given the file will be exported to default location defined in this library.
     """
-    sim_dir_path = os.path.join(main_dir, 'sim_dir.yaml')
+    sim_dir_path = os.path.join(main_dir, 'settings', 'sim_dir.yaml')
     with open(sim_dir_path, 'w') as sim_dir_file:
         yaml.dump(sim_dir_data, sim_dir_file, default_flow_style=False)
 

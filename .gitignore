@@ -5,3 +5,5 @@ settings/sjs.yaml
 !energymap
 logs
 .sjs_running
+settings/sim_par.yaml
+settings/sim_dir.yaml
