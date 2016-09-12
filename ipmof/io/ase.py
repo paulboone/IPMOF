@@ -3,6 +3,7 @@
 # Author: Kutay B. Sezginel
 import os
 from ase.io import read as ase_read
+from ase.io import write as ase_write
 from ase.geometry import cell_to_cellpar as ase_cellpar
 from ase import Atom as ase_atom
 
@@ -30,3 +31,7 @@ def read(file_path, input_format=None):
                 'atom_coors': atom_coors}
 
     return atoms, molecule
+
+
+def write(file_path, ase_atoms, file_format=None):
+    ase_write(file_path, ase_atoms, format=file_format)

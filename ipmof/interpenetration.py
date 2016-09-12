@@ -454,7 +454,7 @@ def export_structures(sim_par, base_mof, mobile_mof, min_energy_structure, emap,
                             'name': packed_structure['name'] + '_' + extended_structure['name']}
         joined_packed_mof = MOF(joined_structure, file_format='dict')
         joined_packed_mof.name += '_' + str(export_index + 1) + 'P'
-        joined_packed_mof.export(export_dir, file_format=sim_par['export_format'])
+        joined_packed_mof.export(export_dir, file_format='xyz')
 
     if sim_par['export_packed_color']:
         # Pack new structure by using rotation and first point information
@@ -466,4 +466,4 @@ def export_structures(sim_par, base_mof, mobile_mof, min_energy_structure, emap,
                             'name': packed_structure['name'] + '_' + extended_structure['name']}
         joined_packed_mof = MOF(joined_structure, file_format='dict')
         joined_packed_mof.name += '_' + str(export_index + 1) + 'PC'
-        joined_packed_mof.export(export_dir, file_format=sim_par['export_format'])
+        joined_packed_mof.export(export_dir, file_format='xyz')
