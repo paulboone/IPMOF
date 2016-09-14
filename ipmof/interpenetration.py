@@ -410,7 +410,7 @@ def get_interpenetration_list(sim_par, sim_dir):
             if emap_mof_path == ip_mof_path and not sim_par['self_interpenetration']:
                 continue
 
-            elif emap_mof_path in ip_mof_list and ip_mof_path in emap_mof_list:
+            elif emap_mof_path in ip_mof_list and ip_mof_path in emap_mof_list and emap_mof_path != ip_mof_path:
                 continue
 
             else:
