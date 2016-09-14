@@ -94,7 +94,7 @@ def export_interpenetration_results(sim_par, structure_info, summary, export_dir
     """
     Export interpenetration results in yaml format.
     """
-    sim_par_dict = {'simulation_parameters': sim_par_data}
+    sim_par_dict = {'simulation_parameters': sim_par}
     structure_dict = {'structure_info': structure_info}
     summary_dict = {'summary': summary}
 
