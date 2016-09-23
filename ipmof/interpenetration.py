@@ -46,36 +46,31 @@ def initial_coordinates(mof, energy_map, atom_list, energy_limit):
     return initial_coors
 
 
-def trilinear_interpolate(point, atom_index, emap, emap_max, emap_min):
+def tripolate(point, atom_index, emap, x_length, y_length):
     """
-    *** Working but needs to be checked for accuracy ***
     3D Linear Interpolation for given energy map and point in space (point must be in emap).
     Only works for energy map constructed with a grid size of 1.
-    MODIFIES INPUT COORDINATE IF A ROUNDED COORDINATE VALUE IS GIVEN!!!!!!!!!!!!!
     """
-    point1 = []
     point0 = []
     dif = []
     for p in point:
-        if round(p) == p:
-            p += 1E-10
         point0.append(math.floor(p))
-        point1.append(math.ceil(p))
-        dif.append((p - point0[-1]) / (point1[-1] - point0[-1]))
+        dif.append(p - point0[-1])
 
-    i000 = energy_map_index(point0, emap_max, emap_min)                               # (0, 0, 0)
-    i100 = energy_map_index([point1[0], point0[1], point0[2]], emap_max, emap_min)    # (1, 0, 0)
-    i001 = energy_map_index([point0[0], point0[1], point1[2]], emap_max, emap_min)    # (0, 0, 1)
-    i101 = energy_map_index([point1[0], point0[1], point1[2]], emap_max, emap_min)    # (1, 0, 1)
-    i010 = energy_map_index([point0[0], point1[1], point0[2]], emap_max, emap_min)    # (0, 1, 0)
-    i110 = energy_map_index([point1[0], point1[1], point0[2]], emap_max, emap_min)    # (1, 1, 0)
-    i011 = energy_map_index([point0[0], point1[1], point1[2]], emap_max, emap_min)    # (0, 1, 1)
-    i111 = energy_map_index(point1, emap_max, emap_min)                               # (1, 1, 1)
+    i000 = int(point0[0] * x_length + point0[1] * y_length + point0[2])
+    i001 = i000 + 1
+    i010 = i000 + y_length
+    i011 = i010 + 1
+    i100 = i000 + x_length
+    i101 = i100 + 1
+    i110 = i010 + x_length
+    i111 = i110 + 1
 
-    c00 = emap[i000][atom_index] * (1 - dif[0]) + emap[i100][atom_index] * dif[0]
-    c01 = emap[i001][atom_index] * (1 - dif[0]) + emap[i101][atom_index] * dif[0]
-    c10 = emap[i010][atom_index] * (1 - dif[0]) + emap[i110][atom_index] * dif[0]
-    c11 = emap[i011][atom_index] * (1 - dif[0]) + emap[i111][atom_index] * dif[0]
+    d1 = 1 - dif[0]
+    c00 = emap[i000][atom_index] * d1 + emap[i100][atom_index] * dif[0]
+    c01 = emap[i001][atom_index] * d1 + emap[i101][atom_index] * dif[0]
+    c10 = emap[i010][atom_index] * d1 + emap[i110][atom_index] * dif[0]
+    c11 = emap[i011][atom_index] * d1 + emap[i111][atom_index] * dif[0]
 
     c0 = c00 * (1 - dif[1]) + c10 * dif[1]
     c1 = c01 * (1 - dif[1]) + c11 * dif[1]
@@ -99,6 +94,8 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
 
     emap_max = [emap[-1][0], emap[-1][1], emap[-1][2]]
     emap_min = [emap[0][0], emap[0][1], emap[0][2]]
+    side_length = [emap_max[0] - emap_min[0] + 1, emap_max[1] - emap_min[1] + 1, emap_max[2] - emap_min[2] + 1]
+    x_length, y_length = int(side_length[1] * side_length[2]), int(side_length[2])
 
     # Initialize simulation variables
     Quat = Quaternion([0, 1, 1, 1])
@@ -176,7 +173,7 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                     emap_index = energy_map_index(pbc_coor.xyz(), emap_max, emap_min)
                     emap_atom_index = energy_map_atom_index(atom_name, atom_list)
 
-                    point_energy = trilinear_interpolate(pbc_coor.xyz(), emap_atom_index, emap, emap_max, emap_min)
+                    point_energy = tripolate(pbc_coor.xyz(), emap_atom_index, emap, x_length, y_length)
                     structure_total_energy += point_energy
 
                     if structure_total_energy > structure_energy_limit:
@@ -223,6 +220,8 @@ def check_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_str
     """
     emap_max = [emap[-1][0], emap[-1][1], emap[-1][2]]
     emap_min = [emap[0][0], emap[0][1], emap[0][2]]
+    side_length = [emap_max[0] - emap_min[0] + 1, emap_max[1] - emap_min[1] + 1, emap_max[2] - emap_min[2] + 1]
+    x_length, y_length = int(side_length[1] * side_length[2]), int(side_length[2])
 
     energy_limit = sim_par['atom_energy_limit']
     ext_cut_off = sim_par['ext_cut_off']
@@ -265,7 +264,7 @@ def check_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_str
                     atom_name = mobile_mof.atom_names[coor_index]
                     atom_index = energy_map_atom_index(atom_name, emap_atom_list)
 
-                    point_energy = trilinear_interpolate(pbc_coor.xyz(), atom_index, emap, emap_max, emap_min)
+                    point_energy = tripolate(pbc_coor.xyz(), atom_index, emap, x_length, y_length)
 
                     if point_energy < energy_limit:
                         continue
