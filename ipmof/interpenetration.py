@@ -9,7 +9,7 @@ from glob import glob
 
 from ipmof.crystal import Packing, MOF
 from ipmof.geometry import Coor, Quaternion
-from ipmof.energymap import energy_map_index, energy_map_atom_index, import_energy_map, get_mof_list
+from ipmof.energymap import energy_map_atom_index, import_energy_map, get_mof_list
 from ipmof.parameters import export_interpenetration_results
 
 
@@ -170,7 +170,6 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                     new_coor += translation_vector
                     pbc_coor = new_coor.pbc(base_mof.uc_size, base_mof.uc_angle, base_mof.frac_ucv)
 
-                    emap_index = energy_map_index(pbc_coor.xyz(), emap_max, emap_min)
                     emap_atom_index = energy_map_atom_index(atom_name, atom_list)
 
                     point_energy = tripolate(pbc_coor.xyz(), emap_atom_index, emap, x_length, y_length)

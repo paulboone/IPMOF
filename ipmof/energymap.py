@@ -89,22 +89,13 @@ def energy_map(sim_par, mof_path, atom_list, force_field, export=True, export_di
         return energy_map
 
 
-def energy_map_index(coor, emap_max, emap_min):
+def energy_map_index(coor, x_length, y_length):
     """
     Finds index of a coordinate in the energy map. Only works for grid_size = 1.
-    emap_max = [emap[-1][0], emap[-1][1], emap[-1][2]]
-    emap_min = [emap[0][0], emap[0][1], emap[0][2]]
+    side_length = [emap[-1][0] - emap[0][0] + 1, emap[-1][1] - emap[0][1] + 1, emap[-1][2] - emap[0][2] + 1]
+    x_length, y_length = int(side_length[1] * side_length[2]), int(side_length[2])
     """
-    side_length = []
-    round_coor = []
-
-    for c, emax, emin in zip(coor, emap_max, emap_min):
-        side_length.append(emax - emin + 1)
-        round_coor.append(round(c))
-    emap_index = round_coor[0] * side_length[1] * side_length[2]
-    emap_index += round_coor[1] * side_length[2] + round_coor[2]
-
-    return int(emap_index)
+    return int(round(coor[0]) * x_length + round(coor[1]) * y_length + round(coor[2]))
 
 
 def energy_map_atom_index(atom_name, atom_list):
