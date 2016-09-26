@@ -8,7 +8,7 @@ import shutil
 from glob import glob
 
 from ipmof.crystal import Packing, MOF
-from ipmof.geometry import Coor, Quaternion
+from ipmof.geometry import Coor, rotation
 from ipmof.energymap import energy_map_atom_index, import_energy_map, get_mof_list
 from ipmof.parameters import export_interpenetration_results
 
@@ -97,9 +97,6 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
     side_length = [emap_max[0] - emap_min[0] + 1, emap_max[1] - emap_min[1] + 1, emap_max[2] - emap_min[2] + 1]
     x_length, y_length = int(side_length[1] * side_length[2]), int(side_length[2])
 
-    # Initialize simulation variables
-    Quat = Quaternion([0, 1, 1, 1])
-
     initial_coors = initial_coordinates(base_mof, emap, atom_list, atom_energy_limit)
     trial_limit = len(initial_coors) * rotation_limit
     rot_freedom = 360 / rotation_freedom
@@ -136,13 +133,12 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
 
                     # Rotate first atom of the mobile MOF
                     atom_name = mobile_mof.atom_names[idx]
-                    new_coor = Coor(mobile_mof.atom_coors[idx])
-                    Q = Quaternion([1, new_coor.x, new_coor.y, new_coor.z])  # Might be a better way to do this
-                    Q = Quat.rotation(Q.xyz(), [0, 0, 0], [1, 0, 0], x_angle)
-                    Q = Quat.rotation(Q.xyz(), [0, 0, 0], [0, 1, 0], y_angle)
-                    Q = Quat.rotation(Q.xyz(), [0, 0, 0], [0, 0, 1], z_angle)
-                    # new_coor = Q.coor()
-                    new_coor = Coor(Q.xyz())
+
+                    rot_coor = mobile_mof.atom_coors[idx]
+                    rot_coor = rotation(rot_coor, [0, 0, 0], [1, 0, 0], x_angle)
+                    rot_coor = rotation(rot_coor, [0, 0, 0], [0, 1, 0], y_angle)
+                    rot_coor = rotation(rot_coor, [0, 0, 0], [0, 0, 1], z_angle)
+                    new_coor = Coor(rot_coor)
 
                     translation_vector = first_point - new_coor  # Check if operation is correct
 
@@ -159,13 +155,12 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                 # If interpenetration is still going on
                 if idx < len(base_mof) and idx > 0:
                     atom_name = atom_name = mobile_mof.atom_names[idx]
-                    new_coor = Coor(mobile_mof.atom_coors[idx])
-                    Q = Quaternion([1, new_coor.x, new_coor.y, new_coor.z])  # Might be a better way to do this
-                    Q = Quat.rotation(Q.xyz(), [0, 0, 0], [1, 0, 0], x_angle)
-                    Q = Quat.rotation(Q.xyz(), [0, 0, 0], [0, 1, 0], y_angle)
-                    Q = Quat.rotation(Q.xyz(), [0, 0, 0], [0, 0, 1], z_angle)
-                    # new_coor = Q.coor()
-                    new_coor = Coor(Q.xyz())
+
+                    rot_coor = mobile_mof.atom_coors[idx]
+                    rot_coor = rotation(rot_coor, [0, 0, 0], [1, 0, 0], x_angle)
+                    rot_coor = rotation(rot_coor, [0, 0, 0], [0, 1, 0], y_angle)
+                    rot_coor = rotation(rot_coor, [0, 0, 0], [0, 0, 1], z_angle)
+                    new_coor = Coor(rot_coor)
 
                     new_coor += translation_vector
                     pbc_coor = new_coor.pbc(base_mof.uc_size, base_mof.uc_angle, base_mof.frac_ucv)
@@ -229,8 +224,6 @@ def check_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_str
     first_point = new_structure['first_point']
     translation_vector = Coor(new_structure['translation_vector'])
 
-    Quat = Quaternion([0, 1, 1, 1])
-
     packing_factor = Packing.factor(mobile_mof.uc_size, ext_cut_off)
     uc_vectors = Packing.uc_vectors(mobile_mof.uc_size, mobile_mof.uc_angle)
     trans_vec = Packing.translation_vectors(packing_factor, uc_vectors)
@@ -250,12 +243,11 @@ def check_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_str
 
                 if not collision:
 
-                    new_coor = Coor(coor)
-                    Q = Quaternion([1, new_coor.x, new_coor.y, new_coor.z])  # Might be a better way to do this
-                    Q = Quat.rotation(Q.xyz(), [0, 0, 0], [1, 0, 0], x_angle)
-                    Q = Quat.rotation(Q.xyz(), [0, 0, 0], [0, 1, 0], y_angle)
-                    Q = Quat.rotation(Q.xyz(), [0, 0, 0], [0, 0, 1], z_angle)
-                    new_coor = Coor(Q.xyz())
+                    rot_coor = coor
+                    rot_coor = rotation(rot_coor, [0, 0, 0], [1, 0, 0], x_angle)
+                    rot_coor = rotation(rot_coor, [0, 0, 0], [0, 1, 0], y_angle)
+                    rot_coor = rotation(rot_coor, [0, 0, 0], [0, 0, 1], z_angle)
+                    new_coor = Coor(rot_coor)
 
                     new_coor += translation_vector
                     pbc_coor = new_coor.pbc(base_mof.uc_size, base_mof.uc_angle, base_mof.frac_ucv)
@@ -294,8 +286,6 @@ def save_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_stru
     first_point = new_structure['first_point']
     translation_vector = Coor(new_structure['translation_vector'])
 
-    Quat = Quaternion([0, 1, 1, 1])
-
     packing_factor = Packing.factor(mobile_mof.uc_size, export_cut_off)
     uc_vectors = Packing.uc_vectors(mobile_mof.uc_size, mobile_mof.uc_angle)
     trans_vec = Packing.translation_vectors(packing_factor, uc_vectors)
@@ -312,12 +302,11 @@ def save_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_stru
 
         for coor_index, coor in enumerate(unit_cell):
 
-            new_coor = Coor(coor)
-            Q = Quaternion([1, new_coor.x, new_coor.y, new_coor.z])  # Might be a better way to do this
-            Q = Quat.rotation(Q.xyz(), [0, 0, 0], [1, 0, 0], x_angle)
-            Q = Quat.rotation(Q.xyz(), [0, 0, 0], [0, 1, 0], y_angle)
-            Q = Quat.rotation(Q.xyz(), [0, 0, 0], [0, 0, 1], z_angle)
-            new_coor = Coor(Q.xyz())
+            rot_coor = coor
+            rot_coor = rotation(rot_coor, [0, 0, 0], [1, 0, 0], x_angle)
+            rot_coor = rotation(rot_coor, [0, 0, 0], [0, 1, 0], y_angle)
+            rot_coor = rotation(rot_coor, [0, 0, 0], [0, 0, 1], z_angle)
+            new_coor = Coor(rot_coor)
 
             new_coor += translation_vector
 

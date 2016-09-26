@@ -9,6 +9,24 @@
 # Date: June 2016
 # Author: Kutay B. Sezginel
 import math
+import mathutils
+
+
+def rotation(p, a1, a2, angle):
+    """
+    Quaternion rotation using mathutils library.
+    Rotation is performed for a given point and angle around an axis defined by two given points.
+     >>> new_point = rotation(rotation_point, axis_point1, axis_point2, rotation_angle)
+            p: point of rotation
+            a1: first point for rotation axis
+            a2: second point for rotation axis
+            angle: angle of rotaion in radians
+    """
+    Q_point = mathutils.Quaternion((0, p[0] - a2[0], p[1] - a2[1], p[2] - a2[2]))
+    Q_rot = mathutils.Quaternion((a2[0] - a1[0], a2[1] - a1[1], a2[2] - a1[2]), angle).normalized()
+    Quat = (Q_rot * Q_point) * Q_rot.inverted()
+
+    return [Quat.x + a2[0], Quat.y + a2[1], Quat.z + a2[2]]
 
 
 class Coor(object):
