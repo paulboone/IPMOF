@@ -8,7 +8,7 @@ import shutil
 from glob import glob
 
 from ipmof.crystal import Packing, MOF
-from ipmof.geometry import Coor, rotation
+from ipmof.geometry import Coor, xyz_rotation
 from ipmof.energymap import energy_map_atom_index, import_energy_map, get_mof_list
 from ipmof.parameters import export_interpenetration_results
 
@@ -135,11 +135,8 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                     atom_name = mobile_mof.atom_names[idx]
 
                     rot_coor = mobile_mof.atom_coors[idx]
-                    rot_coor = rotation(rot_coor, [0, 0, 0], [1, 0, 0], x_angle)
-                    rot_coor = rotation(rot_coor, [0, 0, 0], [0, 1, 0], y_angle)
-                    rot_coor = rotation(rot_coor, [0, 0, 0], [0, 0, 1], z_angle)
+                    rot_coor = xyz_rotation(rot_coor, [x_angle, y_angle, z_angle])
                     new_coor = Coor(rot_coor)
-
                     translation_vector = first_point - new_coor  # Check if operation is correct
 
                     # Initialize new structure dictionay
@@ -157,11 +154,8 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                     atom_name = atom_name = mobile_mof.atom_names[idx]
 
                     rot_coor = mobile_mof.atom_coors[idx]
-                    rot_coor = rotation(rot_coor, [0, 0, 0], [1, 0, 0], x_angle)
-                    rot_coor = rotation(rot_coor, [0, 0, 0], [0, 1, 0], y_angle)
-                    rot_coor = rotation(rot_coor, [0, 0, 0], [0, 0, 1], z_angle)
+                    rot_coor = xyz_rotation(rot_coor, [x_angle, y_angle, z_angle])
                     new_coor = Coor(rot_coor)
-
                     new_coor += translation_vector
                     pbc_coor = new_coor.pbc(base_mof.uc_size, base_mof.uc_angle, base_mof.frac_ucv)
 
@@ -244,11 +238,8 @@ def check_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_str
                 if not collision:
 
                     rot_coor = coor
-                    rot_coor = rotation(rot_coor, [0, 0, 0], [1, 0, 0], x_angle)
-                    rot_coor = rotation(rot_coor, [0, 0, 0], [0, 1, 0], y_angle)
-                    rot_coor = rotation(rot_coor, [0, 0, 0], [0, 0, 1], z_angle)
+                    rot_coor = xyz_rotation(rot_coor, [x_angle, y_angle, z_angle])
                     new_coor = Coor(rot_coor)
-
                     new_coor += translation_vector
                     pbc_coor = new_coor.pbc(base_mof.uc_size, base_mof.uc_angle, base_mof.frac_ucv)
 
@@ -303,15 +294,11 @@ def save_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_stru
         for coor_index, coor in enumerate(unit_cell):
 
             rot_coor = coor
-            rot_coor = rotation(rot_coor, [0, 0, 0], [1, 0, 0], x_angle)
-            rot_coor = rotation(rot_coor, [0, 0, 0], [0, 1, 0], y_angle)
-            rot_coor = rotation(rot_coor, [0, 0, 0], [0, 0, 1], z_angle)
+            rot_coor = xyz_rotation(rot_coor, [x_angle, y_angle, z_angle])
             new_coor = Coor(rot_coor)
-
             new_coor += translation_vector
 
             atom_name = mobile_mof.atom_names[coor_index]
-
             extended_names.append(atom_name)
             extended_coors.append(new_coor.xyz())
 
