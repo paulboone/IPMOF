@@ -29,6 +29,24 @@ def rotation(p, a1, a2, angle):
     return [Quat.x + a2[0], Quat.y + a2[1], Quat.z + a2[2]]
 
 
+def xyz_rotation(p, angle):
+    """
+    Quaternion rotation using mathutils library.
+    Rotation is performed for a given point and angle list around x, y, and z axes respectively.
+     >>> new_point = rotation(rotation_point, rotation_angle_list)
+            p: point of rotation
+            rotation_angle_list: angle of rotations for x, y, z axes in radians.
+    """
+
+    Q_point = mathutils.Quaternion((0, p[0], p[1], p[2]))
+    Qrx = mathutils.Quaternion((1, 0, 0), angle[0])
+    Qry = mathutils.Quaternion((0, 1, 0), angle[1])
+    Qrz = mathutils.Quaternion((0, 0, 1), angle[2])
+    Quat = (Qrz * Qry * Qrx * Q_point) * Qrx.inverted() * Qry.inverted() * Qrz.inverted()
+
+    return [Quat.x, Quat.y, Quat.z]
+
+
 class Coor(object):
     """
     Coor class for holding 3D space coordinates.
