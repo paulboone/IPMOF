@@ -93,81 +93,57 @@ class Coor(object):
         """
         return [self.x, self.y, self.z]
 
-    def frac(self, uc_size, uc_angle, frac_ucv):
+    def frac(self, uc_size, uc_sin, uc_cos, frac_ucv):
         """
         Converts cartesian coordinates to fractional coordinates.
-        *The fractional unit cell volume is calculated each time. Instead can be given as input.
+        Takes unit cell size, sin and cosine of unit cell angles (in radians)
+        and fractional unit cell volume as input.
 
         Example usage:
          >>> coor1 = Coor([-11, 22, 33])
          >>> coor1.frac([26, 26, 26], [90, 90, 90]) -> <Coordinate object x:-0.423 y:0.846 z:1.269>
         """
-        alp = math.radians(uc_angle[0])
-        bet = math.radians(uc_angle[1])
-        gam = math.radians(uc_angle[2])
-
+        a, b, c = uc_size
         v = frac_ucv
-        # v = 1 - math.cos(alp) ** 2 - math.cos(bet) ** 2
-        # v += - math.cos(gam) ** 2 + 2 * math.cos(alp) * math.cos(bet) * math.cos(gam)
-        # v = math.sqrt(v)
-
-        a = uc_size[0]
-        b = uc_size[1]
-        c = uc_size[2]
-
-        x = self.x
-        y = self.y
-        z = self.z
+        x, y, z = self.x, self.y, self.z
 
         x_frac = 1 / a * x
-        x_frac += - math.cos(gam) / (a * math.sin(gam)) * y
-        x_frac += (math.cos(alp) * math.cos(gam) - math.cos(bet)) / (a * v * math.sin(gam)) * z
+        x_frac += - uc_cos[2] / (a * uc_sin[2]) * y
+        x_frac += (uc_cos[0] * uc_cos[2] - uc_cos[1]) / (a * v * uc_sin[2]) * z
 
-        y_frac = 1 / (b * math.sin(gam)) * y
-        y_frac += (math.cos(bet) * math.cos(gam) - math.cos(alp)) / (b * v * math.sin(gam)) * z
+        y_frac = 1 / (b * uc_sin[2]) * y
+        y_frac += (uc_cos[1] * uc_cos[2] - uc_cos[0]) / (b * v * uc_sin[2]) * z
 
-        z_frac = math.sin(gam) / (c * v) * z
+        z_frac = uc_sin[2] / (c * v) * z
 
         return Coor([x_frac, y_frac, z_frac])
 
-    def car(self, uc_size, uc_angle, frac_ucv):
+    def car(self, uc_size, uc_sin, uc_cos, frac_ucv):
         """
         Converts fractional coordinates to cartesian coordinates.
-        Takes unit cell size, angles and fractional unit cell volume as input.
+        Takes unit cell size, sin and cosine of unit cell angles (in radians)
+        and fractional unit cell volume as input.
 
         Example usage:
          >>> coor1 = Coor([0.23, 2.21, -1.33])
          >>> coor1.car([26, 26, 26], [90, 90, 90]) -> <Coordinate object x:5.98 y:57.46 z:-34.58>
         """
-        alp = math.radians(uc_angle[0])
-        bet = math.radians(uc_angle[1])
-        gam = math.radians(uc_angle[2])
-
+        a, b, c = uc_size
         v = frac_ucv
-        # v = 1 - math.cos(alp) ** 2 - math.cos(bet) ** 2
-        # v += - math.cos(gam) ** 2 + 2 * math.cos(alp) * math.cos(bet) * math.cos(gam)
-        # v = math.sqrt(v)
-
-        a = uc_size[0]
-        b = uc_size[1]
-        c = uc_size[2]
-
-        x_frac = self.x
-        y_frac = self.y
-        z_frac = self.z
+        x_frac, y_frac, z_frac = self.x, self.y, self.z
 
         x = a * x_frac
-        x += b * math.cos(gam) * y_frac
-        x += c * math.cos(bet) * z_frac
+        x += b * uc_cos[2] * y_frac
+        x += c * uc_cos[1] * z_frac
 
-        y = b * math.sin(gam) * y_frac
-        y += c * (math.cos(alp) - math.cos(bet) * math.cos(gam)) / math.sin(gam) * z_frac
+        y = b * uc_sin[2] * y_frac
+        y += c * (uc_cos[0] - uc_cos[1] * uc_cos[2]) / uc_sin[2] * z_frac
 
-        z = c * v / math.sin(gam) * z_frac
+        z = c * v / uc_sin[2] * z_frac
 
         return Coor([x, y, z])
 
-    def pbc(self, uc_size, uc_angle, frac_ucv):
+    def pbc(self, uc_size, uc_sin, uc_cos, frac_ucv):
         """
         Apply perodic boundary conditions to given cartesian coordinates and unit cell parameters.
 
@@ -175,9 +151,9 @@ class Coor(object):
          >>> coor1 = Coor([0.23, 2.21, -1.33])
          >>> coor1.pbc([26, 26, 26], [90, 90, 90]) -> <Coordinate object x:0.23 y:0.21 z:0.67>
         """
-        frac_coor = self.frac(uc_size, uc_angle, frac_ucv)
+        frac_coor = self.frac(uc_size, uc_sin, uc_cos, frac_ucv)
         frac_pbc_coor = frac_coor.frac_pbc()
-        car_pbc_coor = frac_pbc_coor.car(uc_size, uc_angle, frac_ucv)
+        car_pbc_coor = frac_pbc_coor.car(uc_size, uc_sin, uc_cos, frac_ucv)
 
         return car_pbc_coor
 
