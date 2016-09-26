@@ -32,6 +32,8 @@ class MOF:
             self.atom_names = molecule['atom_names']
             self.uc_size = molecule['uc_size']
             self.uc_angle = molecule['uc_angle']
+            self.uc_cos = [math.cos(math.radians(a)) for a in self.uc_angle]
+            self.uc_sin = [math.sin(math.radians(a)) for a in self.uc_angle]
             self.separate_atoms()
             self.unit_cell_volume()
 

@@ -27,9 +27,10 @@ def initial_coordinates(mof, energy_map, atom_list, energy_limit):
     initial_coors = []
     energy_count = 0
     pbc_count = 0
+
     for emap_line in energy_map:
         emap_coor = Coor([emap_line[0], emap_line[1], emap_line[2]])
-        pbc_coor = emap_coor.pbc(mof.uc_size, mof.uc_angle, mof.frac_ucv)
+        pbc_coor = emap_coor.pbc(mof.uc_size, mof.uc_sin, mof.uc_cos, mof.frac_ucv)
         pbc_x = round(pbc_coor.x, 1)
         pbc_y = round(pbc_coor.y, 1)
         pbc_z = round(pbc_coor.z, 1)
@@ -139,7 +140,7 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                     new_coor = Coor(rot_coor)
                     translation_vector = first_point - new_coor  # Check if operation is correct
 
-                    # Initialize new structure dictionay
+                    # Initialize new structure dictionary
                     structure = {'atom_names': [], 'atom_coors': [],
                                  'pbc_coors': [], 'energy': [], 'rotation': []}
                     structure['first_point'] = first_point.xyz()
@@ -157,7 +158,7 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                     rot_coor = xyz_rotation(rot_coor, [x_angle, y_angle, z_angle])
                     new_coor = Coor(rot_coor)
                     new_coor += translation_vector
-                    pbc_coor = new_coor.pbc(base_mof.uc_size, base_mof.uc_angle, base_mof.frac_ucv)
+                    pbc_coor = new_coor.pbc(base_mof.uc_size, base_mof.uc_sin, base_mof.uc_cos, base_mof.frac_ucv)
 
                     emap_atom_index = energy_map_atom_index(atom_name, atom_list)
 
@@ -223,10 +224,7 @@ def check_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_str
     trans_vec = Packing.translation_vectors(packing_factor, uc_vectors)
     packed_coors = Packing.uc_coors(trans_vec, packing_factor, uc_vectors, mobile_mof.atom_coors)
 
-    x_angle = rotation_info[0]
-    y_angle = rotation_info[1]
-    z_angle = rotation_info[2]
-
+    x_angle, y_angle, z_angle = rotation_info
     collision = False
     collision_info = {'exist': collision, 'coor': None, 'pbc_coor': None}
     for unit_cell in packed_coors:
@@ -241,7 +239,7 @@ def check_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_str
                     rot_coor = xyz_rotation(rot_coor, [x_angle, y_angle, z_angle])
                     new_coor = Coor(rot_coor)
                     new_coor += translation_vector
-                    pbc_coor = new_coor.pbc(base_mof.uc_size, base_mof.uc_angle, base_mof.frac_ucv)
+                    pbc_coor = new_coor.pbc(base_mof.uc_size, base_mof.uc_sin, base_mof.uc_cos, base_mof.frac_ucv)
 
                     atom_name = mobile_mof.atom_names[coor_index]
                     atom_index = energy_map_atom_index(atom_name, emap_atom_list)
