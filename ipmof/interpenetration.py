@@ -107,6 +107,7 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
     new_structures = []
 
     abort_ip = False
+    mobile_mof_length = len(mobile_mof)
     structure_count = 0
     structure_total_energy = 0
     initial_coor_index = 0
@@ -115,19 +116,22 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
     for t in range(trial_limit):
         abort_ip = False
         # Interpenetration trial loop for a specific position and different orientations
-        for idx in range(len(mobile_mof)):
+        for idx in range(mobile_mof_length):
 
             if not abort_ip:
                 # If the interpenetration is just starting select rotation angles
                 if idx == 0:
-                    if t % rotation_limit == 0:
-                        first_point = initial_coors[initial_coor_index]
-                        initial_coor_index += 1
-
                     # Determine random angles for rotation in 3D space
                     x_angle = 2 * math.pi * math.floor(random() * rot_freedom) / rot_freedom
                     y_angle = 2 * math.pi * math.floor(random() * rot_freedom) / rot_freedom
                     z_angle = 2 * math.pi * math.floor(random() * rot_freedom) / rot_freedom
+
+                    # Determine first point for interpenetrating structure
+                    if t % rotation_limit == 0:
+                        # Start with original orientation for first trial
+                        x_angle, y_angle, z_angle = [0, 0, 0]
+                        first_point = initial_coors[initial_coor_index]
+                        initial_coor_index += 1
 
                     # Rotate first atom of the mobile MOF
                     atom_name = mobile_mof.atom_names[idx]
@@ -136,8 +140,7 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                     translation_vector = sub3(first_point, rot_coor)
 
                     # Initialize new structure dictionary
-                    structure = {'atom_names': [], 'atom_coors': [],
-                                 'pbc_coors': [], 'energy': [], 'rotation': []}
+                    structure = {'atom_names': [], 'atom_coors': [], 'pbc_coors': []}
                     structure['first_point'] = first_point
                     structure['translation_vector'] = translation_vector
                     structure['atom_coors'].append(first_point)  # Why first point not new_coor?
@@ -146,7 +149,7 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                     structure['rotation'] = [x_angle, y_angle, z_angle]
 
                 # If interpenetration is still going on
-                if idx < len(base_mof) and idx > 0:
+                elif idx < mobile_mof_length - 1:
                     atom_name = mobile_mof.atom_names[idx]
                     rot_coor = mobile_mof.atom_coors[idx]
                     rot_coor = xyz_rotation(rot_coor, [x_angle, y_angle, z_angle])
@@ -171,7 +174,7 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                         structure['atom_names'].append(atom_name)
 
                 # If interpenetration trial ended with no collision - record structure info
-                if idx == len(mobile_mof) - 1:
+                else:
                     structure['energy'] = structure_total_energy
                     new_structures.append(structure)
                     structure_count += 1
