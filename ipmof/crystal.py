@@ -32,10 +32,9 @@ class MOF:
             self.atom_names = molecule['atom_names']
             self.uc_size = molecule['uc_size']
             self.uc_angle = molecule['uc_angle']
-            self.uc_cos = [math.cos(math.radians(a)) for a in self.uc_angle]
-            self.uc_sin = [math.sin(math.radians(a)) for a in self.uc_angle]
             self.separate_atoms()
             self.unit_cell_volume()
+            self.pbc_parameters()
 
     def __repr__(self):
         return "<MOF object: %s>" % (self.name)
@@ -137,6 +136,31 @@ class MOF:
 
         self.ucv = volume
         self.frac_ucv = frac_volume
+
+    def pbc_parameters(self):
+        """
+        Calculates constants used in periodic boundary conditions.
+        """
+        uc_cos = [math.cos(math.radians(a)) for a in self.uc_angle]
+        uc_sin = [math.sin(math.radians(a)) for a in self.uc_angle]
+        a, b, c = self.uc_size
+        v = self.frac_ucv
+
+        xf1 = 1 / a
+        xf2 = - uc_cos[2] / (a * uc_sin[2])
+        xf3 = (uc_cos[0] * uc_cos[2] - uc_cos[1]) / (a * v * uc_sin[2])
+        yf1 = 1 / (b * uc_sin[2])
+        yf2 = (uc_cos[1] * uc_cos[2] - uc_cos[0]) / (b * v * uc_sin[2])
+        zf1 = uc_sin[2] / (c * v)
+        self.to_frac = [xf1, xf2, xf3, yf1, yf2, zf1]
+
+        xc1 = a
+        xc2 = b * uc_cos[2]
+        xc3 = c * uc_cos[1]
+        yc1 = b * uc_sin[2]
+        yc2 = c * (uc_cos[0] - uc_cos[1] * uc_cos[2]) / uc_sin[2]
+        zc1 = c * v / uc_sin[2]
+        self.to_car = [xc1, xc2, xc3, yc1, yc2, zc1]
 
     def join(self, new_mof, colorify=False, atom_color=['C', 'O']):
         """
