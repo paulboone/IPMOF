@@ -8,7 +8,7 @@ import shutil
 from glob import glob
 
 from ipmof.crystal import Packing, MOF
-from ipmof.geometry import Coor, xyz_rotation
+from ipmof.geometry import xyz_rotation, pbc3, add3, sub3
 from ipmof.energymap import energy_map_atom_index, import_energy_map, get_mof_list
 from ipmof.parameters import export_interpenetration_results
 
@@ -29,15 +29,14 @@ def initial_coordinates(mof, energy_map, atom_list, energy_limit):
     pbc_count = 0
 
     for emap_line in energy_map:
-        emap_coor = Coor([emap_line[0], emap_line[1], emap_line[2]])
-        pbc_coor = emap_coor.pbc(mof.uc_size, mof.uc_sin, mof.uc_cos, mof.frac_ucv)
-        pbc_x = round(pbc_coor.x, 1)
-        pbc_y = round(pbc_coor.y, 1)
-        pbc_z = round(pbc_coor.z, 1)
-        # print(emap_coor.x, pbc_x)
-        if pbc_x == emap_coor.x and pbc_y == emap_coor.y and pbc_z == emap_coor.z:
+        emap_coor = [emap_line[0], emap_line[1], emap_line[2]]
+        pbc_coor = pbc3(emap_coor, mof.to_frac, mof.to_car)
+        pbc_x = round(pbc_coor[0], 1)
+        pbc_y = round(pbc_coor[1], 1)
+        pbc_z = round(pbc_coor[2], 1)
+        if pbc_x == emap_coor[0] and pbc_y == emap_coor[1] and pbc_z == emap_coor[2]:
             if emap_line[ref_atom_index] < energy_limit:
-                initial_coors.append(Coor([emap_line[0], emap_line[1], emap_line[2]]))
+                initial_coors.append([emap_line[0], emap_line[1], emap_line[2]])
             else:
                 energy_count += 1
         else:
@@ -92,7 +91,7 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
     rotation_limit = sim_par['rotation_limit']
     rotation_freedom = sim_par['rotation_freedom']
     summary_percent = sim_par['summary_percent']
-
+    # Get energy map dimensions for trilinear interpolation
     emap_max = [emap[-1][0], emap[-1][1], emap[-1][2]]
     emap_min = [emap[0][0], emap[0][1], emap[0][2]]
     side_length = [emap_max[0] - emap_min[0] + 1, emap_max[1] - emap_min[1] + 1, emap_max[2] - emap_min[2] + 1]
@@ -112,12 +111,11 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
     structure_total_energy = 0
     initial_coor_index = 0
 
-    # Main interpenetration algorithm
-    for t in range(trial_limit):  # Can iterate over something else???
+    # Interpenetration trial loop for different positions and orientations
+    for t in range(trial_limit):
         abort_ip = False
-        # Interpenetration trial loop
-        # Try interpenetration for a specific orientation by going through each atom in mobile mof
-        for idx in range(len(mobile_mof)):    # Can iterate over something else???
+        # Interpenetration trial loop for a specific position and different orientations
+        for idx in range(len(mobile_mof)):
 
             if not abort_ip:
                 # If the interpenetration is just starting select rotation angles
@@ -125,7 +123,6 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                     if t % rotation_limit == 0:
                         first_point = initial_coors[initial_coor_index]
                         initial_coor_index += 1
-                        # initial_coor_trial_count += 1
 
                     # Determine random angles for rotation in 3D space
                     x_angle = 2 * math.pi * math.floor(random() * rot_freedom) / rot_freedom
@@ -134,35 +131,30 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
 
                     # Rotate first atom of the mobile MOF
                     atom_name = mobile_mof.atom_names[idx]
-
                     rot_coor = mobile_mof.atom_coors[idx]
                     rot_coor = xyz_rotation(rot_coor, [x_angle, y_angle, z_angle])
-                    new_coor = Coor(rot_coor)
-                    translation_vector = first_point - new_coor  # Check if operation is correct
+                    translation_vector = sub3(first_point, rot_coor)
 
                     # Initialize new structure dictionary
                     structure = {'atom_names': [], 'atom_coors': [],
                                  'pbc_coors': [], 'energy': [], 'rotation': []}
-                    structure['first_point'] = first_point.xyz()
-                    structure['translation_vector'] = translation_vector.xyz()
-                    structure['atom_coors'].append(first_point.xyz())  # Why first point not new_coor?
-                    structure['pbc_coors'].append(first_point.xyz())
+                    structure['first_point'] = first_point
+                    structure['translation_vector'] = translation_vector
+                    structure['atom_coors'].append(first_point)  # Why first point not new_coor?
+                    structure['pbc_coors'].append(first_point)
                     structure['atom_names'].append(atom_name)
                     structure['rotation'] = [x_angle, y_angle, z_angle]
 
                 # If interpenetration is still going on
                 if idx < len(base_mof) and idx > 0:
-                    atom_name = atom_name = mobile_mof.atom_names[idx]
-
+                    atom_name = mobile_mof.atom_names[idx]
                     rot_coor = mobile_mof.atom_coors[idx]
                     rot_coor = xyz_rotation(rot_coor, [x_angle, y_angle, z_angle])
-                    new_coor = Coor(rot_coor)
-                    new_coor += translation_vector
-                    pbc_coor = new_coor.pbc(base_mof.uc_size, base_mof.uc_sin, base_mof.uc_cos, base_mof.frac_ucv)
+                    new_coor = add3(rot_coor, translation_vector)
+                    pbc_coor = pbc3(new_coor, base_mof.to_frac, base_mof.to_car)
 
                     emap_atom_index = energy_map_atom_index(atom_name, atom_list)
-
-                    point_energy = tripolate(pbc_coor.xyz(), emap_atom_index, emap, x_length, y_length)
+                    point_energy = tripolate(pbc_coor, emap_atom_index, emap, x_length, y_length)
                     structure_total_energy += point_energy
 
                     if structure_total_energy > structure_energy_limit:
@@ -174,23 +166,20 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                         abort_ip = True
                         break  # Fix this part (break interpenetration trial loop)
                     else:
-                        structure['atom_coors'].append(new_coor.xyz())
-                        structure['pbc_coors'].append(pbc_coor.xyz())
+                        structure['atom_coors'].append(new_coor)
+                        structure['pbc_coors'].append(pbc_coor)
                         structure['atom_names'].append(atom_name)
 
-                # If interpenetration trial ended with no collision
+                # If interpenetration trial ended with no collision - record structure info
                 if idx == len(mobile_mof) - 1:
-                    # Record structure information!!!!
                     structure['energy'] = structure_total_energy
                     new_structures.append(structure)
                     structure_count += 1
                     structure_total_energy = 0
 
-        # Record simulation progress according to division (div)
+        # Record simulation progress according to division (div) and summary
         if t % div == 0:
             percent_complete = round(t / trial_limit * 100)
-
-            # Record summary information
             summary['percent'].append(percent_complete)
             summary['structure_count'].append(structure_count)
             summary['trial_count'].append(t)
@@ -200,7 +189,6 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
 
 def check_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_structure):
     """
-    *** Not Complete ***
     Checks collision between interpenetrating layer and base layer for a determined distance.
     Distance is calculated from given ext_cut_off value which determines the packing amount of the
     interpenetrating layer.
@@ -214,10 +202,9 @@ def check_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_str
 
     energy_limit = sim_par['atom_energy_limit']
     ext_cut_off = sim_par['ext_cut_off']
-
     rotation_info = new_structure['rotation']
     first_point = new_structure['first_point']
-    translation_vector = Coor(new_structure['translation_vector'])
+    translation_vector = new_structure['translation_vector']
 
     packing_factor = Packing.factor(mobile_mof.uc_size, ext_cut_off)
     uc_vectors = Packing.uc_vectors(mobile_mof.uc_size, mobile_mof.uc_angle)
@@ -237,20 +224,17 @@ def check_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_str
 
                     rot_coor = coor
                     rot_coor = xyz_rotation(rot_coor, [x_angle, y_angle, z_angle])
-                    new_coor = Coor(rot_coor)
-                    new_coor += translation_vector
-                    pbc_coor = new_coor.pbc(base_mof.uc_size, base_mof.uc_sin, base_mof.uc_cos, base_mof.frac_ucv)
-
+                    new_coor = add3(rot_coor, translation_vector)
+                    pbc_coor = pbc3(new_coor, base_mof.to_frac, base_mof.to_car)
                     atom_name = mobile_mof.atom_names[coor_index]
                     atom_index = energy_map_atom_index(atom_name, emap_atom_list)
-
-                    point_energy = tripolate(pbc_coor.xyz(), atom_index, emap, x_length, y_length)
+                    point_energy = tripolate(pbc_coor, atom_index, emap, x_length, y_length)
 
                     if point_energy < energy_limit:
                         continue
                     else:
                         collision = True
-                        collision_info = {'exist': collision, 'coor': new_coor.xyz(), 'pbc_coor': pbc_coor.xyz()}
+                        collision_info = {'exist': collision, 'coor': new_coor, 'pbc_coor': pbc_coor}
                         break
                 else:
                     break
@@ -270,10 +254,9 @@ def save_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_stru
     emap_min = [emap[0][0], emap[0][1], emap[0][2]]
 
     export_cut_off = sim_par['cut_off']
-
     rotation_info = new_structure['rotation']
     first_point = new_structure['first_point']
-    translation_vector = Coor(new_structure['translation_vector'])
+    translation_vector = new_structure['translation_vector']
 
     packing_factor = Packing.factor(mobile_mof.uc_size, export_cut_off)
     uc_vectors = Packing.uc_vectors(mobile_mof.uc_size, mobile_mof.uc_angle)
@@ -291,14 +274,11 @@ def save_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_stru
 
         for coor_index, coor in enumerate(unit_cell):
 
-            rot_coor = coor
-            rot_coor = xyz_rotation(rot_coor, [x_angle, y_angle, z_angle])
-            new_coor = Coor(rot_coor)
-            new_coor += translation_vector
-
+            rot_coor = xyz_rotation(coor, [x_angle, y_angle, z_angle])
+            new_coor = add3(rot_coor, translation_vector)
             atom_name = mobile_mof.atom_names[coor_index]
             extended_names.append(atom_name)
-            extended_coors.append(new_coor.xyz())
+            extended_coors.append(new_coor)
 
     extended_structure = {'atom_names': extended_names, 'atom_coors': extended_coors}
     extended_structure['name'] = mobile_mof.name

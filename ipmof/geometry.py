@@ -47,6 +47,32 @@ def xyz_rotation(p, angle):
     return [Quat.x, Quat.y, Quat.z]
 
 
+def add3(p1, p2):
+    """ 3D vector addition. """
+    return [p1[0] + p2[0], p1[1] + p2[1], p1[2] + p2[2]]
+
+
+def sub3(p1, p2):
+    """ 3D vector subtraction. """
+    return [p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]]
+
+
+def pbc3(pbc_coor, to_frac, to_car):
+    """ 3D vector periodic boundary conditions. """
+    x, y, z = pbc_coor
+    x_frac = to_frac[0] * x + to_frac[1] * y + to_frac[2] * z
+    x_frac -= math.floor(x_frac)
+    y_frac = to_frac[3] * y + to_frac[4] * z
+    y_frac -= math.floor(y_frac)
+    z_frac = to_frac[5] * z
+    z_frac -= math.floor(z_frac)
+    x_frac = to_car[0] * x_frac + to_car[1] * y_frac + to_car[2] * z_frac
+    y_frac = to_car[3] * y_frac + to_car[4] * z_frac
+    z_frac = to_car[5] * z_frac
+
+    return [x_frac, y_frac, z_frac]
+
+
 class Coor(object):
     """
     Coor class for holding 3D space coordinates.
