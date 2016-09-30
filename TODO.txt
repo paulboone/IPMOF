@@ -2,20 +2,23 @@ IPMOF To Do List:
 ----------------------------------------------------------------------------------------------------
 1) High Priority
 ----------------------------------------------------------------------------------------------------
-- Add babel / ase export functions.
 
-- For CoRE database keep a single directory containing CoRE MOFs. (frank)
+PR (ipdev)
+  - Export interpenetration trials log (can be used with blender or three.js)
+  - Print percentage of initial coordinates eliminated
 
-- Change print commands in run_interpenetration function.
+PR (path_to_exile)
+  - Pass energymap path for interpenetration!
+  - Pass MOF path list instead of object list
 
-- Print percentage of initial coordinates eliminated
-- Print progress maybe?
+PR (ase_export):
+  - Add babel / ase export functions.
+
 ----------------------------------------------------------------------------------------------------
 2) Near Future
 ----------------------------------------------------------------------------------------------------
-- Export interpenetration log (can be used with blender or three.js)
-
 - Use logger instead of print commands
+- Print progress maybe?
 ----------------------------------------------------------------------------------------------------
 3) One Day
 ----------------------------------------------------------------------------------------------------
