@@ -19,3 +19,4 @@ rotation_limit: 20
 self_interpenetration: true
 structure_energy_limit: 3000000.0
 summary_percent: 5
+directory_separation: True
