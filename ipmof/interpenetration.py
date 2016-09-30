@@ -217,6 +217,7 @@ def check_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_str
     x_angle, y_angle, z_angle = rotation_info
     collision = False
     collision_info = {'exist': collision, 'coor': None, 'pbc_coor': None}
+
     for unit_cell in packed_coors:
 
         if not collision:
@@ -266,10 +267,7 @@ def save_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_stru
     trans_vec = Packing.translation_vectors(packing_factor, uc_vectors)
     packed_coors = Packing.uc_coors(trans_vec, packing_factor, uc_vectors, mobile_mof.atom_coors)
 
-    x_angle = rotation_info[0]
-    y_angle = rotation_info[1]
-    z_angle = rotation_info[2]
-
+    x_angle, y_angle, z_angle = rotation_info
     extended_coors = []
     extended_names = []
 
@@ -306,10 +304,13 @@ def run_interpenetration(interpenetration_path, sim_par, sim_dir):
     summary, new_structures = check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list)
 
     # Create export directory ------------------=-------------------------------------------
-    export_dir = os.path.join(sim_dir['export_dir'], base_mof.name + '_' + mobile_mof.name)
+    if sim_par['directory_separation']:
+        export_dir = os.path.join(sim_dir['export_dir'], base_mof.name[0], base_mof.name + '_' + mobile_mof.name)
+    else:
+        export_dir = os.path.join(sim_dir['export_dir'], base_mof.name + '_' + mobile_mof.name)
     if os.path.exists(export_dir):
         shutil.rmtree(export_dir)
-    os.mkdir(export_dir)
+    os.makedirs(export_dir)
 
     structure_info = [{'S1': base_mof.name, 'S2': mobile_mof.name, 'Structures': len(new_structures)}]
     # Export Min Energy Structures ---------------------------------------------------------

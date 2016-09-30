@@ -24,7 +24,8 @@ sim_par_data = {'structure_energy_limit': 3E2,   # Maximum allowed potential ene
                 'export_single_color': True,     # Export structures with each I.P. layer colored
                 'export_packed': True,           # Export structures with packed unit cell
                 'export_packed_color': True,     # Export structures with packed unit cell and color
-                'export_summary': True           # Export summary information for interpenetration
+                'export_summary': True,          # Export summary information for interpenetration
+                'directory_separation': False    # Separate results directories alphabetically
                 }
 
 # Working Directories:
