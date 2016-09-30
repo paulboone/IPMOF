@@ -19,7 +19,12 @@ echo start_time: `date`
 . /user_path/venv/ipmof/bin/activate
 
 cd $PBS_O_WORKDIR
-sjs_launch_workers.sh $PBS_NUM_PPN $stay_alive
+if [ -z "$stay_alive" ]; then
+  options=''
+else
+  options="--stay-alive"
+fi
+sjs_launch_workers $PBS_NUM_PPN $options
 
 # workaround for .out / .err files not always being copied back to $PBS_O_WORKDIR
 cp /var/spool/torque/spool/$PBS_JOBID.OU $PBS_O_WORKDIR/$PBS_JOBID$(hostname)_$$.out

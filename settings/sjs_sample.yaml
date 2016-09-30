@@ -7,4 +7,29 @@ redis:
   port: 6379
   db: 2
 queue: 'ipmof'
-max_seconds_per_job: 1800
+
+# data_dirs can either be relative to the project root or absolute.
+# You may not have, however, two absolute data_dirs with the same basename
+# as the data dir will be stored in your archive under its basename.
+data_dirs:
+- ./logs
+- ./energymap
+- ./results
+# config_dirs must all be relative to the project root.
+config_dirs:
+- ./settings
+
+# automatically ignores anything committed to github
+config_ignore:
+- __pycache__
+archive_dir: ~/sjs_archives
+working_dir: ~/.sjs
+
+# Only use max_seconds_per_job if you WANT to kill the job after a specified time. If this is
+# unspecified, the default of 100 days or 8640000 seconds will be used. In practice, this means
+# your job will run until your worker runs out of walltime.
+# max_seconds_per_job: 8640000
+
+# only use min_seconds_per_job if, when there is less than min_seconds_per_job of walltime left,
+# you want your workers to exit instead of grab the next job from the queue.
+# min_seconds_per_job: 30

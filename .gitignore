@@ -1,6 +1,9 @@
 .ipynb_checkpoints
 __pycache__
 results
-settings/rq_worker_config.py
 settings/sjs.yaml
 !energymap
+logs
+.sjs_running
+settings/sim_par.yaml
+settings/sim_dir.yaml
