@@ -4,7 +4,6 @@ import sys
 # Load IPMOF python libraries
 from ipmof.forcefield import read_ff_parameters
 from ipmof.energymap import energy_map, get_mof_list, energy_map_atom_list
-from ipmof.core import core_mof_properties, core_mof_sort, core_mof_dir
 from ipmof.parameters import read_parameters
 
 # Read simulation parameters and directories
@@ -14,35 +13,22 @@ sim_par, sim_dir = read_parameters()
 force_field = read_ff_parameters(sim_dir['force_field_path'], sim_par['force_field'])
 
 # Read MOF list from CoRE or from a given directory
-if sim_par['core_database']:
-    # Create MOf list from CoRE database
-    mof_properties = core_mof_properties(sim_dir['core_path'])
-    sorted_mofs = core_mof_sort(mof_properties, sort='void_fraction', limit=0.85)
-    mof_path_list = core_mof_dir(sorted_mofs, sim_dir['mof_dir'])
-    mof_list = get_mof_list(mof_path_list, force_field)
-else:
-    # Create MOF list by reading structure files from a directory
-    mof_path_list = os.listdir(sim_dir['mof_dir'])
-    mof_path_list = [os.path.join(sim_dir['mof_dir'], path) for path in mof_path_list]
-    mof_list = get_mof_list(mof_path_list, force_field)
+mof_path_list = get_mof_list(sim_par, sim_dir)
 
 # Calculate atom list according to 'energy_map_atom_list' simulation parameter
-atom_list = energy_map_atom_list(sim_par, force_field, mof_list)
+atom_list = energy_map_atom_list(sim_par, force_field, mof_path_list)
 
 # Export initialization file containing MOF names and simulation parameters
-print('Starting energy map calculation with grid size:', sim_par['grid_size'],
-      'and cut off radius:', sim_par['cut_off'])
+print('Starting energy map calculation for', len(mof_path_list), 'MOFs (grid size:',
+      sim_par['grid_size'], '| cut-off radius:', str(sim_par['cut_off']) + ')')
 print('Atom list ->', atom_list['atom'])
 print('Energy map(s) will be exported in', sim_par['energy_map_type'], 'format')
 
 # Main Loop (Energy Map)
-for mof_index, mof in enumerate(mof_list):
-
-    # Extend base MOF for energy map calculation
-    extended_structure = mof.extend_unit_cell(sim_par['cut_off'])
+for mof_index, mof_path in enumerate(mof_path_list):
 
     print('-' * 80)
-    print(mof_index, 'Calculating energy map for ->', mof.name)
+    print(mof_index + 1, 'Calculating energy map for ->', os.path.basename(mof_path))
     # Submit jobs here
     if sys.argv[-1] == 'q':
         # Load job server libraries
@@ -55,6 +41,6 @@ for mof_index, mof in enumerate(mof_list):
         job_queue = sjs.get_job_queue()
 
         # Calculate energy map
-        job_queue.enqueue(energy_map, sim_par, mof, atom_list)
+        job_queue.enqueue(energy_map, sim_par, mof_path, atom_list, force_field)
     else:
-        emap = energy_map(sim_par, mof, atom_list)
+        emap = energy_map(sim_par, mof_path, atom_list, force_field)

@@ -53,7 +53,7 @@ class MOF:
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def force_field(self, ff_type):
+    def set_force_field(self, ff_type):
         """
         Initializes force field parameters according to unique atom names.
         """

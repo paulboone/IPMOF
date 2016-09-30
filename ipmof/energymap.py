@@ -11,9 +11,10 @@ import yaml
 from ipmof.forcefield import lorentz_berthelot_mix, lennard_jones
 from ipmof.crystal import MOF
 from ipmof.parameters import sim_dir_data as sim_dir    # Import simulation directories
+from ipmof.core import core_mof_properties, core_mof_sort, core_mof_dir
 
 
-def energy_map(sim_par, mof, atom_list, export=True, export_dir=sim_dir['energy_map_dir']):
+def energy_map(sim_par, mof_path, atom_list, force_field, export=True, export_dir=sim_dir['energy_map_dir']):
     """
     Calculate energy map for given simulations parameters, MOF class, atom list and export options.
     Simulation parameters used:
@@ -29,6 +30,11 @@ def energy_map(sim_par, mof, atom_list, export=True, export_dir=sim_dir['energy_
     Resulting energy map is structured as follows:
         emap[0] = [x, y, z, atom1_energy, atom2_energy, atom3_energy, ...]
     """
+    # Initialize MOF and extend structure for energy map calculation
+    mof = MOF(mof_path)
+    mof.set_force_field(force_field)
+    extended_structure = mof.extend_unit_cell(sim_par['cut_off'])
+    # Read cut-off and grid size from simulation parameters
     cut_off = sim_par['cut_off']
     grid_size = sim_par['grid_size']
     # Determine max and min coordinates for the unit cell to construct bounding box grid
@@ -140,19 +146,19 @@ def export_energy_map(emap, atom_list, sim_par, emap_export_dir, mof_name):
         print('Energy map exported as', emap_file_path)
 
 
-def import_energy_map(sim_par, sim_dir, mof_name):
+def import_energy_map(emap_file_path):
     """
     Reads energy map (yaml or numpy) from a given directory and returns both atom list and energy map.
     """
-    if sim_par['energy_map_type'] == 'yaml':
-        emap_file_path = os.path.join(sim_dir['energy_map_dir'], mof_name + '_emap.yaml')
+    emap_format = os.path.splitext(emap_file_path)[1][1:]
+
+    if emap_format == 'yaml':
         emap = yaml.load(open(emap_file_path, 'r'))
         atom_list = emap['atom_list']
         energy_map = emap['energy_map']
         return atom_list, energy_map
 
-    if sim_par['energy_map_type'] == 'numpy':
-        emap_file_path = os.path.join(sim_dir['energy_map_dir'], mof_name + '_emap.npy')
+    if emap_format == 'npy':
         emap = np.load(emap_file_path)
         atom_list = {'atom': emap[0], 'sigma': emap[1], 'epsilon': emap[2]}
         energy_map = emap[3]
@@ -166,26 +172,32 @@ def coor_dist(coor1, coor2):
     return sqrt((coor1[0] - coor2[0])**2 + (coor1[1] - coor2[1])**2 + (coor1[2] - coor2[2])**2)
 
 
-def get_mof_list(mof_path_list, force_field):
+def get_mof_list(sim_par, sim_dir):
     """
     Generates a list of MOF objects using a given list of MOF file directories
     """
-    mof_list = []
-    for mof_path in mof_path_list:
-        mof_obj = MOF(mof_path)
-        mof_obj.force_field(force_field)
-        mof_list.append(mof_obj)
+    if sim_par['core_database']:
+        # Create MOf list from CoRE database
+        mof_properties = core_mof_properties(sim_dir['core_path'])
+        sorted_mofs = core_mof_sort(mof_properties, sort='void_fraction', limit=0.85)
+        mof_path_list = core_mof_dir(sorted_mofs, sim_dir['mof_dir'])
+    else:
+        # Create MOF list by reading structure files from a directory
+        mof_path_list = os.listdir(sim_dir['mof_dir'])
+        mof_path_list = [os.path.join(sim_dir['mof_dir'], path) for path in mof_path_list]
 
-    return mof_list
+    return mof_path_list
 
 
-def uniq_atom_list(mof_list):
+def uniq_atom_list(mof_path_list, force_field):
     """
     Gets atom name, epsilon, and sigma values for non-repeating (unique) atoms in a list of
-    MOF classes.
+    MOF file paths.
     """
     all_atom_list = {'atom': [], 'sigma': [], 'epsilon': []}
-    for mof in mof_list:
+    for mof_path in mof_path_list:
+        mof = MOF(mof_path)
+        mof.set_force_field(force_field)
         for atom, sig, eps in zip(mof.uniq_atom_names, mof.sigma, mof.epsilon):
             all_atom_list['atom'].append(atom)
             all_atom_list['sigma'].append(sig)
@@ -224,7 +236,7 @@ def qnd_atom_list(force_field, dummy_name, dummy_sigma, dummy_epsilon):
     return qnd_atom_list
 
 
-def energy_map_atom_list(sim_par, force_field, mof_list):
+def energy_map_atom_list(sim_par, force_field, mof_path_list):
     """
     Returns atom list for energy map according to 'energy_map_atom_list' simulation parameter.
      - 'full': Full atom list in the force field parameters database. (103 atoms)
@@ -239,7 +251,7 @@ def energy_map_atom_list(sim_par, force_field, mof_list):
 
     # Get atom list according to energy map atom list type
     if sim_par['energy_map_atom_list'] == 'uniq':
-        atom_list = uniq_atom_list(mof_list)
+        atom_list = uniq_atom_list(mof_path_list, force_field)
     elif sim_par['energy_map_atom_list'] == 'full':
         atom_list = force_field
     elif sim_par['energy_map_atom_list'] == 'dummy':

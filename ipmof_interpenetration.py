@@ -2,52 +2,23 @@ import os
 import sys
 
 # Load IPMOF python libraries
-from ipmof.crystal import MOF
-from ipmof.forcefield import read_ff_parameters
-from ipmof.energymap import import_energy_map, get_mof_list
-from ipmof.interpenetration import run_interpenetration
-from ipmof.core import core_mof_properties, core_mof_sort, core_mof_dir
+from ipmof.interpenetration import run_interpenetration, get_interpenetration_list
 from ipmof.parameters import read_parameters
 
 # Read simulation parameters and directories
 sim_par, sim_dir = read_parameters()
 
-# Read excel file containing force field information
-force_field = read_ff_parameters(sim_dir['force_field_path'], sim_par['force_field'])
+# Get list of interpenetrating MOFs
+interpenetration_list = get_interpenetration_list(sim_par, sim_dir)
+print('Initializing interpenetration for', len(interpenetration_list), 'MOF combinations...')
 
-# Read MOF list from CoRE or from a given directory
-if sim_par['core_database']:
-    # Create MOf list from CoRE database
-    mof_properties = core_mof_properties(sim_dir['core_path'])
-    sorted_mofs = core_mof_sort(mof_properties, sort='void_fraction', limit=0.9)
-    mof_path_list = core_mof_dir(sorted_mofs, sim_dir['core_mof_dir'])
-    mof_list = get_mof_list(mof_path_list, force_field)
-else:
-    # Create MOF list by reading mol2 files from a directory
-    mof_path_list = os.listdir(sim_dir['mof_dir'])
-    mof_path_list = [os.path.join(sim_dir['mof_dir'], path) for path in mof_path_list]
-    mof_list = get_mof_list(mof_path_list, force_field)
+for ip_index, interpenetration_path in enumerate(interpenetration_list, start=1):
 
-emap_name = os.listdir(sim_dir['energy_map_dir'])[0]
-base_mof_dir = os.path.join(sim_dir['mof_dir'], emap_name.split('_emap')[0] + '.cif')
-base_mof = MOF(base_mof_dir)
-base_mof.force_field(force_field)
+    emap_path, emap_mof_path, ip_mof_path = interpenetration_path
+    print('-' * 80 + '\n' + str(ip_index), 'Energy map ->', os.path.basename(emap_path))
+    print(' ' * len(str(ip_index)), 'Interpenetration ->', os.path.basename(ip_mof_path) + '\n' + '-' * 80)
 
-# Remove base_mof from list if self_interpenetration parameter is False
-if not sim_par['self_interpenetration']:
-    mof_list.remove(base_mof)
-
-# Main Loop (Interpenetration)
-print('-' * 80 + '\n' + 'Energy map ->', base_mof.name + '\n' + '-' * 80)
-
-# Load energy map
-atom_list, emap = import_energy_map(sim_par, sim_dir, base_mof.name)
-
-for mobile_mof_index, mobile_mof in enumerate(mof_list):
     # Run interpenetration
-    print('Running interpenetration for ', mobile_mof.name, '...')
-
-    # Submit jobs here
     if sys.argv[-1] == 'q':
         # Load job server libraries
         from rq import Queue
@@ -58,7 +29,7 @@ for mobile_mof_index, mobile_mof in enumerate(mof_list):
         sjs.load(os.path.join("settings", "sjs.yaml"))
         job_queue = sjs.get_job_queue()
 
-        # Submit job
-        job_queue.enqueue(run_interpenetration, base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir)
+        # Run interpenetration
+        job_queue.enqueue(run_interpenetration, interpenetration_path, sim_par, sim_dir)
     else:
-        run_interpenetration(base_mof, mobile_mof, emap, atom_list, sim_par, sim_dir)
+        run_interpenetration(interpenetration_path, sim_par, sim_dir)
