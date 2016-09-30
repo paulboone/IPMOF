@@ -238,7 +238,9 @@ def check_extension(sim_par, base_mof, mobile_mof, emap, emap_atom_list, new_str
                         continue
                     else:
                         collision = True
-                        collision_info = {'exist': collision, 'coor': new_coor, 'pbc_coor': pbc_coor}
+                        collision_info = {'exist': collision,
+                                          'coor': [float(round(p, 3)) for p in new_coor],
+                                          'pbc_coor': [float(round(p, 3)) for p in pbc_coor]}
                         break
                 else:
                     break
