@@ -1,7 +1,7 @@
 atom_energy_limit: 30000.0
 core_database: false
 cut_off: 12
-energy_map_atom_list: qnd
+energy_map_atom_list: uniq
 energy_map_type: numpy
 export_format: cif
 export_packed: true
@@ -19,4 +19,4 @@ rotation_limit: 20
 self_interpenetration: true
 structure_energy_limit: 3000000.0
 summary_percent: 5
-directory_separation: True
+directory_separation: False
