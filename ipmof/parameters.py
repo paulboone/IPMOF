@@ -4,9 +4,9 @@ import os
 import yaml
 
 # Simulation Parameters Data:
-sim_par_data = {'structure_energy_limit': 3E2,   # Maximum allowed potential energy for structure
-                'atom_energy_limit': 3E0,        # Maximum allowed potential energy for atom
-                'rotation_limit': 1,            # Total number of rotations for each point
+sim_par_data = {'structure_energy_limit': 3E6,   # Maximum allowed potential energy for structure
+                'atom_energy_limit': 3E4,        # Maximum allowed potential energy for atom
+                'rotation_limit': 20,            # Total number of rotations for each point
                 'rotation_freedom': 30,          # Increments of rotation (degrees)
                 'summary_percent': 5,            # Percentage increment to acquire summary data
                 'cut_off': 12,                   # Cut-off radius for interpenetration (Angstrom)
@@ -14,11 +14,11 @@ sim_par_data = {'structure_energy_limit': 3E2,   # Maximum allowed potential ene
                 'grid_size': 1,                  # Grid size for potential energy map (Angstrom)
                 'force_field': 'uff',            # Force field selection for LJ ('uff' or 'dre')
                 'core_database': False,          # Use CoRE database information or not
-                'energy_map_atom_list': 'qnd',   # Atom list for energy map ('full', 'uniq', 'dummy', 'qnd')
+                'energy_map_atom_list': 'uniq',  # Atom list for energy map ('full', 'uniq', 'dummy', 'qnd')
                 'energy_map_type': 'numpy',      # Energy map file format ('numpy' or 'yaml')
                 'self_interpenetration': True,   # Test for homo-interpenetration or not
                 'export_structures': 5,          # Number of min. energy structures to export
-                'export_format': 'xyz',          # Export structure file format
+                'export_format': 'cif',          # Export structure file format
                 'export_pbc': True,              # Export coordinates after applying PBC
                 'export_single': True,           # Export structures with original atom names
                 'export_single_color': True,     # Export structures with each I.P. layer colored
