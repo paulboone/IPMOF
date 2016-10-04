@@ -425,3 +425,50 @@ def export_structures(sim_par, base_mof, mobile_mof, min_energy_structure, emap,
         joined_packed_mof = MOF(joined_structure, file_format='dict')
         joined_packed_mof.name += '_' + str(export_index + 1) + 'PC'
         joined_packed_mof.export(export_dir, file_format='xyz')
+
+
+def regenerate(s1_name, s2_name, rotation, initial_coordinate, sim_par, sim_dir, export_dir, colorify=True, index=1, format='cif'):
+    """
+    Reconstruct interpenetrated structure for given MOFs with rotation and initial coordinate.
+    """
+    s1_mof = MOF(os.path.join(sim_dir['mof_dir'], s1_name + '.cif'))
+    s2_mof = MOF(os.path.join(sim_dir['mof_dir'], s2_name + '.cif'))
+    s2_mof_length = len(s2_mof)
+    first_point = initial_coordinate
+    x_angle, y_angle, z_angle = [math.radians(a) for a in rotation]
+    structure = {'atom_names': [], 'atom_coors': [], 'pbc_coors': []}
+
+    for idx in range(s2_mof_length):
+        if idx == 0:
+            atom_name = s2_mof.atom_names[idx]
+            rot_coor = s2_mof.atom_coors[idx]
+            rot_coor = xyz_rotation(rot_coor, [x_angle, y_angle, z_angle])
+            translation_vector = sub3(first_point, rot_coor)
+        else:
+            atom_name = s2_mof.atom_names[idx]
+            rot_coor = s2_mof.atom_coors[idx]
+            rot_coor = xyz_rotation(rot_coor, [x_angle, y_angle, z_angle])
+            new_coor = add3(rot_coor, translation_vector)
+            pbc_coor = pbc3(new_coor, s1_mof.to_frac, s1_mof.to_car)
+
+            structure['atom_coors'].append(new_coor)
+            structure['pbc_coors'].append(pbc_coor)
+            structure['atom_names'].append(atom_name)
+
+    new_structure = {'atom_names': structure['atom_names'], 'name': s2_mof.name}
+    if sim_par['export_pbc']:
+        new_structure['atom_coors'] = structure['pbc_coors']
+    else:
+        new_structure['atom_coors'] = structure['atom_coors']
+
+    # Export structure file
+    new_s2_mof = MOF(new_structure, file_format='dict')
+    joined_mof = s1_mof.join(new_s2_mof, colorify=False)
+    joined_mof.name += '_' + str(index)
+    joined_mof.export(export_dir, file_format=format)
+
+    if colorify:
+        new_s2_mof = MOF(new_structure, file_format='dict')
+        joined_mof_color = s1_mof.join(new_s2_mof, colorify=True)
+        joined_mof_color.name += '_' + str(index) + 'C'
+        joined_mof_color.export(export_dir, file_format=format)
