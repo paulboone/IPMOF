@@ -318,7 +318,7 @@ def run_interpenetration(interpenetration_path, sim_par, sim_dir):
     # Export Min Energy Structures ---------------------------------------------------------
     if len(new_structures) > 0:
 
-        export_count = min(len(new_structures), sim_par['export_structures'])
+        export_count = min(len(new_structures), sim_par['report_structures'])
         for export_index in range(export_count):
             # Get minimum energy structure by sorting total structure energies
             min_energy_structure = sorted(new_structures, key=lambda k: k['energy'])[export_index]
@@ -334,7 +334,8 @@ def run_interpenetration(interpenetration_path, sim_par, sim_dir):
                                    'initial_coordinate': [float(round(p, 1)) for p in min_energy_structure['first_point']]})
 
             # Export new structure(s) -------------------------------------------------------
-            export_structures(sim_par, base_mof, mobile_mof, min_energy_structure, emap, atom_list, export_index, export_dir)
+            if export_index < sim_par['export_structures']:
+                export_structures(sim_par, base_mof, mobile_mof, min_energy_structure, emap, atom_list, export_index, export_dir)
 
     export_interpenetration_results(sim_par, structure_info, summary, export_dir)
 

@@ -16,7 +16,7 @@ def regenerate_structures(results_dir, colorify=True, file_format='cif', num=5):
     if num == 'all':
         num = len(structure_info) - 1
     else:
-        num = max(len(structure_info) - 1, num)
+        num = min(len(structure_info) - 1, num)
 
     s1_name = structure_info[0]['S1']
     s2_name = structure_info[0]['S2']
