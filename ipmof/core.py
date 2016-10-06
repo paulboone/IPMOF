@@ -1,3 +1,6 @@
+# IPMOF CoRE Database Functions
+# Date: June 2016
+# Author: Kutay B. Sezginel
 import os
 
 import xlrd

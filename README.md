@@ -30,6 +30,7 @@ can be used to generate the atom list for a particular MOF:
 - 'uniq': Unique atoms for a given list of MOFs
 - 'dummy': Single dummy atom with predefined force field parameters
 - 'qnd': Simplified atom list consisting of 1 dummy atom and 10 most frequent atoms in MOFs
+
 The runtime of the energy map and interpenetration codes depend on this parameter in the following
 fashion: 'full' > 'uniq' > 'qnd' > 'dummy'. The accuracy of the results depend on the set of MOFs
 however in general it follows the same trend: 'full' ~ 'uniq' > 'qnd' > 'dummy'. All list types
@@ -87,5 +88,7 @@ MOFs in CoRE database (10.1021/cm502594j).
 
 ### Contact
 For any questions, ideas or feedback please contact me!
+
 mail: kbs37@pitt.edu
+
 http://wilmerlab.com/

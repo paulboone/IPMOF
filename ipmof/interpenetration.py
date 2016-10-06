@@ -1,4 +1,4 @@
-# IPMOF interpenetration library
+# IPMOF Interpenetration Library
 # Date: June 2016
 # Author: Kutay B. Sezginel
 import os
@@ -142,8 +142,7 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                     # Initialize new structure dictionary
                     structure = {'atom_names': [], 'atom_coors': [], 'pbc_coors': []}
                     structure['first_point'] = first_point
-                    structure['translation_vector'] = translation_vector
-                    structure['atom_coors'].append(first_point)  # Why first point not new_coor?
+                    structure['atom_coors'].append(first_point)
                     structure['pbc_coors'].append(first_point)
                     structure['atom_names'].append(atom_name)
                     structure['rotation'] = [x_angle, y_angle, z_angle]

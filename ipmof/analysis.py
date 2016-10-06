@@ -1,8 +1,27 @@
+# IPMOF Data Analysis Functions
+# Date: October 2016
+# Author: Kutay B. Sezginel
 import os
 import math
-from ipmof.parameters import read_interpenetration_results, read_parameters
+
+import yaml
+
+from ipmof.parameters import read_parameters
 from ipmof.interpenetration import regenerate
 from tabulate import tabulate
+
+
+def read_interpenetration_results(results_path):
+    """
+    Reads interpenetration results from '~/results/S1_S2/results.yaml' file.
+    Returns simulation_parameters, structure_info, and summary.
+     >>> sim_par, structure_info, summary = read_interpenetration_results(results_path)
+    """
+    sim_par, structure_info, summary = yaml.load_all(open(results_path, 'r'))
+    sim_par = sim_par['simulation_parameters']
+    structure_info = structure_info['structure_info']
+    summary = summary['summary']
+    return sim_par, structure_info, summary
 
 
 def regenerate_structures(results_dir, colorify=True, file_format='cif', num=5):
