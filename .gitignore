@@ -6,4 +6,10 @@ settings/sjs.yaml
 logs
 .sjs_running
 settings/sim_par.yaml
+settings/sim_par.yaml~
 settings/sim_dir.yaml
+settings/sim_dir.yaml~
+launch_workers_qsub.sh
+launch_workers_qsub.sh~
+ipmof_qsub.sh
+ipmof_qsub.sh~
