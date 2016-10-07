@@ -9,8 +9,9 @@ from glob import glob
 
 from ipmof.crystal import Packing, MOF
 from ipmof.geometry import xyz_rotation, pbc3, add3, sub3
-from ipmof.energymap import energy_map_atom_index, import_energy_map, get_mof_list
+from ipmof.energymap import energy_map_atom_index, import_energy_map
 from ipmof.parameters import export_interpenetration_results
+from ipmof.core import core_interpenetration_list
 
 
 def initial_coordinates(mof, energy_map, atom_list, energy_limit):
@@ -142,6 +143,7 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                     # Initialize new structure dictionary
                     structure = {'atom_names': [], 'atom_coors': [], 'pbc_coors': []}
                     structure['first_point'] = first_point
+                    structure['translation_vector'] = translation_vector
                     structure['atom_coors'].append(first_point)
                     structure['pbc_coors'].append(first_point)
                     structure['atom_names'].append(atom_name)
@@ -342,39 +344,44 @@ def run_interpenetration(interpenetration_path, sim_par, sim_dir):
 def get_interpenetration_list(sim_par, sim_dir):
     """
     Returns a dictionary containing paths for energy map and mof files for each MOF combination.
-    Energy map is read from ~/energy_map and MOFs are read from ~/mof.
+    Energy map is read from ~/energy_map and MOFs are read from ~/mof unless an
+    interpenetration_list containing MOF names is provided.
     All possible combinations are then arranged in a dictionary format:
         - If self_interpenetration parameter if False homo-interpenetration is excluded
         - Reverse combinations are excluded (ex: if MOF1_MOF2 in list then MOF2_MOF1 is not selected)
 
     Format: interpenetration_list = {'emap_path': [], 'emap_mof_path': [], 'ip_mof_path': []}
     """
-    mof_path_list = get_mof_list(sim_par, sim_dir)
-    emap_path_list = os.listdir(sim_dir['energy_map_dir'])
+    if sim_par['core_database']:
+        interpenetration_list = core_interpenetration_list(sim_dir)
+    else:
+        mof_path_list = os.listdir(sim_dir['mof_dir'])
+        mof_path_list = [os.path.join(sim_dir['mof_dir'], path) for path in mof_path_list]
+        emap_path_list = os.listdir(sim_dir['energy_map_dir'])
 
-    interpenetration_list = []
-    ip_mof_list = []
-    emap_mof_list = []
+        interpenetration_list = []
+        ip_mof_list = []
+        emap_mof_list = []
 
-    for emap_path in emap_path_list:
+        for emap_path in emap_path_list:
 
-        emap_mof_name = os.path.basename(emap_path).split('_emap')[0]
-        # What if multiple files are returned?? (IndexError if file cannot be found)
-        emap_mof_path = glob(os.path.join(sim_dir['mof_dir'], emap_mof_name) + '*')[0]
-        emap_path = os.path.join(sim_dir['energy_map_dir'], emap_path)
+            emap_mof_name = os.path.basename(emap_path).split('_emap')[0]
+            # What if multiple files are returned?? (IndexError if file cannot be found)
+            emap_mof_path = glob(os.path.join(sim_dir['mof_dir'], emap_mof_name) + '*')[0]
+            emap_path = os.path.join(sim_dir['energy_map_dir'], emap_path)
 
-        for ip_mof_path in mof_path_list:
+            for ip_mof_path in mof_path_list:
 
-            if emap_mof_path == ip_mof_path and not sim_par['self_interpenetration']:
-                continue
+                if emap_mof_path == ip_mof_path and not sim_par['self_interpenetration']:
+                    continue
 
-            elif emap_mof_path in ip_mof_list and ip_mof_path in emap_mof_list and emap_mof_path != ip_mof_path:
-                continue
+                elif emap_mof_path in ip_mof_list and ip_mof_path in emap_mof_list and emap_mof_path != ip_mof_path:
+                    continue
 
-            else:
-                interpenetration_list.append((emap_path, emap_mof_path, ip_mof_path))
-                ip_mof_list.append(ip_mof_path)
-                emap_mof_list.append(emap_mof_path)
+                else:
+                    interpenetration_list.append((emap_path, emap_mof_path, ip_mof_path))
+                    ip_mof_list.append(ip_mof_path)
+                    emap_mof_list.append(emap_mof_path)
 
     return interpenetration_list
 
