@@ -49,7 +49,7 @@ def regenerate_structures(results_dir, colorify=True, file_format='cif', num=5):
                    export_dir, colorify=colorify, index=s_idx, format=file_format)
 
 
-def summarize_results(results_dir, table=True, full=False, sortby='structure'):
+def summarize_results(results_dir, dir_sep=False, table=True, full=False, sortby='structure'):
     """
     Summarize interpenetration results in a given directory and export summary file.
     Optional arguments:
@@ -70,12 +70,22 @@ def summarize_results(results_dir, table=True, full=False, sortby='structure'):
     ip_count = dict(homo=0, hetero=0, homo_total=0, hetero_total=0, no_res=0, no_structure=0)
     homo_structures = 0
     hetero_structures = 0
+    combination_list = []
 
-    for mof_combination in os.listdir(results_dir):
-        results_path = os.path.join(results_dir, mof_combination, 'results.yaml')
+    if dir_sep:
+        for dir_letter in os.listdir(results_dir):
+            for combination in os.listdir(os.path.join(results_dir, dir_letter)):
+                combination_path = os.path.join(results_dir, dir_letter, combination)
+                combination_list.append(combination_path)
+    else:
+        combination_list = os.listdir(results_dir)
+        combination_list = [os.path.join(results_dir, c) for c in combination_list]
+
+    for mof_combination in combination_list:
+        results_path = os.path.join(mof_combination, 'results.yaml')
 
         if not os.path.isfile(results_path):
-            no_results.append(mof_combination)
+            no_results.append(os.path.basename(mof_combination))
             ip_count['no_res'] += 1
         else:
             sim_par, structure_info, summary = read_interpenetration_results(results_path)
@@ -169,5 +179,5 @@ def summarize_results(results_dir, table=True, full=False, sortby='structure'):
                 sort_key = 2
             elif sortby == 'collision':
                 sort_key = 3
-            sorted_table = sorted(table_lines, key=lambda x: x[1], reverse=True)
+            sorted_table = sorted(table_lines, key=lambda x: x[sort_key], reverse=True)
             a.write(tabulate(sorted_table, headers=header))
