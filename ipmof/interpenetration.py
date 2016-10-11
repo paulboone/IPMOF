@@ -2,9 +2,10 @@
 # Date: June 2016
 # Author: Kutay B. Sezginel
 import os
+import shutil
+import time
 import math
 from random import random
-import shutil
 from glob import glob
 
 from ipmof.crystal import Packing, MOF
@@ -299,6 +300,7 @@ def run_interpenetration(interpenetration_path, sim_par, sim_dir):
         - Performs collision check by extending interpenetrating structure
         - Saves requested structure files
     """
+    ip_start = time.time()
     emap_path, base_mof_path, mobile_mof_path = interpenetration_path
     base_mof = MOF(base_mof_path)
     mobile_mof = MOF(mobile_mof_path)
@@ -338,6 +340,10 @@ def run_interpenetration(interpenetration_path, sim_par, sim_dir):
             if export_index < sim_par['export_structures']:
                 export_structures(sim_par, base_mof, mobile_mof, min_energy_structure, emap, atom_list, export_index, export_dir)
 
+    ip_end = time.time()
+    summary['time'] = ip_end - ip_start
+    summary['pid'] = os.getpid()
+    summary['node'] = os.uname()[1]
     export_interpenetration_results(sim_par, structure_info, summary, export_dir)
 
 
