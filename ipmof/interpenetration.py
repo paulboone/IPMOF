@@ -89,7 +89,9 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
     """
     # Initialize simulation parameters
     structure_energy_limit = sim_par['structure_energy_limit']
-    atom_energy_limit = sim_par['atom_energy_limit']
+    # atom_energy_limit = sim_par['atom_energy_limit']
+    atom_energy_limit = sim_par['energy_density_limit'] * mobile_mof.ucv
+    energy_density_limit = sim_par['energy_density_limit']
     rotation_freedom = sim_par['rotation_freedom']
     summary_percent = sim_par['summary_percent']
     try_all_rotations = sim_par['try_all_rotations']
@@ -118,6 +120,8 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
     mobile_mof_length = len(mobile_mof)
     structure_count = 0
     structure_total_energy = 0
+    ucv = mobile_mof.ucv
+    energy_density = 0
     initial_coor_index = 0
     rotation_index = 0
 
@@ -173,13 +177,11 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                     emap_atom_index = energy_map_atom_index(atom_name, atom_list)
                     point_energy = tripolate(pbc_coor, emap_atom_index, emap, x_length, y_length)
                     structure_total_energy += point_energy
+                    energy_density += point_energy / ucv
 
-                    if structure_total_energy > structure_energy_limit:
+                    if energy_density > energy_density_limit:
                         structure_total_energy = 0
-                        abort_ip = True
-                        break  # Fix this part (break interpenetration trial loop)
-                    elif point_energy > atom_energy_limit:
-                        structure_total_energy = 0
+                        energy_density = 0
                         abort_ip = True
                         break  # Fix this part (break interpenetration trial loop)
                     else:
@@ -190,9 +192,11 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                 # If interpenetration trial ended with no collision - record structure info
                 else:
                     structure['energy'] = structure_total_energy
+                    structure['energy_density'] = energy_density
                     new_structures.append(structure)
                     structure_count += 1
                     structure_total_energy = 0
+                    energy_density = 0
 
         # Record simulation progress according to division (div) and summary
         if t % div == 0:
@@ -343,6 +347,7 @@ def run_interpenetration(interpenetration_path, sim_par, sim_dir):
             # Record structure information -------------------------------------------------
             # Float is used to convert values to numbers for proper storage with yaml format
             structure_info.append({'energy': float(round(min_energy_structure['energy'], 3)),
+                                   'energy_density': float(round(min_energy_structure['energy_density'], 3)),
                                    'collision': collision,
                                    'rotation': [round(math.degrees(a)) for a in min_energy_structure['rotation']],
                                    'initial_coordinate': [float(round(p, 1)) for p in min_energy_structure['first_point']]})

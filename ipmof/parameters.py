@@ -4,8 +4,9 @@ import os
 import yaml
 
 # Simulation Parameters Data:
-sim_par_data = {'structure_energy_limit': 3E6,   # Maximum allowed potential energy for structure
-                'atom_energy_limit': 3E4,        # Maximum allowed potential energy for atom
+sim_par_data = {'structure_energy_limit': 1E6,   # Maximum allowed potential energy for structure
+                'atom_energy_limit': 1E6,        # Maximum allowed potential energy for atom
+                'energy_density_limit': 1E1,        # Maximum allowed potential energy for atom
                 'rotation_limit': 20,            # Total number of rotations for each point
                 'rotation_freedom': 30,          # Increments of rotation (degrees)
                 'try_all_rotations': False,      # Try all possible rotations for given angle
