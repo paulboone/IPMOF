@@ -2,6 +2,7 @@
 # Date: October 2016
 # Author: Kutay B. Sezginel
 import math
+from random import random
 
 import mathutils
 
@@ -65,3 +66,48 @@ def pbc3(pbc_coor, to_frac, to_car):
     z_frac = to_car[5] * z_frac
 
     return [x_frac, y_frac, z_frac]
+
+
+def possible_rotations(rot_degree, num_of_points=10):
+    """ Calculate possible degrees of rotation about x, y, z axes for given rotation freedom. """
+    # Calculate possible rotation angles for the given rotation freedom
+    degrees = []
+    increments = round(360 / rot_degree)
+    for i in range(increments):
+        degrees.append(2 * math.pi * i / increments)
+
+    # Rotate an arbitrary point around x, y, and z axes with combinations of possible rot angles
+    p = [-34.34, -3.1231, 31.123]
+    points = []
+    degree_combinations = []
+    for dx in degrees:
+        for dy in degrees:
+            for dz in degrees:
+                degree_combinations.append([dx, dy, dz])
+                points.append(xyz_rotation(p, [dx, dy, dz]))
+
+    # Look for points that are equal to each other after rotations were performed
+    eq_list = []
+    for p1_index, p1 in enumerate(points):
+        for p2_index, p2 in enumerate(points):
+            if p2_index > p1_index:
+                p1r = [round(i, 3) for i in p1]
+                p2r = [round(i, 3) for i in p2]
+                if p1r == p2r and [p2_index, p1_index] not in eq_list:
+                    eq_list.append([p1_index, p2_index])
+
+    # Identify all identical points (in the above step more than one equalities can be returned)
+    eq1 = [i[0] for i in eq_list]
+    eq2 = [i[1] for i in eq_list]
+    new_eq = []
+    for eq in eq1:
+        if eq not in eq2 and eq not in new_eq:
+            new_eq.append(eq)
+
+    # Gather rot angle combinations that give unique results
+    possible_rot_degrees = []
+    for d_index, d in enumerate(degree_combinations):
+        if d_index in new_eq:
+            possible_rot_degrees.append(d)
+
+    return possible_rot_degrees

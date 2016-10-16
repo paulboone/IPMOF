@@ -8,6 +8,7 @@ sim_par_data = {'structure_energy_limit': 3E6,   # Maximum allowed potential ene
                 'atom_energy_limit': 3E4,        # Maximum allowed potential energy for atom
                 'rotation_limit': 20,            # Total number of rotations for each point
                 'rotation_freedom': 30,          # Increments of rotation (degrees)
+                'try_all_rotations': False,      # Try all possible rotations for given angle
                 'summary_percent': 5,            # Percentage increment to acquire summary data
                 'cut_off': 12,                   # Cut-off radius for interpenetration (Angstrom)
                 'ext_cut_off': 50,               # Cut-off radius for checking extension (Angstrom)

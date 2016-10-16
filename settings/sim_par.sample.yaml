@@ -5,6 +5,7 @@ ext_cut_off: 50
 grid_size: 1
 rotation_limit: 20
 rotation_freedom: 30
+try_all_rotations: false
 force_field: uff
 self_interpenetration: true
 energy_map_atom_list: uniq

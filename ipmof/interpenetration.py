@@ -9,7 +9,7 @@ from random import random
 from glob import glob
 
 from ipmof.crystal import Packing, MOF
-from ipmof.geometry import xyz_rotation, pbc3, add3, sub3
+from ipmof.geometry import xyz_rotation, pbc3, add3, sub3, possible_rotations
 from ipmof.energymap import energy_map_atom_index, import_energy_map
 from ipmof.parameters import export_interpenetration_results
 from ipmof.core import core_interpenetration_list
@@ -90,29 +90,36 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
     # Initialize simulation parameters
     structure_energy_limit = sim_par['structure_energy_limit']
     atom_energy_limit = sim_par['atom_energy_limit']
-    rotation_limit = sim_par['rotation_limit']
     rotation_freedom = sim_par['rotation_freedom']
     summary_percent = sim_par['summary_percent']
+    try_all_rotations = sim_par['try_all_rotations']
     # Get energy map dimensions for trilinear interpolation
     emap_max = [emap[-1][0], emap[-1][1], emap[-1][2]]
     emap_min = [emap[0][0], emap[0][1], emap[0][2]]
     side_length = [emap_max[0] - emap_min[0] + 1, emap_max[1] - emap_min[1] + 1, emap_max[2] - emap_min[2] + 1]
     x_length, y_length = int(side_length[1] * side_length[2]), int(side_length[2])
 
+    if try_all_rotations:
+        all_rot_degrees = possible_rotations(sim_par['rotation_freedom'])
+        rotation_limit = len(all_rot_degrees)
+        sim_par['rotation_limit'] = rotation_limit
+    else:
+        rotation_limit = sim_par['rotation_limit']
+
     initial_coors = initial_coordinates(base_mof, emap, atom_list, atom_energy_limit)
     trial_limit = len(initial_coors) * rotation_limit
+    div = round(trial_limit / (100 / summary_percent))
     rot_freedom = 360 / rotation_freedom
     # omitted_coordinates = len(emap) - len(initial_coors)
 
-    div = round(trial_limit / (100 / summary_percent))
     summary = {'percent': [], 'structure_count': [], 'trial_count': []}
     new_structures = []
-
     abort_ip = False
     mobile_mof_length = len(mobile_mof)
     structure_count = 0
     structure_total_energy = 0
     initial_coor_index = 0
+    rotation_index = 0
 
     # Interpenetration trial loop for different positions and orientations
     for t in range(trial_limit):
@@ -124,9 +131,6 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                 # If the interpenetration is just starting select rotation angles
                 if idx == 0:
                     # Determine random angles for rotation in 3D space
-                    x_angle = 2 * math.pi * math.floor(random() * rot_freedom) / rot_freedom
-                    y_angle = 2 * math.pi * math.floor(random() * rot_freedom) / rot_freedom
-                    z_angle = 2 * math.pi * math.floor(random() * rot_freedom) / rot_freedom
 
                     # Determine first point for interpenetrating structure
                     if t % rotation_limit == 0:
@@ -134,7 +138,15 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
                         x_angle, y_angle, z_angle = [0, 0, 0]
                         first_point = initial_coors[initial_coor_index]
                         initial_coor_index += 1
+                        rotation_index = 0
+                    elif try_all_rotations:
+                        x_angle, y_angle, z_angle = all_rot_degrees[rotation_index]
+                    else:
+                        x_angle = 2 * math.pi * math.floor(random() * rot_freedom) / rot_freedom
+                        y_angle = 2 * math.pi * math.floor(random() * rot_freedom) / rot_freedom
+                        z_angle = 2 * math.pi * math.floor(random() * rot_freedom) / rot_freedom
 
+                    rotation_index += 1
                     # Rotate first atom of the mobile MOF
                     atom_name = mobile_mof.atom_names[idx]
                     rot_coor = mobile_mof.atom_coors[idx]
@@ -300,14 +312,14 @@ def run_interpenetration(interpenetration_path, sim_par, sim_dir):
         - Performs collision check by extending interpenetrating structure
         - Saves requested structure files
     """
-    ip_start = time.time()
-    emap_path, base_mof_path, mobile_mof_path = interpenetration_path
-    base_mof = MOF(base_mof_path)
-    mobile_mof = MOF(mobile_mof_path)
-    atom_list, emap = import_energy_map(emap_path)
-
+    # Initialize interpenetration ------------------------------------------------------------------
+    ip_start = time.time()                                                      # Get start time
+    emap_path, base_mof_path, mobile_mof_path = interpenetration_path           # Read file paths
+    base_mof = MOF(base_mof_path)                                               # Initialize MOF1
+    mobile_mof = MOF(mobile_mof_path)                                           # Initialize MOF2
+    atom_list, emap = import_energy_map(emap_path)                              # Read energy map
+    # Run Interpenetration
     summary, new_structures = check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list)
-
     # Create export directory ------------------=-------------------------------------------
     if sim_par['directory_separation']:
         export_dir = os.path.join(sim_dir['export_dir'], base_mof.name[0], base_mof.name + '_' + mobile_mof.name)
@@ -316,7 +328,6 @@ def run_interpenetration(interpenetration_path, sim_par, sim_dir):
     if os.path.exists(export_dir):
         shutil.rmtree(export_dir)
     os.makedirs(export_dir)
-
     structure_info = [{'S1': base_mof.name, 'S2': mobile_mof.name, 'Structures': len(new_structures)}]
     # Export Min Energy Structures ---------------------------------------------------------
     if len(new_structures) > 0:
@@ -340,6 +351,7 @@ def run_interpenetration(interpenetration_path, sim_par, sim_dir):
             if export_index < sim_par['export_structures']:
                 export_structures(sim_par, base_mof, mobile_mof, min_energy_structure, emap, atom_list, export_index, export_dir)
 
+    # Export results -------------------------------------------------------------------------------
     ip_end = time.time()
     summary['time'] = ip_end - ip_start
     summary['pid'] = os.getpid()
