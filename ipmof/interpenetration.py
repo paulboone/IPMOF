@@ -89,8 +89,8 @@ def check_interpenetration(sim_par, base_mof, mobile_mof, emap, atom_list):
     """
     # Initialize simulation parameters
     structure_energy_limit = sim_par['structure_energy_limit']
-    # atom_energy_limit = sim_par['atom_energy_limit']
-    atom_energy_limit = sim_par['energy_density_limit'] * mobile_mof.ucv
+    atom_energy_limit = sim_par['atom_energy_limit']
+    # atom_energy_limit = sim_par['energy_density_limit'] * mobile_mof.ucv
     energy_density_limit = sim_par['energy_density_limit']
     rotation_freedom = sim_par['rotation_freedom']
     summary_percent = sim_par['summary_percent']
