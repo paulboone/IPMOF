@@ -53,6 +53,9 @@ def summarize_results(results_dir, dir_sep=False, table=True, full=False, sortby
     """
     Summarize interpenetration results in a given directory and export summary file.
     Optional arguments:
+     - dir_sep (True or False):
+        must be True if directory separation is used for exporting results
+
      - table (True or False):
         generate table for min. energy of each MOF combination
 
@@ -72,6 +75,11 @@ def summarize_results(results_dir, dir_sep=False, table=True, full=False, sortby
     hetero_structures = 0
     combination_list = []
 
+    analysis_path = os.path.join(results_dir, 'ipmof_summary.txt')
+    if os.path.exists(analysis_path):
+        os.remove(analysis_path)
+        print('Previous summary removed...')
+
     if dir_sep:
         for dir_letter in os.listdir(results_dir):
             for combination in os.listdir(os.path.join(results_dir, dir_letter)):
@@ -89,6 +97,7 @@ def summarize_results(results_dir, dir_sep=False, table=True, full=False, sortby
             ip_count['no_res'] += 1
         else:
             sim_par, structure_info, summary = read_interpenetration_results(results_path)
+            sim_time = summary['time']
             mof_names = structure_info[0]['S1'] + ' + ' + structure_info[0]['S2']
             num_of_structures = structure_info[0]['Structures']
             total_num_of_structures += num_of_structures
@@ -109,15 +118,23 @@ def summarize_results(results_dir, dir_sep=False, table=True, full=False, sortby
                     ip_count['hetero'] += 1
                     hetero_structures += num_of_structures
                 if table and not full:
-                    table_lines.append([mof_names, num_of_structures, min_energy, collision, rotation])
+                    table_lines.append([mof_names, num_of_structures, min_energy, collision, rotation, sim_time])
             else:
                 ip_count['no_structure'] += 1
                 min_energy = collision = rotation = ' - - - '
             if table and full:
-                table_lines.append([mof_names, num_of_structures, min_energy, collision, rotation])
+                table_lines.append([mof_names, num_of_structures, min_energy, collision, rotation, sim_time])
 
     ip_count['total'] = ip_count['hetero_total'] + ip_count['homo_total']
     ip_count['structure'] = ip_count['hetero'] + ip_count['homo']
+
+    time_list = [float(i[5]) for i in table_lines]
+    tot_time_s = sum(time_list)
+    avg_time = round(tot_time_s / len(time_list), 2)
+
+    minutes, seconds = divmod(tot_time_s, 60)
+    hours, minutes = divmod(minutes, 60)
+    tot_time = "%d:%02d:%02d" % (hours, minutes, seconds)
 
     sdr = round(ip_count['structure'] / ip_count['total'] * 100, 2)
     sdr_homo_t = round(ip_count['homo'] / ip_count['total'] * 100, 2)
@@ -128,51 +145,48 @@ def summarize_results(results_dir, dir_sep=False, table=True, full=False, sortby
         sdr_homo_i = '---'
         sdpt_homo_t = '---'
     else:
-        sdr_homo_i = round(ip_count['homo'] / ip_count['homo_total'] * 100, 2)
-        sdpt_homo_t = round(homo_structures / ip_count['homo_total'], 2)
+        sdr_homo_i = str(round(ip_count['homo'] / ip_count['homo_total'] * 100, 2))
+        sdpt_homo_t = str(round(homo_structures / ip_count['homo_total'], 2))
 
     if ip_count['hetero_total'] == 0:
         sdr_hetero_i = '---'
         sdpt_hetero_t = '---'
     else:
-        sdr_hetero_i = round(ip_count['hetero'] / ip_count['hetero_total'] * 100, 2)
-        sdpt_hetero_t = round(hetero_structures / ip_count['hetero_total'], 2)
+        sdr_hetero_i = str(round(ip_count['hetero'] / ip_count['hetero_total'] * 100, 2))
+        sdpt_hetero_t = str(round(hetero_structures / ip_count['hetero_total'], 2))
 
     if ip_count['hetero'] == 0:
         sdpt_hetero_i = '---'
     else:
-        sdpt_hetero_i = round(hetero_structures / ip_count['hetero'], 2)
+        sdpt_hetero_i = str(round(hetero_structures / ip_count['hetero'], 2))
 
     if ip_count['homo'] == 0:
         sdpt_homo_i = '---'
     else:
-        sdpt_homo_i = round(homo_structures / ip_count['homo'], 2)
+        sdpt_homo_i = str(round(homo_structures / ip_count['homo'], 2))
 
-    analysis_text = 'Total MOF combinations:  ' + str(ip_count['total'])
-    analysis_text += '\tFailed jobs:  ' + str(ip_count['no_res']) + '\n'
-    analysis_text += '\tHetero:  ' + str(ip_count['hetero_total'])
-    analysis_text += '\tHomo:  ' + str(ip_count['homo_total']) + '\n'
-    analysis_text += '\nMOF combinations with structures:  ' + str(ip_count['structure']) + '\n'
-    analysis_text += '\tHetero:  ' + str(ip_count['hetero']) + '\tHomo:  ' + str(ip_count['homo']) + '\n'
-    analysis_text += '\nStructure discovery success (%):  ' + str(sdr) + '\n'
-    analysis_text += '\tAmong all trials:\n'
-    analysis_text += '\t\tHetero:  ' + str(sdr_hetero_t) + '\tHomo:  ' + str(sdr_homo_t) + '\n'
+    analysis_text = 'Total MOF combinations:  %i\tFailed jobs:  %i\n' % (ip_count['total'], ip_count['no_res'])
+    analysis_text += '\tHetero: %i\tHomo: %i\n' % (ip_count['hetero_total'], ip_count['homo_total'])
+    analysis_text += '\nTotal time: %s (%.2f s)\tAverage time: %.2f s\n' % (tot_time, tot_time_s, avg_time)
+    analysis_text += '\nMOF combinations with structures:  %i\n' % ip_count['structure']
+    analysis_text += '\tHetero:  %i\tHomo: %i\n' % (ip_count['hetero'], ip_count['homo'])
+    analysis_text += '\nStructure discovery success (per cent):  %.2f\n\tAmong all trials:\n' % sdr
+    analysis_text += '\t\tHetero:  %s\tHomo: %s\n' % (sdr_hetero_t, sdr_homo_t)
     analysis_text += '\tAmong individual trials:\n'
-    analysis_text += '\t\tHetero:  ' + str(sdr_hetero_i) + '\tHomo:  ' + str(sdr_homo_i) + '\n'
-    analysis_text += '\nTotal number of structures discovered:  ' + str(total_num_of_structures) + '\n'
-    analysis_text += '\tHetero:  ' + str(hetero_structures) + '\tHomo:  ' + str(homo_structures) + '\n'
-    analysis_text += '\nStructures discovered per trial (avg):  ' + str(sdpt) + '\n'
+    analysis_text += '\t\tHetero:  %s\tHomo: %s\n' % (sdr_hetero_i, sdr_homo_i)
+    analysis_text += '\nTotal number of structures discovered:  %i\n' % total_num_of_structures
+    analysis_text += '\tHetero:  %i\tHomo: %i\n' % (hetero_structures, homo_structures)
+    analysis_text += '\nStructures discovered per trial (avg):  %.2f\n' % sdpt
     analysis_text += '\tAmong all trials of same type:\n'
-    analysis_text += '\t\tHetero:  ' + str(sdpt_hetero_t) + '\tHomo:  ' + str(sdpt_homo_t) + '\n'
+    analysis_text += '\t\tHetero:  %s\tHomo: %s\n' % (sdpt_hetero_t, sdpt_homo_t)
     analysis_text += '\tAmong successful trials of same type:\n'
-    analysis_text += '\t\tHetero:  ' + str(sdpt_hetero_i) + '\tHomo:  ' + str(sdpt_homo_i) + '\n\n'
+    analysis_text += '\t\tHetero:  %s\tHomo: %s\n\n' % (sdpt_hetero_i, sdpt_homo_i)
 
-    analysis_path = os.path.join(results_dir, 'ipmof_summary.txt')
     with open(analysis_path, 'w') as a:
         a.write(analysis_text)
 
         if table:
-            header = ['MOF Combination', 'Num of Structures', 'Min Energy', 'Collision', 'Rotation']
+            header = ['MOF Combination', 'Num of Structures', 'Min Energy', 'Collision', 'Rotation', 'Time']
             if sortby == 'structure':
                 sort_key = 1
             elif sortby == 'energy':
