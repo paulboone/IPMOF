@@ -2,6 +2,7 @@
 __pycache__
 results
 settings/sjs.yaml
+settings/sjs.yaml~
 logs
 .sjs_running
 settings/sim_par.yaml
