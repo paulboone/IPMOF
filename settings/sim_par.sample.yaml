@@ -3,6 +3,7 @@ structure_energy_limit: 100000000.0
 energy_density_limit: 1.0
 cut_off: 12
 ext_cut_off: 50
+check_extension: True
 grid_size: 1
 rotation_limit: 20
 rotation_freedom: 30

@@ -116,7 +116,10 @@ def summarize_results(results_dir, summary_dir=None, dir_sep=False, table=True, 
 
             if num_of_structures > 0:
                 min_energy = structure_info[1]['energy']
-                collision = structure_info[1]['collision']['exist']
+                if structure_info[1]['collision'] is not None:
+                    collision = structure_info[1]['collision']['exist']
+                else:
+                    collision = None
                 rotation = structure_info[1]['rotation']
                 if structure_info[0]['S1'] == structure_info[0]['S2']:
                     ip_count['homo'] += 1

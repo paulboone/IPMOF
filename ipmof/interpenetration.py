@@ -337,13 +337,15 @@ def run_interpenetration(interpenetration_path, sim_par, sim_dir):
     if len(new_structures) > 0:
 
         export_count = min(len(new_structures), sim_par['report_structures'])
+        sorted_structures = sorted(new_structures, key=lambda k: k['energy'])
         for export_index in range(export_count):
             # Get minimum energy structure by sorting total structure energies
-            min_energy_structure = sorted(new_structures, key=lambda k: k['energy'])[export_index]
-
-            # Check for collision in the extended unitcell of new structure and energy map
-            collision = check_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
-
+            min_energy_structure = sorted_structures[export_index]
+            if sim_par['check_extension']:
+                # Check for collision in the extended unitcell of new structure and energy map
+                collision = check_extension(sim_par, base_mof, mobile_mof, emap, atom_list, min_energy_structure)
+            else:
+                collision = None
             # Record structure information -------------------------------------------------
             # Float is used to convert values to numbers for proper storage with yaml format
             structure_info.append({'energy': float(round(min_energy_structure['energy'], 3)),

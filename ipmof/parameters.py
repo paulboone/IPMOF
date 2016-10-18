@@ -13,6 +13,7 @@ sim_par_data = {'structure_energy_limit': 1E8,   # Maximum allowed potential ene
                 'summary_percent': 5,            # Percentage increment to acquire summary data
                 'cut_off': 12,                   # Cut-off radius for interpenetration (Angstrom)
                 'ext_cut_off': 50,               # Cut-off radius for checking extension (Angstrom)
+                'check_extension': True,         # Check extended unit cells for collisions
                 'grid_size': 1,                  # Grid size for potential energy map (Angstrom)
                 'force_field': 'uff',            # Force field selection for LJ ('uff' or 'dre')
                 'core_database': False,          # Use CoRE database information or not
