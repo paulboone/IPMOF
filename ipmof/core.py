@@ -134,7 +134,7 @@ def core_interpenetration_list(sim_dir, limit=math.inf):
     emap_dir = sim_dir['energy_map_dir']
     mof_dir = sim_dir['mof_dir']
     interpenetration_list = []
-    for mof_index, mof in mof_list:
+    for mof in mof_list:
         emap_path = os.path.join(emap_dir, "%s_emap.npy" % mof[0])
         emap_mof_path = os.path.join(mof_dir, "%s.cif" % mof[0])
         ip_mof_path = os.path.join(mof_dir, "%s.cif" % mof[1])
