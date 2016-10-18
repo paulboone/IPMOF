@@ -1,6 +1,6 @@
-atom_energy_limit: 100000.0
-structure_energy_limit: 1000000.0
-energy_density_limit: 10.0
+atom_energy_limit: 100000000.0
+structure_energy_limit: 100000000.0
+energy_density_limit: 1.0
 cut_off: 12
 ext_cut_off: 50
 grid_size: 1

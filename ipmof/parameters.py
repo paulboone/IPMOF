@@ -4,9 +4,9 @@ import os
 import yaml
 
 # Simulation Parameters Data:
-sim_par_data = {'structure_energy_limit': 1E6,   # Maximum allowed potential energy for structure
-                'atom_energy_limit': 1E6,        # Maximum allowed potential energy for atom
-                'energy_density_limit': 1E1,        # Maximum allowed potential energy for atom
+sim_par_data = {'structure_energy_limit': 1E8,   # Maximum allowed potential energy for structure
+                'atom_energy_limit': 1E8,        # Maximum allowed potential energy for atom
+                'energy_density_limit': 1.0,     # Maximum allowed potential energy for atom
                 'rotation_limit': 20,            # Total number of rotations for each point
                 'rotation_freedom': 30,          # Increments of rotation (degrees)
                 'try_all_rotations': False,      # Try all possible rotations for given angle
@@ -16,6 +16,7 @@ sim_par_data = {'structure_energy_limit': 1E6,   # Maximum allowed potential ene
                 'grid_size': 1,                  # Grid size for potential energy map (Angstrom)
                 'force_field': 'uff',            # Force field selection for LJ ('uff' or 'dre')
                 'core_database': False,          # Use CoRE database information or not
+                'core_limit': 1000,              # Number of MOF combinations to select from CoRE database
                 'energy_map_atom_list': 'uniq',  # Atom list for energy map ('full', 'uniq', 'dummy', 'qnd')
                 'energy_map_type': 'numpy',      # Energy map file format ('numpy' or 'yaml')
                 'self_interpenetration': True,   # Test for homo-interpenetration or not

@@ -376,7 +376,10 @@ def get_interpenetration_list(sim_par, sim_dir):
     Format: interpenetration_list = {'emap_path': [], 'emap_mof_path': [], 'ip_mof_path': []}
     """
     if sim_par['core_database']:
-        interpenetration_list = core_interpenetration_list(sim_dir)
+        if sim_par['core_limit'] is not None:
+            interpenetration_list = core_interpenetration_list(sim_dir, limit=sim_par['core_limit'])
+        else:
+            interpenetration_list = core_interpenetration_list(sim_dir)
     else:
         mof_path_list = os.listdir(sim_dir['mof_dir'])
         mof_path_list = [os.path.join(sim_dir['mof_dir'], path) for path in mof_path_list]

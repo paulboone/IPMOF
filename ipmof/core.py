@@ -5,6 +5,7 @@ import os
 
 import xlrd
 import yaml
+import math
 
 
 def core_mof_properties(core_file_path):
@@ -100,33 +101,40 @@ def core_mof_dir(sorted_mofs, core_mof_dir):
     return mof_dirs
 
 
-def core_mof_vf_list(target_vf, vf_list_path):
+def core_mof_vf_list(target_vf, vf_list_path, limit=math.inf):
     """ Generate MOF combination list from void fraction values """
     core_vf = yaml.load(open(vf_list_path, 'r'))
     vf_mofs = []
     count = 0
     vf_count = 0
+    list_complete = False
     print('Reading CoRE void fraction list...')
     for mof1, vf1 in enumerate(core_vf):
-        for mof2, vf2 in enumerate(core_vf):
-            if mof2 >= mof1:
-                count += 1
-                if vf1[1] + vf2[1] >= target_vf:
-                    vf_count += 1
-                    vf_mofs.append([vf1[0], vf2[0], vf1[1] + vf2[1]])
-                    print("\rCounting MOF combinations with total Vf > %d | %d / %d selected" % (target_vf, vf_count, count), end="")
+        if not list_complete:
+            for mof2, vf2 in enumerate(core_vf):
+                if mof2 >= mof1:
+                    count += 1
+                    if vf1[1] + vf2[1] >= target_vf:
+                        if vf_count < limit:
+                            vf_mofs.append([vf1[0], vf2[0], vf1[1] + vf2[1]])
+                            vf_count += 1
+                        else:
+                            break
+                            list_complete = True
+                        # print("\rCounting MOF combinations with total Vf > %d | %d / %d selected" % (target_vf, vf_count, count), end="")
+    print("MOF combinations with Vf > %d : %d / %d selected. Limit: %.0f" % (target_vf, vf_count, count, limit), end="")
 
     return vf_mofs
 
 
-def core_interpenetration_list(sim_dir):
+def core_interpenetration_list(sim_dir, limit=math.inf):
     """ Generate interpenetration list from a given MOF combination list """
     vf_list_path = os.path.join(sim_dir['main_dir'], 'doc', 'core_mof_vf_list.yaml')
-    mof_list = core_mof_vf_list(1.0, vf_list_path)
+    mof_list = core_mof_vf_list(1.0, vf_list_path, limit=limit)
     emap_dir = sim_dir['energy_map_dir']
     mof_dir = sim_dir['mof_dir']
     interpenetration_list = []
-    for mof in mof_list:
+    for mof_index, mof in mof_list:
         emap_path = os.path.join(emap_dir, "%s_emap.npy" % mof[0])
         emap_mof_path = os.path.join(mof_dir, "%s.cif" % mof[0])
         ip_mof_path = os.path.join(mof_dir, "%s.cif" % mof[1])
