@@ -89,9 +89,10 @@ def summarize_results(results_dir, summary_dir=None, dir_sep=False, table=True, 
 
     if dir_sep:
         for dir_letter in os.listdir(results_dir):
-            for combination in os.listdir(os.path.join(results_dir, dir_letter)):
-                combination_path = os.path.join(results_dir, dir_letter, combination)
-                combination_list.append(combination_path)
+            if os.path.isdir(os.path.join(results_dir, dir_letter)):
+                for combination in os.listdir(os.path.join(results_dir, dir_letter)):
+                    combination_path = os.path.join(results_dir, dir_letter, combination)
+                    combination_list.append(combination_path)
     else:
         combination_list = os.listdir(results_dir)
         combination_list = [os.path.join(results_dir, c) for c in combination_list]
@@ -205,3 +206,45 @@ def summarize_results(results_dir, summary_dir=None, dir_sep=False, table=True, 
                 sort_key = 3
             sorted_table = sorted(table_lines, key=lambda x: x[sort_key], reverse=True)
             a.write(tabulate(sorted_table, headers=header))
+
+
+def get_progress(results_dir, export_dir=None, dir_sep=False):
+    """
+    Get progress for number of simulations finished.
+    """
+
+    # Choose which directory to export file`
+    if export_dir is not None and os.path.isdir(export_dir):
+        progress_path = os.path.join(export_dir, 'ipmof_progress.txt')
+    else:
+        progress_path = os.path.join(results_dir, 'ipmof_progress.txt')
+
+    if os.path.exists(progress_path):
+        os.remove(progress_path)
+        print('Previous progree file removed...')
+
+    table = []
+    letter_count = 0
+    combination_count = 0
+    if dir_sep:
+        dir_list = os.listdir(results_dir)
+        for dir_letter in dir_list:
+            if os.path.isdir(os.path.join(results_dir, dir_letter)):
+                letter_count += 1
+                combination_list = os.listdir(os.path.join(results_dir, dir_letter))
+                combination_count += len(combination_list)
+                table.append([dir_letter, len(combination_list), letter_count, combination_count])
+    else:
+        combination_list = os.listdir(results_dir)
+        combination_count = len(combination_list)
+        table.append([results_dir, len(combination_list), 1, combination_count])
+
+    header = ['Dir Letter', 'MOF Combinations', 'Dir Count', 'Combination Count']
+    sorted_table = sorted(table, key=lambda x: x[1], reverse=True)
+    sorted_table = [[i[0], i[1]] for i in sorted_table]
+
+    with open(progress_path, 'w') as p:
+        p.write('Total %i combinations in %i directories.\n\n' % (combination_count, letter_count))
+        p.write(tabulate(table, headers=header))
+        p.write('\n\nTabel with directories sorted according to the number of combinations:\n\n')
+        p.write(tabulate(sorted_table, headers=header[:2]))
