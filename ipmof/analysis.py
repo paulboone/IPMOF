@@ -49,13 +49,10 @@ def regenerate_structures(results_dir, colorify=True, file_format='cif', num=5):
                    export_dir, colorify=colorify, index=s_idx, format=file_format)
 
 
-def summarize_results(results_dir, summary_dir=None, dir_sep=False, table=True, full=False, sortby='structure'):
+def summarize_results(results_dir, summary_path, dir_sep=False, table=True, full=False, sortby='structure'):
     """
     Summarize interpenetration results in a given directory and export summary file.
     Optional arguments:
-     - summary_dir (directory):
-        directory to export the summary file
-
      - dir_sep (True or False):
         must be True if directory separation is used for exporting results
 
@@ -78,13 +75,8 @@ def summarize_results(results_dir, summary_dir=None, dir_sep=False, table=True, 
     hetero_structures = 0
     combination_list = []
 
-    if summary_dir is not None and os.path.isdir(summary_dir):
-        analysis_path = os.path.join(summary_dir, 'ipmof_summary.txt')
-    else:
-        analysis_path = os.path.join(results_dir, 'ipmof_summary.txt')
-
-    if os.path.exists(analysis_path):
-        os.remove(analysis_path)
+    if os.path.exists(summary_path):
+        os.remove(summary_path)
         print('Previous summary removed...')
 
     if dir_sep:
@@ -193,7 +185,7 @@ def summarize_results(results_dir, summary_dir=None, dir_sep=False, table=True, 
     analysis_text += '\tAmong successful trials of same type:\n'
     analysis_text += '\t\tHetero:  %s\tHomo: %s\n\n' % (sdpt_hetero_i, sdpt_homo_i)
 
-    with open(analysis_path, 'w') as a:
+    with open(summary_path, 'w') as a:
         a.write(analysis_text)
 
         if table:
