@@ -69,11 +69,12 @@ def summarize_results(results_dir, summary_path, dir_sep=False, table=True, full
     """
     total_num_of_structures = 0
     table_lines = []
-    no_results = []
-    ip_count = dict(homo=0, hetero=0, homo_total=0, hetero_total=0, no_res=0, no_structure=0)
+    ip_count = dict(homo=0, hetero=0, homo_total=0, hetero_total=0, no_res=0, no_structure=0, err=0)
     homo_structures = 0
     hetero_structures = 0
     combination_list = []
+    error_messages = ''
+    no_results = ''
 
     if os.path.exists(summary_path):
         os.remove(summary_path)
@@ -89,15 +90,23 @@ def summarize_results(results_dir, summary_path, dir_sep=False, table=True, full
         combination_list = os.listdir(results_dir)
         combination_list = [os.path.join(results_dir, c) for c in combination_list]
 
+    sim_time_list = []
     for mof_combination in combination_list:
         results_path = os.path.join(mof_combination, 'results.yaml')
 
         if not os.path.isfile(results_path):
-            no_results.append(os.path.basename(mof_combination))
+            no_results += '%s\n' % os.path.basename(mof_combination)
             ip_count['no_res'] += 1
         else:
-            sim_par, structure_info, summary = read_interpenetration_results(results_path)
+            try:
+                sim_par, structure_info, summary = read_interpenetration_results(results_path)
+                pass
+            except Exception as e:
+                ip_count['err'] += 1
+                error_messages += '%i. %s -> Error: %s\n' % (ip_count['err'], results_path, e)
+                continue
             sim_time = summary['time']
+            sim_time_list.append(float(sim_time))
             mof_names = structure_info[0]['S1'] + ' + ' + structure_info[0]['S2']
             num_of_structures = structure_info[0]['Structures']
             total_num_of_structures += num_of_structures
@@ -130,65 +139,67 @@ def summarize_results(results_dir, summary_path, dir_sep=False, table=True, full
 
     ip_count['total'] = ip_count['hetero_total'] + ip_count['homo_total']
     ip_count['structure'] = ip_count['hetero'] + ip_count['homo']
+    analysis_text = 'Total MOF combinations:  %i\n' % ip_count['total']
+    analysis_text += 'Failed jobs:  %i\n' % (ip_count['err'] + ip_count['no_res'])
+    analysis_text += '\tNo results file: %i\tCorrupt results file: %i' % (ip_count['no_res'], ip_count['err'])
 
-    time_list = [float(i[5]) for i in table_lines]
-    tot_time_s = sum(time_list)
-    avg_time = round(tot_time_s / len(time_list), 2)
+    if len(sim_time_list) > 0:
+        tot_time_s = sum(sim_time_list)
+        avg_time = round(tot_time_s / len(sim_time_list), 2)
 
-    minutes, seconds = divmod(tot_time_s, 60)
-    hours, minutes = divmod(minutes, 60)
-    tot_time = "%d:%02d:%02d" % (hours, minutes, seconds)
+        minutes, seconds = divmod(tot_time_s, 60)
+        hours, minutes = divmod(minutes, 60)
+        tot_time = "%d:%02d:%02d" % (hours, minutes, seconds)
 
-    sdr = round(ip_count['structure'] / ip_count['total'] * 100, 2)
-    sdr_homo_t = round(ip_count['homo'] / ip_count['total'] * 100, 2)
-    sdr_hetero_t = round(ip_count['hetero'] / ip_count['total'] * 100, 2)
-    sdpt = round(total_num_of_structures / ip_count['total'], 2)
+        sdr = round(ip_count['structure'] / ip_count['total'] * 100, 2)
+        sdr_homo_t = round(ip_count['homo'] / ip_count['total'] * 100, 2)
+        sdr_hetero_t = round(ip_count['hetero'] / ip_count['total'] * 100, 2)
+        sdpt = round(total_num_of_structures / ip_count['total'], 2)
 
-    if ip_count['homo_total'] == 0:
-        sdr_homo_i = '---'
-        sdpt_homo_t = '---'
-    else:
-        sdr_homo_i = str(round(ip_count['homo'] / ip_count['homo_total'] * 100, 2))
-        sdpt_homo_t = str(round(homo_structures / ip_count['homo_total'], 2))
+        if ip_count['homo_total'] == 0:
+            sdr_homo_i = '---'
+            sdpt_homo_t = '---'
+        else:
+            sdr_homo_i = str(round(ip_count['homo'] / ip_count['homo_total'] * 100, 2))
+            sdpt_homo_t = str(round(homo_structures / ip_count['homo_total'], 2))
 
-    if ip_count['hetero_total'] == 0:
-        sdr_hetero_i = '---'
-        sdpt_hetero_t = '---'
-    else:
-        sdr_hetero_i = str(round(ip_count['hetero'] / ip_count['hetero_total'] * 100, 2))
-        sdpt_hetero_t = str(round(hetero_structures / ip_count['hetero_total'], 2))
+        if ip_count['hetero_total'] == 0:
+            sdr_hetero_i = '---'
+            sdpt_hetero_t = '---'
+        else:
+            sdr_hetero_i = str(round(ip_count['hetero'] / ip_count['hetero_total'] * 100, 2))
+            sdpt_hetero_t = str(round(hetero_structures / ip_count['hetero_total'], 2))
 
-    if ip_count['hetero'] == 0:
-        sdpt_hetero_i = '---'
-    else:
-        sdpt_hetero_i = str(round(hetero_structures / ip_count['hetero'], 2))
+        if ip_count['hetero'] == 0:
+            sdpt_hetero_i = '---'
+        else:
+            sdpt_hetero_i = str(round(hetero_structures / ip_count['hetero'], 2))
 
-    if ip_count['homo'] == 0:
-        sdpt_homo_i = '---'
-    else:
-        sdpt_homo_i = str(round(homo_structures / ip_count['homo'], 2))
+        if ip_count['homo'] == 0:
+            sdpt_homo_i = '---'
+        else:
+            sdpt_homo_i = str(round(homo_structures / ip_count['homo'], 2))
 
-    analysis_text = 'Total MOF combinations:  %i\tFailed jobs:  %i\n' % (ip_count['total'], ip_count['no_res'])
-    analysis_text += '\tHetero: %i\tHomo: %i\n' % (ip_count['hetero_total'], ip_count['homo_total'])
-    analysis_text += '\nTotal time: %s (%.2f s)\tAverage time: %.2f s\n' % (tot_time, tot_time_s, avg_time)
-    analysis_text += '\nMOF combinations with structures:  %i\n' % ip_count['structure']
-    analysis_text += '\tHetero:  %i\tHomo: %i\n' % (ip_count['hetero'], ip_count['homo'])
-    analysis_text += '\nStructure discovery success (per cent):  %.2f\n\tAmong all trials:\n' % sdr
-    analysis_text += '\t\tHetero:  %s\tHomo: %s\n' % (sdr_hetero_t, sdr_homo_t)
-    analysis_text += '\tAmong individual trials:\n'
-    analysis_text += '\t\tHetero:  %s\tHomo: %s\n' % (sdr_hetero_i, sdr_homo_i)
-    analysis_text += '\nTotal number of structures discovered:  %i\n' % total_num_of_structures
-    analysis_text += '\tHetero:  %i\tHomo: %i\n' % (hetero_structures, homo_structures)
-    analysis_text += '\nStructures discovered per trial (avg):  %.2f\n' % sdpt
-    analysis_text += '\tAmong all trials of same type:\n'
-    analysis_text += '\t\tHetero:  %s\tHomo: %s\n' % (sdpt_hetero_t, sdpt_homo_t)
-    analysis_text += '\tAmong successful trials of same type:\n'
-    analysis_text += '\t\tHetero:  %s\tHomo: %s\n\n' % (sdpt_hetero_i, sdpt_homo_i)
+        analysis_text += '\tHetero: %i\tHomo: %i\n' % (ip_count['hetero_total'], ip_count['homo_total'])
+        analysis_text += '\nTotal time: %s (%.2f s)\tAverage time: %.2f s\n' % (tot_time, tot_time_s, avg_time)
+        analysis_text += '\nMOF combinations with structures:  %i\n' % ip_count['structure']
+        analysis_text += '\tHetero:  %i\tHomo: %i\n' % (ip_count['hetero'], ip_count['homo'])
+        analysis_text += '\nStructure discovery success (per cent):  %.2f\n\tAmong all trials:\n' % sdr
+        analysis_text += '\t\tHetero:  %s\tHomo: %s\n' % (sdr_hetero_t, sdr_homo_t)
+        analysis_text += '\tAmong individual trials:\n'
+        analysis_text += '\t\tHetero:  %s\tHomo: %s\n' % (sdr_hetero_i, sdr_homo_i)
+        analysis_text += '\nTotal number of structures discovered:  %i\n' % total_num_of_structures
+        analysis_text += '\tHetero:  %i\tHomo: %i\n' % (hetero_structures, homo_structures)
+        analysis_text += '\nStructures discovered per trial (avg):  %.2f\n' % sdpt
+        analysis_text += '\tAmong all trials of same type:\n'
+        analysis_text += '\t\tHetero:  %s\tHomo: %s\n' % (sdpt_hetero_t, sdpt_homo_t)
+        analysis_text += '\tAmong successful trials of same type:\n'
+        analysis_text += '\t\tHetero:  %s\tHomo: %s\n\n' % (sdpt_hetero_i, sdpt_homo_i)
 
     with open(summary_path, 'w') as a:
         a.write(analysis_text)
 
-        if table:
+        if table and len(table_lines) > 0:
             header = ['MOF Combination', 'Num of Structures', 'Min Energy', 'Collision', 'Rotation', 'Time']
             if sortby == 'structure':
                 sort_key = 1
@@ -199,6 +210,8 @@ def summarize_results(results_dir, summary_path, dir_sep=False, table=True, full
             sorted_table = sorted(table_lines, key=lambda x: x[sort_key], reverse=True)
             a.write(tabulate(sorted_table, headers=header))
 
+        a.write('\n\nError messages:\n%s\n%s' % ('-' * 100, error_messages))
+        a.write('\nResults file(s) could not be found in:\n%s\n%s' % ('-' * 100, no_results))
 
 def get_progress(results_dir, export_dir=None, dir_sep=False):
     """
@@ -213,7 +226,7 @@ def get_progress(results_dir, export_dir=None, dir_sep=False):
 
     if os.path.exists(progress_path):
         os.remove(progress_path)
-        print('Previous progree file removed...')
+        print('Previous progress file removed...')
 
     table = []
     letter_count = 0
