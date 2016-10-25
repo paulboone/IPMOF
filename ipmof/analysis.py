@@ -213,12 +213,12 @@ def summarize_results(results_dir, summary_path, dir_sep=False, table=True, full
         a.write('\n\nError messages:\n%s\n%s' % ('-' * 100, error_messages))
         a.write('\nResults file(s) could not be found in:\n%s\n%s' % ('-' * 100, no_results))
 
-def get_progress(results_dir, export_dir=None, dir_sep=False):
+def get_progress(results_dir, export_dir=None, total=None, dir_sep=False):
     """
     Get progress for number of simulations finished.
     """
 
-    # Choose which directory to export file`
+    # Choose which directory to export file
     if export_dir is not None and os.path.isdir(export_dir):
         progress_path = os.path.join(export_dir, 'ipmof_progress.txt')
     else:
@@ -250,6 +250,8 @@ def get_progress(results_dir, export_dir=None, dir_sep=False):
 
     with open(progress_path, 'w') as p:
         p.write('Total %i combinations in %i directories.\n\n' % (combination_count, letter_count))
+        if total is not None:
+            p.write('%i combinations left to go.\n\n' % int(total - combination_count))
         p.write(tabulate(table, headers=header))
-        p.write('\n\nTabel with directories sorted according to the number of combinations:\n\n')
+        p.write('\n\nTable with directories sorted according to the number of combinations:\n\n')
         p.write(tabulate(sorted_table, headers=header[:2]))
