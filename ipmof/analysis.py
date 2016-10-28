@@ -26,7 +26,7 @@ def read_interpenetration_results(results_path):
 
 def regenerate_structures(results_dir, colorify=True, file_format='cif', num=5):
     """
-    Regenerates interenetrated structures from given results.yaml file.
+    Regenerates interpenetrated structures from given results.yaml file.
     """
     results_path = os.path.join(results_dir, 'results.yaml')
     with open(results_path, 'r') as r:
@@ -49,7 +49,7 @@ def regenerate_structures(results_dir, colorify=True, file_format='cif', num=5):
                    export_dir, colorify=colorify, index=s_idx, format=file_format)
 
 
-def summarize_results(results_dir, summary_path, dir_sep=False, table=True, full=False, sortby='structure'):
+def summarize_results(results_dir, summary_path, dir_sep=False, table=True, full=False, format='txt', sortby='structure'):
     """
     Summarize interpenetration results in a given directory and export summary file.
     Optional arguments:
@@ -140,6 +140,7 @@ def summarize_results(results_dir, summary_path, dir_sep=False, table=True, full
     ip_count['total'] = ip_count['hetero_total'] + ip_count['homo_total']
     ip_count['structure'] = ip_count['hetero'] + ip_count['homo']
     analysis_text = 'Total MOF combinations:  %i\n' % ip_count['total']
+    analysis_text += '\tHetero: %i\tHomo: %i\n' % (ip_count['hetero_total'], ip_count['homo_total'])
     analysis_text += 'Failed jobs:  %i\n' % (ip_count['err'] + ip_count['no_res'])
     analysis_text += '\tNo results file: %i\tCorrupt results file: %i' % (ip_count['no_res'], ip_count['err'])
 
@@ -180,7 +181,6 @@ def summarize_results(results_dir, summary_path, dir_sep=False, table=True, full
         else:
             sdpt_homo_i = str(round(homo_structures / ip_count['homo'], 2))
 
-        analysis_text += '\tHetero: %i\tHomo: %i\n' % (ip_count['hetero_total'], ip_count['homo_total'])
         analysis_text += '\nTotal time: %s (%.2f s)\tAverage time: %.2f s\n' % (tot_time, tot_time_s, avg_time)
         analysis_text += '\nMOF combinations with structures:  %i\n' % ip_count['structure']
         analysis_text += '\tHetero:  %i\tHomo: %i\n' % (ip_count['hetero'], ip_count['homo'])
@@ -196,28 +196,45 @@ def summarize_results(results_dir, summary_path, dir_sep=False, table=True, full
         analysis_text += '\tAmong successful trials of same type:\n'
         analysis_text += '\t\tHetero:  %s\tHomo: %s\n\n' % (sdpt_hetero_i, sdpt_homo_i)
 
-    with open(summary_path, 'w') as a:
-        a.write(analysis_text)
+    if table and len(table_lines) > 0:
+        header = ['MOF Combination', 'Num of Structures', 'Min Energy', 'Collision', 'Rotation', 'Time']
+        if sortby == 'structure':
+            sort_key = 1
+        elif sortby == 'energy':
+            sort_key = 2
+        elif sortby == 'collision':
+            sort_key = 3
+        sorted_table = sorted(table_lines, key=lambda x: x[sort_key], reverse=True)
 
+    if format == 'txt' or format == 'both':
+        with open(summary_path, 'w') as a:
+            a.write(analysis_text)
+            if table and len(table_lines) > 0:
+                a.write(tabulate(sorted_table, headers=header))
+            a.write('\n\nError messages:\n%s\n%s' % ('-' * 100, error_messages))
+            a.write('\nResults file(s) could not be found in:\n%s\n%s' % ('-' * 100, no_results))
+
+    if format == 'yaml' or format == 'both' and len(sim_time_list) > 0:
+        summary_data = {'tot_combinations': [ip_count['total'], ip_count['hetero_total'], ip_count['homo_total']],
+                        'tot_no_res': ip_count['no_res'], 'tot_err': ip_count['err'],
+                        'total_time': tot_time_s, 'avg_time': avg_time,
+                        'successful_combinations': [ip_count['structure'], ip_count['hetero'], ip_count['homo']],
+                        'discovery_rate': [sdr, sdr_hetero_i, sdr_homo_i],
+                        'tot_structures': [total_num_of_structures, hetero_structures, homo_structures],
+                        'structure_per_trial': [sdpt, sdpt_hetero_t, sdpt_homo_t]
+                        }
         if table and len(table_lines) > 0:
-            header = ['MOF Combination', 'Num of Structures', 'Min Energy', 'Collision', 'Rotation', 'Time']
-            if sortby == 'structure':
-                sort_key = 1
-            elif sortby == 'energy':
-                sort_key = 2
-            elif sortby == 'collision':
-                sort_key = 3
-            sorted_table = sorted(table_lines, key=lambda x: x[sort_key], reverse=True)
-            a.write(tabulate(sorted_table, headers=header))
+            summary_data['table'] = sorted_table
 
-        a.write('\n\nError messages:\n%s\n%s' % ('-' * 100, error_messages))
-        a.write('\nResults file(s) could not be found in:\n%s\n%s' % ('-' * 100, no_results))
+        yaml_summary_path = '%s.yaml' % os.path.splitext(summary_path)[0]
+        with open(yaml_summary_path, 'w') as f:
+            yaml.dump(summary_data, f)
+
 
 def get_progress(results_dir, export_dir=None, total=None, dir_sep=False):
     """
     Get progress for number of simulations finished.
     """
-
     # Choose which directory to export file
     if export_dir is not None and os.path.isdir(export_dir):
         progress_path = os.path.join(export_dir, 'ipmof_progress.txt')
