@@ -3,7 +3,7 @@ pyyaml
 numpy
 matplotlib
 ase
-mathutils
+# mathutils
 tabulate
 
 ## for PITT HPC integration
